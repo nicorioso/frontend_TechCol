@@ -9,7 +9,7 @@ function App() {
   const [count, setCount] = useState('');
 
   return (
-    <LoginRegisterForms/>
+    <Sidebar/>
   )
 }
 
