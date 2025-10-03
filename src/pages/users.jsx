@@ -1,5 +1,6 @@
 // Users.jsx
 import React, { useState } from 'react';
+import {BrowserRouter as Router, Routes, Rsoute} from 'react-router-dom';
 import Pagination from './pagination.jsx';
 
 // --- Datos de Ejemplo (Alineados con la tabla 'customer' de tu BD) ---
