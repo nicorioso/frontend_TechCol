@@ -1,6 +1,10 @@
 // Users.jsx
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import {BrowserRouter as Router, Routes, Rsoute} from 'react-router-dom';
+=======
+import router from 'next/react'
+>>>>>>> 461345ad1dc803cdced39bde24759ee12cb299a1
 import Pagination from './pagination.jsx';
 
 // --- Datos de Ejemplo (Alineados con la tabla 'customer' de tu BD) ---
@@ -263,6 +267,13 @@ const Users = () => {
         alert(`Usuario ${newUser.customerName} creado con éxito (ID: ${newUser.customerId}).`);
         setIsCreating(false); // Cierra el modal después de crear
     };
+
+    // como puedo invocar este metodo getUsers() para que me traiga los usuarios de la base de datos y no los de initialUsersData?
+    // Podrías usar useEffect para llamar a getUsers() cuando el componente se monte.
+    // Ejemplo:
+    /*
+    useEffect(() => { 
+
 
     const handleSaveEdit = (id, newFormData) => {
         setUsers(users.map(user => 
