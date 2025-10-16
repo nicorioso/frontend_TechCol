@@ -1,16 +1,14 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-import Sidebar from "./layouts/sidebar.jsx";
-import UserDashboard from './pages/user_dashboard.jsx';
-import LoginRegisterForms from "./layouts/login_register_form.jsx";
+import Sidebar from "./layouts/users/sidebar.jsx";
+import UserDashboard from './layouts/users/admin/user_dashboard.jsx';
+import LoginRegisterForms from "./layouts/auth/login_register_form.jsx";
 
-function App() {
+export default function App() {
   const [count, setCount] = useState('');
 
   return (
-    <Sidebar/>
+    <LoginRegisterForms/>
   )
 }
-
-export default App

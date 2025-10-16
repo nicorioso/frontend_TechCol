@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Home, UserRound, Folder, Calendar, FileText, BarChart } from "lucide-react";
-import UserDashboard from "../pages/user_dashboard.jsx";
-import Users from "../pages/users.jsx";
-import Products from "../pages/products.jsx";
+import UserDashboard from "./admin/user_dashboard.jsx";
+import Users from "./admin/users.jsx";
+import Products from "./admin/products.jsx";
+
 // import Pedidos from "../pages/orders.jsx";
 // import Carrito from "../pages/cart.jsx";
 // import Configuraciones from "../pages/settings.jsx";

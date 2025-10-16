@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Send } from "lucide-react";
-import api from "../api/axios";
+import api from "../../api/axios";
 
 export function LoginRegisterForms() {
   const [loginData, setLoginData] = useState({
