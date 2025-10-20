@@ -6,21 +6,13 @@ import api from "../../../api/axios";
 import LoginForm from "../../../components/auth/login/form";
 
 export function LoginLayout() {
-
-  const [darkMode, setDarkMode] = useState(true);
   return (
-<>
-    <div className={darkMode ? "dark" : ""}>
-      <button onClick={() => setDarkMode(!darkMode)}>
-        Cambiar a {darkMode ? "claro" : "oscuro"}
-      </button>
-
-      <main className="bg-white dark:bg-gray-900 text-black dark:text-white">
+    <>
+      <main>
         {/* contenido */}
         <LoginForm/>
       </main>
-    </div>
-</>
+    </>
   );
 }
 

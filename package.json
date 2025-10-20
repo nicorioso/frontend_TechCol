@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.1.12",
     "@tailwindplus/elements": "^1.0.12",
     "axios": "^1.12.2",
+    "cloudinary": "^2.8.0",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

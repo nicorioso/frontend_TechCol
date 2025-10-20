@@ -13,7 +13,6 @@ export const LinkTo = ({ placeholder, pathname }) => {
     );
 };
 
-
 export const LabelLinkTo = ({label, linkPlaceholder, pathname}) =>{
     return (
         <>
