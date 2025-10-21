@@ -1,11 +1,19 @@
-const CardForm = ({content, image, title }) => {
+import {  } from "module";
+import ImageComponent from "../image.jsx";
+
+const CardForm = ({content, title }) => {
     return (
     <>
         {/* Correo */}
         <div className="flex min-h-screen items-center justify-center bg-stone-100 px-4">
             <div className="w-full max-w-lg bg-white rounded-md shadow-lg p-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                    <img className="mx-auto mb-10 h-10 w-auto" alt="Your Company" src={{}} />
+                    <div classNanme="mx-auto mb-10 h-10 w-auto">
+                        <ImageComponent
+                            id="DDtech_logo" altText="DDtech Logo"
+                        />
+
+                    </div>
                 </div>
                 <h2 className="text-center text-2xl font-bold text-gray-200">
                     {title}
