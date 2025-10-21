@@ -10,7 +10,7 @@ const CardForm = ({content, title }) => {
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <div classNanme="mx-auto mb-10 h-10 w-auto">
                         <ImageComponent
-                            id="DDtech_logo" altText="DDtech Logo"
+                            id="TechCol_logo" altText="TechCol_logo"
                         />
 
                     </div>

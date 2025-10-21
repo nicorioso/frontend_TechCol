@@ -20,7 +20,7 @@ export default function LoginForm() {
                         type="password"
                         name="customerPassword"
                         label="Contraseña"
-                        pathname="/auth/register"
+                        pathname="/auth/passwordRecovery"
                         placeholder="Ingresa tu contraseña"
                         linkPlaceholder="¿Olvidaste tu contraseña?"
                     />

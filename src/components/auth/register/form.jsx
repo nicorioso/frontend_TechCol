@@ -1,51 +1,57 @@
 import Button from '../../IU/forms/button';
-import { Input } from "../../IU/forms/input";
-import { LinkTo } from "../../IU/forms/link";
+import { Input, InputDouble } from "../../IU/forms/input";
+import { LinkTo, LabelLinkTo } from "../../IU/forms/link";
+import CardForm from "../../IU/forms/card";
 
 export default function RegisterForm() {
 
     return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900 px-4">
-        <div className="w-full max-w-lg bg-gray-800 rounded-md shadow-lg p-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img className="mx-auto mb-10 h-10 w-auto" src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" />
-            </div>
-                <h2 className="text-center text-2xl font-bold text-gray-200">
-                    Iniciar Sesión
-                </h2>
-            <div className="mt-6">
-                {/* LOGIN FORM */}
+        <CardForm
+        content={
+            <>
                 <form className="space-y-4">
-                    {/* Fila 1: Nombre y Apellido (2 Columnas) */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <InputDouble
+                        label_1="Nombre"
+                        type_1="text"
+                        name_1="name"
+                        placeholder_1="Nombre"
 
-                        <Input
-                            type="email"
-                            name="customerEmail"
-                            label="Correo Electrónico"
-                            placeholder="Ingresa tu correo electrónico"
-                        />
+                        label_2="Apellido"
+                        type_2="text"
+                        name_2="apellido"
+                        placeholder_2="Apellido"
+                    />
+                    <Input
+                        type="email"
+                        name="customerEmail"
+                        label="Correo Electrónico"
+                        placeholder="Ingresa tu correo electrónico"
+                    />
+                    <Input
+                        type="tel"
+                        name="customerPhoneNumber"
+                        label="Número telefonico"
+                        placeholder="+57 304-224-1681"
+                    />
+                    <InputDouble
+                        label_1="Contraseña"
+                        type_1="customerPassword"
+                        name_1="password"
+                        placeholder_1="Contraseña"
 
-                        <Input
-                            type="password"
-                            name="customerPassword"
-                            label="Contraseña"
-                            placeholder="Ingresa tu contraseña"
-                        />
-
-                        <Input
-                            type="password"
-                            name="confirmCustomerPassword"
-                            label="Confirmar Contraseña"
-                            placeholder="Ingresa de nuevo tu contraseña"
-                        />
-
-                        <Button/>
-                        <LinkTo/>
-
-                    </div>
+                        label_2="Confirmar contraseña"
+                        type_2="password"
+                        name_2="confirmPassword"
+                        placeholder_2="Confirmar contraseña"
+                    />
+                    <Button placeholder="Inicia sesión" />
                 </form>
-            </div>
-        </div>
-    </div>
+                <LabelLinkTo
+                    label={"¿Ya tienes una cuenta?"} 
+                    linkPlaceholder={"Iniciar Sesión"} 
+                    pathname={"/auth/login"}
+                />
+            </>
+        }
+    />
 )}
