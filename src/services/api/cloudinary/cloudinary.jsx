@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-(async function() {
+(async function cloudinaryConfig() {
     // Configuration
     cloudinary.config({
         cloud_name: 'dmi0txtoy',
@@ -9,3 +9,5 @@ import { v2 as cloudinary } from 'cloudinary';
     });
 
 });
+
+export default cloudinaryConfig;
