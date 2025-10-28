@@ -14,6 +14,7 @@
     "@tailwindplus/elements": "^1.0.12",
     "axios": "^1.12.2",
     "cloudinary": "^2.8.0",
+    "cors": "^2.8.5",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
