@@ -1,66 +1,123 @@
+import React, { useState } from "react";
 import Button from '../../IU/forms/button';
 import { Input, InputDouble } from "../../IU/forms/input";
 import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
-
+import useAlert from "../../../hooks/alerts/useAlert";
 import useRegister from '../../../hooks/auth/register_hook';
 
 export default function RegisterForm() {
+  const { 
+    formData,
+    loading,
+    handleInputChange,
+    errorMessage,
+    successMessage,
+    registerCustomer
+  } = useRegister();
 
-    const { 
-        formData,
-        loading,
-        handleInputChange,
-        registerCustomer
-     } = useRegister();
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-    return (
-        <CardForm
-        content={
-            <>
-                <form className="space-y-4">
-                    <InputDouble
-                        label_1="Nombre"
-                        type_1="text"
-                        name_1="name"
-                        placeholder_1="Nombre"
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validar que las contraseñas coincidan
+    if (formData.customerPassword !== confirmPassword) {
+      alert('Las contraseñas no coinciden');
+      return;
+    }
+    
+    // Llamar al hook
+    await registerCustomer(e);
+  };
 
-                        label_2="Apellido"
-                        type_2="text"
-                        name_2="apellido"
-                        placeholder_2="Apellido"
-                    />
-                    <Input
-                        type="email"
-                        name="customerEmail"
-                        label="Correo Electrónico"
-                        placeholder="Ingresa tu correo electrónico"
-                    />
-                    <Input
-                        type="tel"
-                        name="customerPhoneNumber"
-                        label="Número telefonico"
-                        placeholder="+57 304-224-1681"
-                    />
-                    <InputDouble
-                        label_1="Contraseña"
-                        type_1="customerPassword"
-                        name_1="password"
-                        placeholder_1="Contraseña"
+  return (
+    <CardForm
+      content={
+        <>
+          {successMessage && (
+            <useAlert
+              type="success" 
+              message={successMessage}
+            />
+          )}
 
-                        label_2="Confirmar contraseña"
-                        type_2="password"
-                        name_2="confirmPassword"
-                        placeholder_2="Confirmar contraseña"
-                    />
-                    <Button placeholder="Inicia sesión" />
-                </form>
-                <LabelLinkTo
-                    label={"¿Ya tienes una cuenta?"} 
-                    linkPlaceholder={"Iniciar Sesión"} 
-                    pathname={"/auth/login"}
-                />
-            </>
-        }
+          {errorMessage && (
+            <useAlert
+              type="error" 
+              message={errorMessage}
+            />
+          )}
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <InputDouble
+              label_1="Nombre"
+              type_1="text"
+              name_1="customerName"
+              placeholder_1="Nombre"
+              value_1={formData.customerName}
+              onChange_1={handleInputChange}
+
+              label_2="Apellido"
+              type_2="text"
+              name_2="customerLastName"
+              placeholder_2="Apellido"
+              value_2={formData.customerLastName}
+              onChange_2={handleInputChange}
+            />
+
+            {/* Email */}
+            <Input
+              type="email"
+              name="customerEmail"
+              label="Correo Electrónico"
+              placeholder="Ingresa tu correo electrónico"
+              value={formData.customerEmail}
+              onChange={handleInputChange}
+            />
+
+            {/* Teléfono */}
+            <Input
+              type="tel"
+              name="customerPhoneNumber"
+              label="Número telefónico"
+              placeholder="+57 304-224-1681"
+              value={formData.customerPhoneNumber}
+              onChange={handleInputChange}
+            />
+
+            {/* Contraseña y Confirmar */}
+            <InputDouble
+              label_1="Contraseña"
+              type_1="password"
+              name_1="customerPassword"
+              placeholder_1="Contraseña"
+              value_1={formData.customerPassword}
+              onChange_1={handleInputChange}
+
+              label_2="Confirmar contraseña"
+              type_2="password"
+              name_2="confirmPassword"
+              placeholder_2="Confirmar contraseña"
+              value_2={confirmPassword}
+              onChange_2={(e) => setConfirmPassword(e.target.value)}
+            />
+
+            {/* Botón de Envío */}
+            <Button
+              placeholder={loading ? 'Registrando...' : 'Registrarse'}
+              disabled={loading}
+            />
+          </form>
+
+          {/* Enlace a Login */}
+          <LabelLinkTo
+            label="¿Ya tienes una cuenta?" 
+            linkPlaceholder="Iniciar Sesión" 
+            pathname="/auth/login"
+          />
+        </>
+      }
     />
-)}
+  );
+}
