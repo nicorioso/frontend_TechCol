@@ -1,9 +1,18 @@
 import Button from '../../IU/forms/button';
 import { Input, InputDouble } from "../../IU/forms/input";
-import { LinkTo, LabelLinkTo } from "../../IU/forms/link";
+import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
 
+import useRegister from '../../../hooks/auth/register_hook';
+
 export default function RegisterForm() {
+
+    const { 
+        formData,
+        loading,
+        handleInputChange,
+        registerCustomer
+     } = useRegister();
 
     return (
         <CardForm

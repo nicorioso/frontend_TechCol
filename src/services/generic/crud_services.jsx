@@ -3,6 +3,8 @@
  * Incluye: GET(todos y por id), PUT, POST, PATCH y DELETE 
  */
 
+import { axiosInstance } from "../api/axios";
+
 import { setupInterceptors } from "../api/interceptors";
 
 class crudService{

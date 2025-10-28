@@ -1,1 +1,1 @@
-export {default as errorHandler} from './error_handler';
+export { errorHandler } from './error_handler.jsx';
