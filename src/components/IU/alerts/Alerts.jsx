@@ -1,18 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 /**
  * Componente de alerta tipo toast (flotante)
  */
-const Alert = ({ type = 'info', message, onClose, duration = 3000 }) => {
+const Alert = ({ type = 'info', message, onClose, duration = 10000, closeable = true }) => {
+  const [isVisible, setIsVisible] = useState(true);
+
   useEffect(() => {
-    if (duration && onClose) {
+    if (duration) {
       const timer = setTimeout(() => {
-        onClose();
+        setIsVisible(false);
+        if (onClose) onClose();
       }, duration);
 
       return () => clearTimeout(timer);
     }
   }, [duration, onClose]);
+
+  if (!isVisible) return null;
 
   const styles = {
     success: 'bg-green-500 text-white',
@@ -28,15 +33,20 @@ const Alert = ({ type = 'info', message, onClose, duration = 3000 }) => {
     info: 'ℹ️'
   };
 
+  const handleClose = () => {
+    setIsVisible(false);
+    if (onClose) onClose();
+  };
+
   return (
     <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
       <div className={`${styles[type]} rounded-lg shadow-lg px-6 py-4 flex items-center space-x-3 max-w-md`}>
         <span className="text-2xl">{icons[type]}</span>
         <p className="font-medium flex-1">{message}</p>
-        {onClose && (
+        {closeable && (
           <button
-            onClick={onClose}
-            className="ml-4 text-white hover:text-gray-200 focus:outline-none"
+            onClick={handleClose}
+            className="ml-4 text-white hover:text-gray-200 focus:outline-none transition-colors"
             aria-label="Cerrar"
           >
             <span className="text-2xl">×</span>

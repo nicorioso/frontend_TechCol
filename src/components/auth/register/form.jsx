@@ -16,16 +16,19 @@ export default function RegisterForm() {
     registerCustomer
   } = useRegister();
 
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validar que las contraseñas coincidan
     if (formData.customerPassword !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden');
+      setPasswordMismatch(true);
       return;
     }
+    
+    // Resetear el error si las contraseñas coinciden
+    setPasswordMismatch(false);
     
     // Llamar al hook
     await registerCustomer(e);
@@ -39,6 +42,8 @@ export default function RegisterForm() {
             <Alert
               type='success'
               message='Bien'
+              duration={10000}
+          
             />
           )}
 
@@ -46,8 +51,18 @@ export default function RegisterForm() {
             <Alert
               type='error'
               message='Mal'
+              duration={10000}
             />
           )}
+
+          {passwordMismatch && (
+            <Alert
+              type='error'
+              message='Las contraseñas no coinciden'
+              duration={10000}
+            />
+          )}
+
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <InputDouble
