@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import CustomerService from '../../services/customer/CustomerService';
 import { getErrorMessage } from '../../services/errors/error_handler';
 
@@ -9,6 +9,7 @@ const useRegister = () => {
     customerEmail: '',
     customerPassword: '',
     customerPhoneNumber: '',
+    confirmPassword: '',
     roleId: 1
   };
 
@@ -32,7 +33,10 @@ const useRegister = () => {
     setErrorMessage('');
 
     try {
-      const response = await CustomerService.register(formData);
+
+      const { confirmPassword, ...dataToSend } = formData;
+
+      const response = await CustomerService.register(dataToSend);
       
       setSuccessMessage('¡Cliente registrado exitosamente!');
       setFormData(initialFormData);

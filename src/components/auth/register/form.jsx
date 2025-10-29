@@ -3,8 +3,8 @@ import Button from '../../IU/forms/button';
 import { Input, InputDouble } from "../../IU/forms/input";
 import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
-import useAlert from "../../../hooks/alerts/useAlert";
 import useRegister from '../../../hooks/auth/register_hook';
+import Alert from "../../IU/alerts/Alerts";
 
 export default function RegisterForm() {
   const { 
@@ -22,7 +22,7 @@ export default function RegisterForm() {
     e.preventDefault();
     
     // Validar que las contraseñas coincidan
-    if (formData.customerPassword !== confirmPassword) {
+    if (formData.customerPassword !== formData.confirmPassword) {
       alert('Las contraseñas no coinciden');
       return;
     }
@@ -36,16 +36,16 @@ export default function RegisterForm() {
       content={
         <>
           {successMessage && (
-            <useAlert
-              type="success" 
-              message={successMessage}
+            <Alert
+              type='success'
+              message='Bien'
             />
           )}
 
           {errorMessage && (
-            <useAlert
-              type="error" 
-              message={errorMessage}
+            <Alert
+              type='error'
+              message='Mal'
             />
           )}
 
@@ -99,8 +99,10 @@ export default function RegisterForm() {
               type_2="password"
               name_2="confirmPassword"
               placeholder_2="Confirmar contraseña"
-              value_2={confirmPassword}
-              onChange_2={(e) => setConfirmPassword(e.target.value)}
+              value_2={formData.confirmPassword}
+              onChange_2={
+                (handleInputChange)
+              }
             />
 
             {/* Botón de Envío */}
