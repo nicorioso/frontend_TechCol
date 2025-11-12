@@ -6,7 +6,7 @@ class CustomerService extends crudService {
   }
 
   async register(customerData) {
-    return this.api.post('/register', customerData);
+    return this.api.post('/customers/register', customerData);
   }
 }
 

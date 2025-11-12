@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate } from "react-router-dom";
 import {createBrowserRouter} from "react-router-dom"
 import App from "./App";
 
@@ -20,3 +20,4 @@ export const router = createBrowserRouter([
                 ]
         },
 ])
+

@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json'
   }
 });
-
 setupInterceptors(axiosInstance);
+
 
 export default axiosInstance;
