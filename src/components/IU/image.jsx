@@ -12,7 +12,7 @@ function ImageComponent({style, id, alttext = 'Imagen' }) {
     <img
       src={image.url}
       alttext={alttext}
-      className={"mx-auto h-20 w-auto"}
+      className={`mx-auto ${style}`}
     />
   );
 }

@@ -9,7 +9,7 @@ export default function LoginForm() {
         <CardForm
         content={
             <>
-                <form className="space-y-4">
+                <form className="space-y-5">
                     <Input
                         type="email"
                         name="customerEmail"
