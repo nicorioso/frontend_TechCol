@@ -1,9 +1,9 @@
 export default function MainFooter() {
   return (
-    <footer className="bg-gradient-to-b from-slate-800 to-slate-900 text-gray-300">
+    <footer className="w-full bg-gradient-to-b from-slate-800 to-slate-900 text-gray-300">
       
       {/* Contenido principal del footer */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           
           {/* Sección 1: Información de la empresa */}
@@ -43,7 +43,7 @@ export default function MainFooter() {
         </div>
 
         {/* Línea divisoria */}
-        <hr className="border-slate-700 my-8" />
+        <hr className="border-slate-700 my-4" />
 
         {/* Copyright */}
         <div className="text-center text-gray-500 text-sm">

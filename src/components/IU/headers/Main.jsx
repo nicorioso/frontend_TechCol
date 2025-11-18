@@ -1,9 +1,10 @@
+import { Link } from "react-router-dom";
 import { ShoppingCart } from 'lucide-react';
 import ImageComponent from "../image";
 
 export default function MainHeader() {
   return (
-    <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-4 shadow-lg">
+    <header className="sticky top-0 w-full z-10 bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-2 shadow-lg">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         
         {/* Logo */}
@@ -29,14 +30,14 @@ export default function MainHeader() {
           </button>
 
           {/* Iniciar sesión Button */}
-          <button className="px-4 py-2 border-2 border-gray-400 text-gray-200 rounded hover:bg-gray-700 transition">
+          <Link className="px-4 py-2 border-2 border-gray-400 text-gray-200 rounded hover:bg-gray-700 transition" to="/auth/login">
             Iniciar sesión
-          </button>
+          </Link>
 
           {/* Registrarse Button */}
-          <button className="px-4 py-2 bg-cyan-400 text-slate-900 font-semibold rounded hover:bg-cyan-300 transition">
+          <Link className="px-4 py-2 bg-cyan-400 text-slate-900 font-semibold rounded hover:bg-cyan-300 transition" to="/auth/register">
             Registrarse
-          </button>
+          </Link>
         </div>
 
       </div>

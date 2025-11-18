@@ -9,7 +9,7 @@ import MainFooter from "../../../components/IU/footers/MainFooter";
 export function LoginLayout() {
   return (
     <>
-      <main>
+      <main className="flex flex-col min-h-screen">
         {/* contenido */}
         <MainHeader/>
         <LoginForm/>
