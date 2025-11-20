@@ -8,7 +8,7 @@ const useRegister = () => {
     customerLastName: '',
     customerEmail: '',
     customerPassword: '',
-    customerPhoneNumber: '',
+    customerPhoneNumber: '',  
     confirmPassword: '',
     roleId: 1
   };

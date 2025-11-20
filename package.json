@@ -16,6 +16,7 @@
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "lucide-react": "^0.544.0",
+    "prop-types": "^15.8.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.2.1"

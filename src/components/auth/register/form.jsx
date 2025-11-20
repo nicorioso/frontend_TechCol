@@ -3,7 +3,7 @@ import Button from '../../IU/forms/button';
 import { Input, InputDouble } from "../../IU/forms/input";
 import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
-import useRegister from '../../../hooks/auth/register_hook';
+import useRegister from '../../../hooks/auth/useRegisterHook';
 import Alert from "../../IU/alerts/Alerts";
 
 export default function RegisterForm() {
@@ -121,10 +121,14 @@ export default function RegisterForm() {
             />
 
             {/* Botón de Envío */}
-            <Button
+            <Button 
+              variant="primary" 
+              size="sm"
               placeholder={loading ? 'Registrando...' : 'Registrarse'}
               disabled={loading}
-            />
+              >
+              Comienza ahora
+            </Button>
           </form>
 
           {/* Enlace a Login */}

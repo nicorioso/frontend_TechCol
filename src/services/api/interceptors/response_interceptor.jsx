@@ -6,30 +6,24 @@ import { errorHandler, getErrorMessage } from '../../errors/error_handler.jsx';
  */
 const responseInterceptor = (api) => {
   api.interceptors.response.use(
-    // Respuesta exitosa
-    response => {
-      console.log(`✅ ${response.status} ${response.config.url}`);
+    (response) => {
       return response;
     },
-
-    // Respuesta con error
-    error => {
-      // Obtener el status del error
-      const status = error.response?.status;
-      const errorData = error.response?.data;
-
-      console.error('❌ Response error:', status, errorData);
-
-      // Llamar al manejador de errores
-      errorHandler(status, errorData);
-
-      // Retornar el error procesado
-      return Promise.reject({
-        status,
-        message: getErrorMessage(status),
-        data: errorData,
-        originalError: error
-      });
+    (error) => {
+      if (error.response?.status === 401) {
+        // Token expirado o inválido
+        console.warn('⚠️ Token expirado, limpiando sesión');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        // Redirigir a login
+        window.location.href = '/login';
+      }
+      
+      if (error.response?.status === 403) {
+        console.error('❌ Acceso denegado (403)');
+      }
+      
+      return Promise.reject(error);
     }
   );
 };
