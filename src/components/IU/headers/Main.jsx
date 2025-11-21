@@ -16,8 +16,8 @@ export default function MainHeader() {
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <a href="#" className="text-gray-200 hover:text-white transition">Inicio</a>
-          <a href="#" className="text-gray-200 hover:text-white transition">Productos</a>
+          <Link to="/" className="text-gray-200 hover:text-white transition">Inicio</Link>
+          <Link to="/" className="text-gray-200 hover:text-white transition">Productos</Link>
         </nav>
 
         {/* Right Actions */}

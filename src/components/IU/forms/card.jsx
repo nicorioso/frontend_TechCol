@@ -5,7 +5,7 @@ const CardForm = ({content, title }) => {
     return (
     <>
         {/* Correo */}
-        <div className="flex flex-1 items-center justify-center bg-stone-100 px-4">
+        <div className="flex flex-1 items-center justify-center bg-stone-100 px-4 py-5">
             <div className="w-full max-w-lg bg-white rounded-md shadow-lg p-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <div className="mx-auto w-auto">
