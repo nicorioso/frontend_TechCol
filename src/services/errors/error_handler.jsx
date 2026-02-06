@@ -8,7 +8,7 @@ export function errorHandler(status, errorData = null) {
       console.log('🔐 Sesión expirada, redirigiendo al login...');
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
       break;
 
     case 403:

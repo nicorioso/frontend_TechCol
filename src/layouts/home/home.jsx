@@ -3,7 +3,7 @@ import { Send } from "lucide-react";
 
 // components
 import MainHeader from "../../components/IU/headers/Main";
-import HeroSection from "../../components/home/page";
+import Home from "../../components/home/page";
 import MainFooter from "../../components/IU/footers/MainFooter";
 
 export function HomePage() {
@@ -12,7 +12,7 @@ export function HomePage() {
       <main className="flex flex-col min-h-screen">
         {/* contenido */}
         <MainHeader/>
-        <HeroSection/>
+        <Home/>
         <MainFooter/>
       </main>
     </>

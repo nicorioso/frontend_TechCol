@@ -22,7 +22,7 @@ export default function LoginForm() {
 
   // Si ya está autenticado, redirigir
   if (isAuthenticated) {
-    window.location.href = '/home';
+    
     return null;
   }
 

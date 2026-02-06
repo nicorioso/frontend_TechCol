@@ -16,7 +16,7 @@ const responseInterceptor = (api) => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
         // Redirigir a login
-        window.location.href = '/login';
+        window.location.href = '/auth/login';
       }
       
       if (error.response?.status === 403) {

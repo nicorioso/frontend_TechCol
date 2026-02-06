@@ -77,7 +77,7 @@ const useLoginForm = () => {
 
       // Redirigir después de 1.5 segundos
       setTimeout(() => {
-        window.location.href = '/home';
+        window.location.href = '/user/profile';
       }, 1500);
 
       return { success: true, data: response };
