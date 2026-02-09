@@ -1,5 +1,4 @@
-import { BrowserRouter, Navigate } from "react-router-dom";
-import {createBrowserRouter} from "react-router-dom"
+import { createBrowserRouter, Navigate } from "react-router-dom"
 import App from "./App";
 
 import LoginLayout from "./layouts/auth/login/login_form"
@@ -12,20 +11,13 @@ export const router = createBrowserRouter([
                 path: "/", element: <App/>
         },
         {
-                path: "/auth",  
-                children:[
-                        { index: true, element: <Navigate to="login" replace /> },
-                        {path: "login", element: <LoginLayout/>},
-                        {path: "register", element: <RegisterLayout/>},
-                        // {path: "passwordRecovery", element: <PasswordRecovery/>},
-                ],  
+                path: "/auth/login", element: <LoginLayout/>
         },
         {
-                path: "/user",
-                children:[
-                        { index: true, element: <Navigate to="profile" replace /> },
-                        {path: "profile", element: <UserProfile/>},
-                ]
+                path: "/auth/register", element: <RegisterLayout/>
+        },
+        {
+                path: "/user/profile", element: <UserProfile/>
         }
 ])
 
