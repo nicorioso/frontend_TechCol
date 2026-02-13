@@ -6,11 +6,10 @@ import MainHeader from "../../../components/IU/headers/Main";
 import LoginForm from "../../../components/auth/login/form";
 import MainFooter from "../../../components/IU/footers/MainFooter";
 
-export function LoginLayout() {
+function LoginLayout() {
   return (
     <>
       <main className="flex flex-col min-h-screen">
-        {/* contenido */}
         <MainHeader/>
         <LoginForm/>
         <MainFooter/>

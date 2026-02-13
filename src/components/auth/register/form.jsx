@@ -5,6 +5,7 @@ import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
 import useRegister from '../../../hooks/auth/useRegisterHook';
 import Alert from "../../IU/alerts/Alerts";
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function RegisterForm() {
   const { 
@@ -38,6 +39,19 @@ export default function RegisterForm() {
     <CardForm
       content={
         <>
+          <div className="flex flex-col items-center mb-4">
+            <GoogleLogin
+              onSuccess={credentialResponse => {
+                // Aquí puedes enviar credentialResponse.credential a tu backend
+                console.log('Google credential:', credentialResponse);
+              }}
+              onError={() => {
+                console.log('Registro con Google falló');
+              }}
+              width="100%"
+            />
+            <span className="text-gray-400 text-sm mt-2 mb-2">o regístrate con tu correo</span>
+          </div>
           {successMessage && (
             <Alert
               type='success'

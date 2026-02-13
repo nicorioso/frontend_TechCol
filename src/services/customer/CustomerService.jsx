@@ -59,7 +59,12 @@ class CustomerService extends crudService {
    */
   getCurrentUser() {
     const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    if (!user || user === 'undefined') return null;
+    try {
+      return JSON.parse(user);
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
