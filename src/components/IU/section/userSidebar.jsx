@@ -1,7 +1,6 @@
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
+import { useNavigate, NavLink } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
 import CustomerService from "../../../services/customer/CustomerService";
 
@@ -44,7 +43,7 @@ export default function UserSidebar({ items = [], user }) {
   };
 
   return (
-    <aside className="h-screen w-64 bg-gray-100 border-r flex flex-col justify-between">
+    <aside className="sticky top-0 h-screen w-64 bg-gray-100 border-r flex flex-col justify-between">
       
       {/* Menu */}
       <div className="p-4 space-y-2">
@@ -103,14 +102,16 @@ export default function UserSidebar({ items = [], user }) {
 
 function SidebarItem({ icon: Icon, label, href }) {
   return (
-    <a
-      href={href}
-      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 transition"
+    <NavLink
+      to={href || '#'}
+      className={({ isActive }) =>
+        `flex items-center gap-3 p-2 rounded-lg transition ${isActive ? 'bg-gray-300 text-gray-800' : 'hover:bg-gray-200 text-gray-700'}`
+      }
     >
       {Icon && <Icon className="w-5 h-5 text-gray-600" />}
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium">
         {label}
       </span>
-    </a>
+    </NavLink>
   );
 }

@@ -14,6 +14,9 @@ const useLoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [verifyOpen, setVerifyOpen] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState('');
+  const [verifyPassword, setVerifyPassword] = useState('');
 
   /**
    * Maneja cambios en inputs
@@ -72,13 +75,13 @@ const useLoginForm = () => {
         formData.customerPassword
       );
 
-      setSuccessMessage('¡Inicio de sesión exitoso!');
-      setFormData({ customerEmail: '', customerPassword: '' });
-
-      // Redirigir después de 1.5 segundos
-      setTimeout(() => {
-        window.location.href = '/user/profile';
-      }, 1500);
+      // El backend envía un código al correo. Abrimos modal de verificación.
+      setVerifyEmail(formData.customerEmail);
+      setVerifyPassword(formData.customerPassword);
+      setVerifyOpen(true);
+      setSuccessMessage('Se ha enviado un código a tu correo.');
+      // no limpiar la contraseña todavía, la usamos para reenvío
+      // setFormData({ customerEmail: '', customerPassword: '' });
 
       return { success: true, data: response };
     } catch (err) {
@@ -89,6 +92,15 @@ const useLoginForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerified = (res) => {
+    setVerifyOpen(false);
+    setSuccessMessage('¡Inicio de sesión confirmado!');
+    // redirigir tras corto delay
+    setTimeout(() => {
+      window.location.href = '/user/profile';
+    }, 800);
   };
 
   const resetForm = () => {
@@ -105,7 +117,15 @@ const useLoginForm = () => {
     handleInputChange,
     handleSubmit,
     resetForm,
-    isAuthenticated: CustomerService.isAuthenticated()
+    isAuthenticated: CustomerService.isAuthenticated(),
+    // verification modal control
+    verify: {
+      open: verifyOpen,
+      email: verifyEmail,
+      password: verifyPassword,
+      setOpen: setVerifyOpen,
+      onVerified: handleVerified
+    }
   };
 };
 

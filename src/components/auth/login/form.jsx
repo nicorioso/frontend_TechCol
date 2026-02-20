@@ -4,6 +4,7 @@ import { LinkTo, LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
 import useLoginForm from '../../../hooks/auth/useLoginHook';
 import { GoogleLogin } from '@react-oauth/google';
+import VerifyCodeModal from '../../IU/modal/VerifyCodeModal';
 
 /**
  * LoginForm - Componente de presentación
@@ -18,7 +19,8 @@ export default function LoginForm() {
     successMessage,
     handleInputChange,
     handleSubmit,
-    isAuthenticated
+    isAuthenticated,
+    verify
   } = useLoginForm();
 
   // Si ya está autenticado, igual mostramos el formulario
@@ -92,6 +94,14 @@ export default function LoginForm() {
               {loading ? 'Iniciando sesión...' : 'Inicia Sesión'}
             </Button>
           </form>
+
+          <VerifyCodeModal
+            isOpen={verify.open}
+            email={verify.email}
+            originalPassword={verify.password}
+            onClose={() => verify.setOpen(false)}
+            onVerified={verify.onVerified}
+          />
 
           {/* Link to Register */}
           <LabelLinkTo

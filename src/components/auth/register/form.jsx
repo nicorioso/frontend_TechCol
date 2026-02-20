@@ -56,7 +56,6 @@ export default function RegisterForm() {
             <Alert
               type='success'
               message='Bien'
-              duration={10000}
           
             />
           )}
@@ -65,7 +64,6 @@ export default function RegisterForm() {
             <Alert
               type='error'
               message='Mal'
-              duration={10000}
             />
           )}
 
@@ -73,7 +71,6 @@ export default function RegisterForm() {
             <Alert
               type='error'
               message='Las contraseñas no coinciden'
-              duration={10000}
             />
           )}
 
