@@ -1,7 +1,6 @@
-import PropTypes from 'prop-types';
-import FeatureCard from '../cards/FeatureCard';
+import PropTypes from "prop-types";
+import FeatureCard from "../cards/FeatureCard";
 
-// Iconos simples como JSX (sin librería externa)
 const LightningIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
@@ -29,20 +28,18 @@ const CheckIcon = (props) => (
   </svg>
 );
 
-const FeaturesGrid = ({ 
+const FeaturesGrid = ({
   features = [
-    { title: 'Rápido', description: 'Entregas rápidas en toda el país', icon: LightningIcon },
-    { title: 'Calidad', description: 'Productos 100% originales garantizados', icon: ShieldIcon },
-    { title: 'Envío', description: 'Envío gratis en compras mayores a $500k', icon: TruckIcon },
-    { title: 'Garantía', description: 'Garantía de 24 meses en todos los productos', icon: CheckIcon }
-  ]
+    { title: "Rapido", description: "Entregas rapidas en todo el pais", icon: LightningIcon },
+    { title: "Calidad", description: "Productos 100% originales garantizados", icon: ShieldIcon },
+    { title: "Envio", description: "Envio gratis en compras mayores a $500k", icon: TruckIcon },
+    { title: "Garantia", description: "Garantia de 24 meses en todos los productos", icon: CheckIcon },
+  ],
 }) => {
   return (
     <section className="w-full bg-white py-16 lg:py-20">
       <div className="container mx-auto px-6 lg:px-12">
-        
-        {/* Grid de características */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
           {features.map((feature, index) => (
             <FeatureCard
               key={index}
@@ -52,18 +49,19 @@ const FeaturesGrid = ({
             />
           ))}
         </div>
-
       </div>
     </section>
   );
 };
 
 FeaturesGrid.propTypes = {
-  features: PropTypes.arrayOf(PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    icon: PropTypes.elementType
-  }))
+  features: PropTypes.arrayOf(
+    PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired,
+      icon: PropTypes.elementType,
+    })
+  ),
 };
 
 export default FeaturesGrid;

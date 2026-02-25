@@ -1,12 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-/**
- * AvatarUpload
- * Props:
- * - initialSrc: string (url of initial avatar)
- * - onChange: function(File) called when a valid file is chosen
- * - maxSize: number (bytes) default 1MB
- */
 export default function AvatarUpload({ initialSrc = '', onChange, maxSize = 1 * 1024 * 1024 }) {
   const inputRef = useRef(null);
   const [preview, setPreview] = useState(initialSrc);
@@ -18,7 +11,6 @@ export default function AvatarUpload({ initialSrc = '', onChange, maxSize = 1 * 
 
   useEffect(() => {
     return () => {
-      // cleanup object URL if used
       if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
     };
   }, [preview]);

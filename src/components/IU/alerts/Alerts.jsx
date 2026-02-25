@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-/**
- * Componente de alerta tipo toast (flotante)
- */
 const Alert = ({ type = 'info', message, onClose, duration = 10000, closeable = true }) => {
   const [isVisible, setIsVisible] = useState(true);
 

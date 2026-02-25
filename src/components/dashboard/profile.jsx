@@ -10,7 +10,7 @@ export default function Profile() {
             <Sidebar
             content={
                 <div className="flex-1 p-10">
-                    <h1>User Settings</h1>
+                    <h1>Configuracion de usuario</h1>
                     
                 </div>
             }

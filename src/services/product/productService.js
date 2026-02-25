@@ -1,12 +1,6 @@
 import { axiosInstance } from "../api/axios";
 
-/**
- * Servicio de productos
- */
 export const productService = {
-  /**
-   * Obtener todos los productos (público)
-   */
   getAllProducts: async () => {
     try {
       const response = await axiosInstance.get('Products');
@@ -17,9 +11,6 @@ export const productService = {
     }
   },
 
-  /**
-   * Obtener un producto por ID (público)
-   */
   getProductById: async (id) => {
     try {
       const response = await axiosInstance.get(`Products${id}`);
@@ -30,9 +21,6 @@ export const productService = {
     }
   },
 
-  /**
-   * Crear producto (protegido - requiere autenticación)
-   */
   createProduct: async (productData) => {
     try {
       const response = await axiosInstance.post('Products', productData);
@@ -43,9 +31,6 @@ export const productService = {
     }
   },
 
-  /**
-   * Actualizar producto (protegido)
-   */
   updateProduct: async (id, productData) => {
     try {
       const response = await axiosInstance.put(`Products/${id}`, productData);
@@ -56,9 +41,6 @@ export const productService = {
     }
   },
 
-  /**
-   * Eliminar producto (protegido)
-   */
   deleteProduct: async (id) => {
     try {
       const response = await axiosInstance.delete(`Products/${id}`);
@@ -69,9 +51,6 @@ export const productService = {
     }
   },
 
-  /**
-   * Buscar productos por nombre
-   */
   searchProducts: async (query) => {
     try {
       const response = await axiosInstance.get(`Products/search?q=${query}`);

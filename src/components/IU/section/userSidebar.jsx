@@ -3,6 +3,8 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
 import CustomerService from "../../../services/customer/CustomerService";
+import SelectInput from "../forms/selectInput";
+import CollapsibleMenu from "../forms/collapsibleMenu";
 
 export default function UserSidebar({ items = [], user }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,14 +13,12 @@ export default function UserSidebar({ items = [], user }) {
   const { logout } = useContext(AuthContext);
   const currentUser = CustomerService.getCurrentUser();
 
-  // Cerrar menú al hacer click fuera
   function handleClickOutside(e) {
     if (menuRef.current && !menuRef.current.contains(e.target)) {
       setMenuOpen(false);
     }
   }
 
-  // Efecto para cerrar menú
   useEffect(() => {
     if (menuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
@@ -30,7 +30,6 @@ export default function UserSidebar({ items = [], user }) {
 
   const handleLogout = () => {
     setMenuOpen(false);
-    // Limpiar localStorage completamente relacionado a sesión
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
     logout();
@@ -44,8 +43,6 @@ export default function UserSidebar({ items = [], user }) {
 
   return (
     <aside className="sticky top-0 h-screen w-64 bg-gray-100 border-r flex flex-col justify-between">
-      
-      {/* Menu */}
       <div className="p-4 space-y-2">
         {items.map((item, index) => (
           <SidebarItem
@@ -53,11 +50,15 @@ export default function UserSidebar({ items = [], user }) {
             icon={item.icon}
             label={item.label}
             href={item.href}
+            type={item.type}
+            options={item.options}
+            value={item.value}
+            onChange={item.onChange}
+            onSelectOption={item.onSelectOption}
           />
         ))}
       </div>
 
-      {/* Footer */}
       {user && (
         <div className="border-t p-4" ref={menuRef}>
           <button
@@ -77,7 +78,6 @@ export default function UserSidebar({ items = [], user }) {
             <ChevronRightIcon className={`w-4 h-4 text-gray-500 transition-transform ${menuOpen ? 'rotate-90' : ''}`} />
           </button>
 
-          {/* Dropdown Menu */}
           {menuOpen && (
             <div className="mt-2 bg-white rounded shadow-lg py-2 z-50 animate-fade-in">
               <button
@@ -100,7 +100,32 @@ export default function UserSidebar({ items = [], user }) {
   );
 }
 
-function SidebarItem({ icon: Icon, label, href }) {
+function SidebarItem({ icon: Icon, label, href, type = 'link', options = [], onChange, value, onSelectOption }) {
+  if (type === 'select') {
+    return (
+      <div className="px-2 py-2">
+        <SelectInput
+          label={label}
+          options={options}
+          value={value}
+          onChange={onChange}
+          placeholder={`Selecciona ${label.toLowerCase()}`}
+        />
+      </div>
+    );
+  }
+
+  if (type === 'collapsible') {
+    return (
+      <CollapsibleMenu
+        icon={Icon}
+        label={label}
+        options={options}
+        onSelectOption={onSelectOption}
+      />
+    );
+  }
+
   return (
     <NavLink
       to={href || '#'}

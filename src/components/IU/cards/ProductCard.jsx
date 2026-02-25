@@ -16,8 +16,6 @@ const ProductCard = ({
 }) => {
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
-      
-      {/* Imagen del producto */}
       <div className="w-full aspect-video bg-gray-200 overflow-hidden">
         <img 
           src={image} 
@@ -26,21 +24,16 @@ const ProductCard = ({
         />
       </div>
 
-      {/* Contenido */}
       <div className="p-6 space-y-4">
-        
-        {/* Categoría */}
         <p className="text-sm text-cyan-500 font-semibold uppercase">
           {category}
         </p>
 
-        {/* Nombre */}
         <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
           {name}
         </h3>
 
 
-        {/* Precio y botón */}
         <div className="flex items-center justify-between pt-4 border-t">
           <p className="text-2xl font-bold text-gray-900">
             {price}

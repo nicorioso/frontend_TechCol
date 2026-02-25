@@ -1,28 +1,41 @@
-import { errorHandler, getErrorMessage } from '../../errors/error_handler.jsx';
+﻿import { clearSession, isPublicEndpoint, refreshAccessToken } from './session_manager';
 
-/**
- * Interceptor de respuesta
- * Se ejecuta después de recibir la respuesta del servidor
- */
 const responseInterceptor = (api) => {
   api.interceptors.response.use(
-    (response) => {
-      return response;
-    },
-    (error) => {
-      if (error.response?.status === 401) {
-        // Token expirado o inválido
-        console.warn('⚠️ Token expirado, limpiando sesión');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        // Redirigir a login
+    (response) => response,
+    async (error) => {
+      const status = error?.response?.status;
+      const originalRequest = error?.config || {};
+
+      if (
+        (status === 401 || status === 403) &&
+        !originalRequest._retry &&
+        !originalRequest.skipAuth &&
+        !isPublicEndpoint(originalRequest.url)
+      ) {
+        originalRequest._retry = true;
+
+        try {
+          const newToken = await refreshAccessToken(api);
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          clearSession();
+          window.location.href = '/auth/login';
+          return Promise.reject(refreshError);
+        }
+      }
+
+      if (status === 401) {
+        clearSession();
         window.location.href = '/auth/login';
       }
-      
-      if (error.response?.status === 403) {
-        console.error('❌ Acceso denegado (403)');
+
+      if (status === 403) {
+        console.error('Acceso denegado (403)');
       }
-      
+
       return Promise.reject(error);
     }
   );

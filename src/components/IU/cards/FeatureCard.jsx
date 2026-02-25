@@ -13,12 +13,12 @@ const FeatureCard = ({ icon: Icon, title, description }) => {
         )}
       </div>
 
-      {/* Titulo */}
+
       <h3 className="text-xl font-bold text-gray-900">
         {title}
       </h3>
 
-      {/* Descripción */}
+
       <p className="text-gray-600">
         {description}
       </p>

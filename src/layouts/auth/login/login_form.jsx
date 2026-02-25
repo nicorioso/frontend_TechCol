@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Send } from "lucide-react";
 
-// components
 import MainHeader from "../../../components/IU/headers/Main";
 import LoginForm from "../../../components/auth/login/form";
 import MainFooter from "../../../components/IU/footers/MainFooter";

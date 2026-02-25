@@ -1,57 +1,46 @@
 export default function MainFooter() {
   return (
     <footer className="w-full bg-gradient-to-b from-slate-800 to-slate-900 text-gray-300">
-      
-      {/* Contenido principal del footer */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          
-          {/* Sección 1: Información de la empresa */}
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>
-            <h3 className="text-xl font-bold text-white mb-3">TechCol</h3>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <h3 className="mb-3 text-xl font-bold text-white">TechCol</h3>
+            <p className="text-sm leading-relaxed text-gray-400">
               Tu tienda de confianza para partes de computador
             </p>
           </div>
 
-          {/* Sección 2: Enlaces */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Enlaces</h4>
+            <h4 className="mb-4 text-lg font-semibold text-white">Enlaces</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-400 hover:text-cyan-400 transition">
+                <a href="#" className="text-gray-400 transition hover:text-cyan-400">
                   Inicio
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-cyan-400 transition">
+                <a href="#" className="text-gray-400 transition hover:text-cyan-400">
                   Productos
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Sección 3: Contacto */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Contacto</h4>
-            <ul className="space-y-2 text-gray-400 text-sm">
-              <li>Email: info@techcol.com</li>
-              <li>Teléfono: +57 1 234 5678</li>
+            <h4 className="mb-4 text-lg font-semibold text-white">Contacto</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li>Correo: info@techcol.com</li>
+              <li>Telefono: +57 1 234 5678</li>
             </ul>
           </div>
-
         </div>
 
-        {/* Línea divisoria */}
-        <hr className="border-slate-700 my-4" />
+        <hr className="my-4 border-slate-700" />
 
-        {/* Copyright */}
-        <div className="text-center text-gray-500 text-sm">
-          © 2026 TechCol. Todos los derechos reservados.
+        <div className="text-center text-sm text-gray-500">
+          (c) 2026 TechCol. Todos los derechos reservados.
         </div>
-
       </div>
-
     </footer>
   );
 }

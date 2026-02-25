@@ -45,9 +45,6 @@ export function errorHandler(status, errorData = null) {
   }
 }
 
-/**
- * Obtener mensaje de error para mostrar al usuario
- */
 export function getErrorMessage(status) {
   const messages = {
     400: 'Solicitud inválida',

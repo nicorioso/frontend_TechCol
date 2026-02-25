@@ -24,7 +24,6 @@ export const InputDouble = ({label_1, label_2, type_1, type_2, name_1, name_2, p
         <label className="block w-full text-sm font-medium text-gray-700">{label_2}</label>
     </div>
     <div className="grid grid-cols-2 gap-8">
-        {/* Correo */}
         <input
             type={type_1}
             name={name_1}

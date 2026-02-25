@@ -12,7 +12,6 @@ function ContactForm() {
         </h2>
 
         <form className="space-y-5">
-          {/* Nombre */}
           <div>
             <label
               htmlFor="nombre"
@@ -30,7 +29,6 @@ function ContactForm() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label
               htmlFor="email"
@@ -48,7 +46,6 @@ function ContactForm() {
             />
           </div>
 
-          {/* Contraseña */}
           <div>
             <label
               htmlFor="password"
@@ -66,7 +63,6 @@ function ContactForm() {
             />
           </div>
 
-          {/* Botón */}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg 
