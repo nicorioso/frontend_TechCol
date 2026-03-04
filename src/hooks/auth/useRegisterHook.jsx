@@ -26,7 +26,7 @@ const useRegister = () => {
     }));
   };
 
-  const registerCustomer = async (e) => {
+  const registerCustomer = async (e, payloadOverride = null) => {
     e?.preventDefault();
     setLoading(true);
     setSuccessMessage('');
@@ -34,7 +34,9 @@ const useRegister = () => {
 
     try {
 
-      const { confirmPassword, ...dataToSend } = formData;
+      const source = payloadOverride || formData;
+      const dataToSend = { ...source };
+      delete dataToSend.confirmPassword;
 
       const response = await CustomerService.register(dataToSend);
       

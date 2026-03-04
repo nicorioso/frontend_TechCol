@@ -73,7 +73,7 @@ export default function MainHeader() {
           <Link to="/" className="text-gray-200 transition hover:text-white">
             Inicio
           </Link>
-          <Link to="/" className="text-gray-200 transition hover:text-white">
+          <Link to="/products" className="text-gray-200 transition hover:text-white">
             Productos
           </Link>
         </nav>

@@ -40,10 +40,11 @@ export default function useEntityCreation(selectedEntity) {
   };
 
   const handleNewEntityChange = (event) => {
-    const { name, value } = event.target;
+    const { name, type, files, value } = event.target;
+    const newValue = type === 'file' || type === 'image' ? files[0] : value;
     setNewEntityValues((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
@@ -63,7 +64,7 @@ export default function useEntityCreation(selectedEntity) {
       setAlertState({
         visible: true,
         type: 'success',
-        message: 'Usuario creado correctamente.',
+        message: `${definition?.singularLabel || 'Entidad'} creada correctamente.`,
       });
       setIsCreateModalOpen(false);
     } catch (err) {

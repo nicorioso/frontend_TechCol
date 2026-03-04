@@ -1,10 +1,14 @@
-﻿const formatCurrency = (value) => {
+﻿import config from '../../../config/config';
+
+const formatCurrency = (value) => {
   const amount = Number(value ?? 0);
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   }).format(Number.isNaN(amount) ? 0 : amount);
 };
+
+import productService from '../../product/productService';
 
 export const productsEntity = {
   key: 'products',
@@ -25,11 +29,27 @@ export const productsEntity = {
         { value: 'Agotado', label: 'Agotado' },
       ],
     },
+    {
+      name: 'image',
+      label: 'Imagen',
+      type: 'file',
+      accept: 'image/*',
+      fullWidth: true,
+      required: false,
+    },
   ],
   map: (products = []) =>
     products.map((product) => {
       const id = product?.id ?? product?.product_id ?? '-';
       const stock = Number(product?.stock ?? 0);
+      // build full url for image if provided
+      let imageUrl = product?.imageUrl || product?.image || '';
+      if (imageUrl) {
+        // use configurable uploads path rather than hardcoded
+        const host = config.api.baseURL.replace(/\/api\/?$/, '');
+        const path = config.uploadsPath.replace(/\/+$/, '');
+        imageUrl = `${host}${path}/${imageUrl}`;
+      }
 
       return {
         id,
@@ -39,6 +59,7 @@ export const productsEntity = {
         price: formatCurrency(product?.price),
         stock,
         status: stock > 0 ? 'En stock' : 'Agotado',
+        image: imageUrl,
       };
     }),
   toFormValues: (row = {}) => ({
@@ -48,6 +69,7 @@ export const productsEntity = {
     price: String(row.price || '').replace(/[^\d.-]/g, ''),
     stock: row.stock ?? '',
     status: row.status || '',
+    image: null,
   }),
   fromFormValues: (values = {}, currentRow = {}) => ({
     ...currentRow,
@@ -57,5 +79,33 @@ export const productsEntity = {
     price: formatCurrency(values.price),
     stock: Number(values.stock || 0),
     status: values.status || currentRow.status,
+    // file will be handled by service; don't stash File object in table row
+    image:
+      typeof values.image === 'string'
+        ? values.image
+        : currentRow.image || '',
   }),
+  create: async (values) => {
+    return productsEntity._sendToService(values, productService.createProduct);
+  },
+  update: async (id, values) => {
+    return productsEntity._sendToService(values, (data) => productService.updateProduct(id, data));
+  },
+  _sendToService: async (values, serviceFn) => {
+    // convert to form data if necessary
+    const hasFile = Object.values(values).some(v => v instanceof File);
+    if (hasFile) {
+      const form = new FormData();
+      Object.entries(values).forEach(([k, v]) => {
+        if (v === undefined || v === null) return;
+        if (v instanceof File) {
+          form.append('image', v);
+        } else {
+          form.append(k, v);
+        }
+      });
+      return serviceFn(form);
+    }
+    return serviceFn(values);
+  },
 };

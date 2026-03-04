@@ -6,6 +6,7 @@ import RegisterLayout from './layouts/auth/register/register_form';
 import UserProfile from './components/dashboard/profile';
 import UserSettings from './layouts/dashboard/userSettings';
 import UserEntities from './layouts/dashboard/userEntities';
+import CatalogLayout from './layouts/catalog/catalog';
 
 const getToken = () => localStorage.getItem('access_token');
 
@@ -58,6 +59,10 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+  },
+  {
+    path: '/products',
+    element: <CatalogLayout />,
   },
   {
     path: '/auth/login',

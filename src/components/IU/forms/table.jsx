@@ -6,7 +6,8 @@ import { SelectInput } from './selectInput';
 export const Table = ({
   title = 'Tabla',
   data = [],
-  columns = [],
+  columns = [], // if empty we will infer from data keys
+  hiddenColumns = [], // keys to always omit from display
   actionButtonLabel = 'ACCIÓN',
   onActionClick = () => {},
   onEditClick = () => {},
@@ -14,9 +15,27 @@ export const Table = ({
   itemsPerPage = 10,
 }) => {
   const safeData = Array.isArray(data) ? data : [];
+
+  // determine columns dynamically when none were passed
+  // helper excludes any key the caller wants hidden plus anything looking like a password
+  const shouldInclude = (k) => {
+    if (hiddenColumns.includes(k)) return false;
+    return !String(k).toLowerCase().includes('password');
+  };
+
+  const inferredColumns = safeData.length > 0
+    ? Object.keys(safeData[0])
+        .filter(shouldInclude)
+        .map((key) => ({ key, label: key }))
+    : [];
+
+  let effectiveColumns = columns && columns.length > 0 ? columns : inferredColumns;
+  // always drop any hidden columns and passwords from effective set
+  effectiveColumns = effectiveColumns.filter((col) => shouldInclude(col.key));
+
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState(new Set());
-  const [visibleColumns, setVisibleColumns] = useState(columns.map(col => col.key));
+  const [visibleColumns, setVisibleColumns] = useState(effectiveColumns.map(col => col.key));
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
 
   const totalPages = Math.ceil(safeData.length / itemsPerPage);
@@ -52,7 +71,7 @@ export const Table = ({
   const allChecked = paginatedData.length > 0 && paginatedData.every((_, idx) => selectedRows.has(startIndex + idx));
 
   return (
-    <div className="w-full bg-white rounded-lg p-4 sm:p-6">
+    <div className="w-full bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg p-4 sm:p-6">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end sm:gap-4">
@@ -69,7 +88,7 @@ export const Table = ({
 
             {showColumnDropdown && (
               <div className="absolute right-0 top-full mt-2 bg-white border border-gray-300 rounded-md shadow-lg z-10 w-48">
-                {columns.map((col) => (
+                {effectiveColumns.map((col) => (
                   <label
                     key={col.key}
                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
@@ -87,15 +106,17 @@ export const Table = ({
             )}
           </div>
 
-          {/* Action Button */}
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => onActionClick(Array.from(selectedRows))}
-            className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white"
-          >
-            {actionButtonLabel}
-          </Button>
+          {/* Action Button (only show if label provided) */}
+          {actionButtonLabel && (
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => onActionClick(Array.from(selectedRows))}
+              className="w-full sm:w-auto px-5 py-2 text-sm font-semibold tracking-wide rounded-md border bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white transition"
+            >
+              {actionButtonLabel}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -103,7 +124,7 @@ export const Table = ({
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b border-gray-200 dark:border-gray-700">
               <th className="px-4 py-3 text-left">
                 <input
                   type="checkbox"
@@ -112,12 +133,12 @@ export const Table = ({
                   className="rounded"
                 />
               </th>
-              {columns
+              {effectiveColumns
                 .filter(col => visibleColumns.includes(col.key))
                 .map((col) => (
                   <th
                     key={col.key}
-                    className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide"
+                    className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"
                   >
                     {col.label}
                   </th>
@@ -131,7 +152,7 @@ export const Table = ({
             {paginatedData.map((row, idx) => {
               const rowIndex = startIndex + idx;
               return (
-                <tr key={rowIndex} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr key={rowIndex} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"
@@ -140,14 +161,26 @@ export const Table = ({
                       className="rounded"
                     />
                   </td>
-                  {columns
+                  {effectiveColumns
                     .filter(col => visibleColumns.includes(col.key))
                     .map((col) => (
                       <td
                         key={col.key}
-                        className="px-4 py-3 text-sm text-gray-700"
+                        className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"
                       >
-                        {row[col.key]}
+                        {(() => {
+                          const value = row[col.key];
+                          if (value && typeof value === 'string' && col.key.toLowerCase().includes('image')) {
+                            return (
+                              <img
+                                src={value}
+                                alt={col.label}
+                                className="h-12 w-12 object-contain"
+                              />
+                            );
+                          }
+                          return value;
+                        })()}
                       </td>
                     ))}
                   <td className="px-4 py-3">

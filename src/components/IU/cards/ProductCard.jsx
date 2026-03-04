@@ -7,59 +7,73 @@ const CartIcon = (props) => (
 );
 
 const ProductCard = ({ 
-  image, 
+  image,
+  imageIcon,
   category, 
   name, 
-  stock, 
+  stock = "En stock",
   price, 
-  onAddToCart = () => {}
+  onAddToCart = () => {},
+  disableAddToCart = false
 }) => {
   return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
-      <div className="w-full aspect-video bg-gray-200 overflow-hidden">
-        <img 
-          src={image} 
-          alt={name}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-        />
+    <article className="overflow-hidden rounded-sm border border-slate-200 bg-white">
+      <div className="flex h-36 w-full items-center justify-center bg-slate-100">
+        {image ? (
+          <img
+            src={image}
+            alt={name}
+            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+          />
+        ) : (
+          <span className="text-2xl font-semibold tracking-wide text-slate-700" aria-hidden="true">
+            {imageIcon || "ITEM"}
+          </span>
+        )}
       </div>
 
-      <div className="p-6 space-y-4">
-        <p className="text-sm text-cyan-500 font-semibold uppercase">
+      <div className="space-y-2 p-4">
+        <p className="text-xs font-semibold text-cyan-500">
           {category}
         </p>
 
-        <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
+        <h3 className="line-clamp-2 text-xl font-bold tracking-tight text-slate-900">
           {name}
         </h3>
 
+        <p className="text-sm text-slate-500">{stock}</p>
 
-        <div className="flex items-center justify-between pt-4 border-t">
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="flex items-end justify-between pt-1">
+          <p className="text-2xl font-extrabold leading-none tracking-tight text-slate-900">
             {price}
           </p>
           <button
             onClick={onAddToCart}
-            className="bg-cyan-500 hover:bg-cyan-600 text-white p-3 rounded-lg transition-colors duration-300"
+            disabled={disableAddToCart}
+            className={`rounded p-2 text-slate-950 transition-colors duration-300 ${
+              disableAddToCart
+                ? "cursor-not-allowed bg-slate-300 text-slate-500"
+                : "bg-cyan-500 hover:bg-cyan-600"
+            }`}
             aria-label="Agregar al carrito"
           >
-            <CartIcon className="w-5 h-5" />
+            <CartIcon className="h-4 w-4" />
           </button>
         </div>
-
       </div>
-
-    </div>
+    </article>
   );
 };
 
 ProductCard.propTypes = {
-  image: PropTypes.string.isRequired,
+  image: PropTypes.string,
+  imageIcon: PropTypes.string,
   category: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
-  stock: PropTypes.string.isRequired,
+  stock: PropTypes.string,
   price: PropTypes.string.isRequired,
-  onAddToCart: PropTypes.func
+  onAddToCart: PropTypes.func,
+  disableAddToCart: PropTypes.bool
 };
 
 export default ProductCard;

@@ -2,27 +2,22 @@ import PropTypes from 'prop-types';
 
 const FeatureCard = ({ icon: Icon, title, description }) => {
   return (
-    <div className="flex flex-col items-center text-center space-y-4">
-      
-      {/* Icono */}
-      <div className="w-16 h-16 bg-cyan-200 rounded-full flex items-center justify-center">
+    <div className="flex flex-col items-center space-y-3 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-100">
         {Icon ? (
-          <Icon className="w-8 h-8 text-cyan-600" />
+          <Icon className="h-6 w-6 text-slate-800" />
         ) : (
-          <div className="w-8 h-8 bg-cyan-400 rounded"></div>
+          <div className="h-6 w-6 rounded bg-cyan-400"></div>
         )}
       </div>
 
-
-      <h3 className="text-xl font-bold text-gray-900">
+      <h3 className="text-2xl font-bold text-slate-900">
         {title}
       </h3>
 
-
-      <p className="text-gray-600">
+      <p className="max-w-[220px] text-sm text-slate-500">
         {description}
       </p>
-
     </div>
   );
 };

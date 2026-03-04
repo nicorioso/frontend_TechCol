@@ -68,6 +68,8 @@ export default function Entities() {
     return (
       <TableComponent
         data={tablesData[selectedEntity] || []}
+        actionButtonLabel="CREAR NUEVO"
+        onActionClick={openCreateModal}
         onEditClick={(row) => {
           const definition = getEntityDefinition(selectedEntity);
           const initialValues = definition?.toFormValues ? definition.toFormValues(row) : { ...row };
@@ -102,12 +104,13 @@ export default function Entities() {
   };
 
   const handleEditChange = (event) => {
-    const { name, value } = event.target;
+    const { name, type, files, value } = event.target;
+    const newValue = type === 'file' || type === 'image' ? files[0] : value;
     setEditModalState((prev) => ({
       ...prev,
       values: {
         ...prev.values,
-        [name]: value,
+        [name]: newValue,
       },
     }));
   };
@@ -116,7 +119,7 @@ export default function Entities() {
     setEditModalState({ isOpen: false, row: null, values: {} });
   };
 
-  const handleEditSubmit = (event) => {
+  const handleEditSubmit = async (event) => {
     event.preventDefault();
 
     const definition = getEntityDefinition(selectedEntity);
@@ -126,7 +129,24 @@ export default function Entities() {
       : { ...currentRow, ...editModalState.values };
 
     if (currentRow?.id !== undefined) {
-      updateEntityRow(selectedEntity, currentRow.id, updatedRow);
+      // send to backend if definition provides update
+      if (definition?.update) {
+        try {
+          const result = await definition.update(currentRow.id, editModalState.values);
+          // if service returns updated entity data, map it before updating state
+          const mapped = definition?.map ? definition.map([result])[0] : null;
+          if (mapped) {
+            updateEntityRow(selectedEntity, currentRow.id, mapped);
+          } else {
+            updateEntityRow(selectedEntity, currentRow.id, updatedRow);
+          }
+        } catch (err) {
+          console.error('Error updating entity', err);
+          updateEntityRow(selectedEntity, currentRow.id, updatedRow);
+        }
+      } else {
+        updateEntityRow(selectedEntity, currentRow.id, updatedRow);
+      }
     }
 
     handleCloseEditModal();
@@ -140,13 +160,7 @@ export default function Entities() {
             <div className="w-full">
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h1 className="text-2xl font-semibold">Entidades</h1>
-                <button
-                  type="button"
-                  onClick={openCreateModal}
-                  className="w-full sm:w-auto px-5 py-2 text-sm font-semibold tracking-wide rounded-md border bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white transition"
-                >
-                  CREAR NUEVO
-                </button>
+                {/* boton de creación se renderiza dentro de la tabla */}
               </div>
 
               {isLoading ? <div className="p-6">Cargando entidades...</div> : renderTable()}
