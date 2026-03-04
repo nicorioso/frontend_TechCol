@@ -3,7 +3,7 @@ import ImageComponent from "../image.jsx";
 const CardForm = ({ content, title, subtitle }) => {
     return (
     <>
-        <div className="flex flex-1 items-center justify-center bg-stone-100 dark:bg-gray-900 px-4 py-5">
+        <div className="flex flex-1 items-center justify-center bg-white dark:bg-gray-900 px-4 py-5">
             <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <div className="mx-auto w-auto">

@@ -17,8 +17,8 @@ const ProductCard = ({
   disableAddToCart = false
 }) => {
   return (
-    <article className="overflow-hidden rounded-sm border border-slate-200 bg-white">
-      <div className="flex h-36 w-full items-center justify-center bg-slate-100">
+    <article className="overflow-hidden rounded-sm border border-slate-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex h-36 w-full items-center justify-center bg-slate-100 dark:bg-gray-700">
         {image ? (
           <img
             src={image}
@@ -26,25 +26,25 @@ const ProductCard = ({
             className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
           />
         ) : (
-          <span className="text-2xl font-semibold tracking-wide text-slate-700" aria-hidden="true">
+          <span className="text-2xl font-semibold tracking-wide text-slate-700 dark:text-gray-200" aria-hidden="true">
             {imageIcon || "ITEM"}
           </span>
         )}
       </div>
 
-      <div className="space-y-2 p-4">
+      <div className="space-y-1 p-4">
         <p className="text-xs font-semibold text-cyan-500">
           {category}
         </p>
 
-        <h3 className="line-clamp-2 text-xl font-bold tracking-tight text-slate-900">
+        <h3 className="line-clamp-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-gray-100">
           {name}
         </h3>
 
-        <p className="text-sm text-slate-500">{stock}</p>
+        <p className="text-sm text-slate-500 dark:text-gray-400">{stock}</p>
 
         <div className="flex items-end justify-between pt-1">
-          <p className="text-2xl font-extrabold leading-none tracking-tight text-slate-900">
+          <p className="text-xl font-semibold leading-none tracking-tight text-slate-800 dark:text-gray-100">
             {price}
           </p>
           <button

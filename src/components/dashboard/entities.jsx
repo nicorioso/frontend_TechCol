@@ -22,6 +22,17 @@ const TABLE_COMPONENTS = {
   orders: OrdersTable,
 };
 
+const INITIAL_DELETE_STATE = {
+  isOpen: false,
+  row: null,
+};
+
+const INITIAL_EDIT_STATE = {
+  isOpen: false,
+  row: null,
+  values: {},
+};
+
 export default function Entities() {
   const setSelectedEntity = useStore((s) => s.setSelectedEntity);
   const selectedEntity = useStore((s) => s.selectedEntity);
@@ -39,15 +50,8 @@ export default function Entities() {
     handleNewEntityChange,
     submitEntityCreation,
   } = useEntityCreation(selectedEntity);
-  const [deleteConfirmState, setDeleteConfirmState] = useState({
-    isOpen: false,
-    row: null,
-  });
-  const [editModalState, setEditModalState] = useState({
-    isOpen: false,
-    row: null,
-    values: {},
-  });
+  const [deleteConfirmState, setDeleteConfirmState] = useState(INITIAL_DELETE_STATE);
+  const [editModalState, setEditModalState] = useState(INITIAL_EDIT_STATE);
 
   useEffect(() => {
     if (params?.entity) setSelectedEntity(params.entity);
@@ -56,6 +60,24 @@ export default function Entities() {
   const handleCreateSubmit = async (event) => {
     event.preventDefault();
     await submitEntityCreation();
+  };
+
+  const openEditModal = (row) => {
+    const definition = getEntityDefinition(selectedEntity);
+    const initialValues = definition?.toFormValues ? definition.toFormValues(row) : { ...row };
+
+    setEditModalState({
+      isOpen: true,
+      row,
+      values: initialValues,
+    });
+  };
+
+  const openDeleteModal = (row) => {
+    setDeleteConfirmState({
+      isOpen: true,
+      row,
+    });
   };
 
   const renderTable = () => {
@@ -70,22 +92,8 @@ export default function Entities() {
         data={tablesData[selectedEntity] || []}
         actionButtonLabel="CREAR NUEVO"
         onActionClick={openCreateModal}
-        onEditClick={(row) => {
-          const definition = getEntityDefinition(selectedEntity);
-          const initialValues = definition?.toFormValues ? definition.toFormValues(row) : { ...row };
-
-          setEditModalState({
-            isOpen: true,
-            row,
-            values: initialValues,
-          });
-        }}
-        onDeleteClick={(row) =>
-          setDeleteConfirmState({
-            isOpen: true,
-            row,
-          })
-        }
+        onEditClick={openEditModal}
+        onDeleteClick={openDeleteModal}
       />
     );
   };
@@ -96,11 +104,11 @@ export default function Entities() {
     if (deleteConfirmState.row?.id !== undefined) {
       removeEntityRow(selectedEntity, deleteConfirmState.row.id);
     }
-    setDeleteConfirmState({ isOpen: false, row: null });
+    setDeleteConfirmState(INITIAL_DELETE_STATE);
   };
 
   const handleCancelDelete = () => {
-    setDeleteConfirmState({ isOpen: false, row: null });
+    setDeleteConfirmState(INITIAL_DELETE_STATE);
   };
 
   const handleEditChange = (event) => {
@@ -116,7 +124,7 @@ export default function Entities() {
   };
 
   const handleCloseEditModal = () => {
-    setEditModalState({ isOpen: false, row: null, values: {} });
+    setEditModalState(INITIAL_EDIT_STATE);
   };
 
   const handleEditSubmit = async (event) => {

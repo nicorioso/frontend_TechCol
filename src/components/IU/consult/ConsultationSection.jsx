@@ -8,7 +8,7 @@ const ConsultationSection = ({
   onContactClick = () => {},
 }) => {
   return (
-    <section className="w-full bg-slate-50 py-10 lg:py-12">
+    <section className="w-full bg-slate-50 py-10 dark:bg-gray-900 lg:py-12">
       <div className="container mx-auto px-6 lg:px-12">
         <div className="space-y-5 rounded-md bg-cyan-500 px-6 py-14 text-center lg:px-10">
           <h2 className="text-5xl font-bold text-white">{title}</h2>

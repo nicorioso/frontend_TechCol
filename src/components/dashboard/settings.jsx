@@ -6,6 +6,23 @@ import UserService from "../../services/customer/UserService";
 import CustomerService from "../../services/customer/CustomerService";
 import { useState, useEffect, useRef } from "react";
 
+const getCurrentCustomerId = () => {
+  const current = CustomerService.getCurrentUser();
+  return current?.customerId || current?.id || current?.userId || current?.customer_id;
+};
+
+const mapProfileToForm = (profile) => {
+  const p = profile?.customer || profile || {};
+
+  return {
+    firstName: p.firstName || p.name || p.customerName || "",
+    lastName: p.lastName || p.customerLastName || "",
+    email: p.email || p.customerEmail || "",
+    username: p.username || p.userName || p.customerName || "",
+    phone: p.phone || p.telefono || p.customerPhoneNumber || "",
+  };
+};
+
 export default function Settings() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -26,22 +43,16 @@ export default function Settings() {
   useEffect(() => {
     (async () => {
       try {
-        const current = CustomerService.getCurrentUser();
-        const id = current?.customerId || current?.id || current?.userId || current?.customer_id;
+        const id = getCurrentCustomerId();
         const profile = id ? await UserService.getProfile(id) : null;
-        const p = profile?.customer || profile || {};
-        setFirstName(p.firstName || p.name || "");
-        setLastName(p.lastName || "");
-        setEmail(p.email || "");
-        setUsername(p.username || p.userName || p.customerName || "");
-        setPhone(p.phone || p.telefono || p.customerPhoneNumber || "");
-        initialProfileRef.current = {
-          firstName: p.firstName || p.name || p.customerName || "",
-          lastName: p.lastName || "" || p.customerLastName || "",
-          email: p.email || p.customerEmail || "",
-          username: p.username || p.userName || p.customerName || "",
-          phone: p.phone || p.telefono || p.customerPhoneNumber || "",
-        };
+        const formProfile = mapProfileToForm(profile);
+
+        setFirstName(formProfile.firstName);
+        setLastName(formProfile.lastName);
+        setEmail(formProfile.email);
+        setUsername(formProfile.username);
+        setPhone(formProfile.phone);
+        initialProfileRef.current = formProfile;
       } catch (err) {
         console.error("No se pudo cargar el perfil inicial", err);
       }
@@ -74,8 +85,7 @@ export default function Settings() {
         return;
       }
 
-      const current = CustomerService.getCurrentUser();
-      const id = current?.customerId || current?.id || current?.userId || current?.customer_id;
+      const id = getCurrentCustomerId();
       if (!id) throw new Error("Usuario no autenticado");
       const result = await UserService.patchProfile(id, delta);
       if (result?.user) {
@@ -98,8 +108,7 @@ export default function Settings() {
     }
     setIsChangingPassword(true);
     try {
-      const current = CustomerService.getCurrentUser();
-      const id = current?.customerId || current?.id || current?.userId || current?.customer_id;
+      const id = getCurrentCustomerId();
       if (!id) throw new Error("Usuario no autenticado");
       await UserService.patchProfile(id, { customerPassword: newPassword });
       setCurrentPassword("");
@@ -135,8 +144,7 @@ export default function Settings() {
     (async () => {
       setIsDeleting(true);
       try {
-        const current = CustomerService.getCurrentUser();
-        const id = current?.customerId || current?.id || current?.userId || current?.customer_id;
+        const id = getCurrentCustomerId();
         if (!id) throw new Error("Usuario no autenticado");
         await UserService.deleteAccount(id);
         localStorage.removeItem("access_token");

@@ -139,15 +139,15 @@ export default function ProductCatalog() {
   };
 
   return (
-    <section className="w-full bg-slate-100 py-8">
+    <section className="w-full bg-white py-8 dark:bg-gray-900">
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
         <header className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Catalogo de Productos</h1>
-          <p className="text-sm text-slate-500">Encuentra los mejores componentes para tu PC.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-gray-100">Catalogo de Productos</h1>
+          <p className="text-sm text-slate-500 dark:text-gray-400">Encuentra los mejores componentes para tu PC.</p>
         </header>
 
-        <div className="mb-6 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-          <label htmlFor="product-search" className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <div className="mb-6 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <label htmlFor="product-search" className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-gray-200">
             <Search className="h-4 w-4" />
             Buscar producto
           </label>
@@ -157,28 +157,28 @@ export default function ProductCatalog() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Ej. RTX 4090, DDR5, SSD..."
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-cyan-400 transition focus:ring-2"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-cyan-400 transition focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
           />
         </div>
 
         {notice && (
-          <div className="mb-4 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm text-cyan-900">
+          <div className="mb-4 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm text-cyan-900 dark:border-cyan-900 dark:bg-cyan-900/30 dark:text-cyan-200">
             {notice}
           </div>
         )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
-          <aside className="h-fit rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+          <aside className="h-fit rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-gray-200">
               <Filter className="h-4 w-4" />
               Filtros
             </h2>
 
             <div className="mb-5">
-              <p className="mb-2 text-sm font-semibold text-slate-800">Categoria</p>
+              <p className="mb-2 text-sm font-semibold text-slate-800 dark:text-gray-100">Categoria</p>
               <div className="space-y-1.5">
                 {categoryOptions.map((category) => (
-                  <label key={category} className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                  <label key={category} className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-gray-300">
                     <input
                       type="checkbox"
                       checked={selectedCategories.includes(category)}
@@ -192,7 +192,7 @@ export default function ProductCatalog() {
             </div>
 
             <div className="mb-5">
-              <p className="mb-2 text-sm font-semibold text-slate-800">Rango de Precio</p>
+              <p className="mb-2 text-sm font-semibold text-slate-800 dark:text-gray-100">Rango de Precio</p>
               <input
                 type="range"
                 min={0}
@@ -201,15 +201,15 @@ export default function ProductCatalog() {
                 onChange={(event) => setMaxPriceFilter(Number(event.target.value))}
                 className="w-full accent-cyan-600"
               />
-              <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
+              <div className="mt-1 flex items-center justify-between text-xs text-slate-500 dark:text-gray-400">
                 <span>$ 0</span>
                 <span>{formatMoney(maxPriceFilter)}</span>
               </div>
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-semibold text-slate-800">Stock</p>
-              <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+              <p className="mb-2 text-sm font-semibold text-slate-800 dark:text-gray-100">Stock</p>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={onlyAvailable}
@@ -222,7 +222,7 @@ export default function ProductCatalog() {
           </aside>
 
           <div>
-            <div className="mb-3 flex items-center justify-between text-sm text-slate-600">
+            <div className="mb-3 flex items-center justify-between text-sm text-slate-600 dark:text-gray-400">
               <span className="font-medium">{filteredProducts.length} productos</span>
               <span className="flex items-center gap-1">
                 <SlidersHorizontal className="h-4 w-4" />
@@ -231,13 +231,13 @@ export default function ProductCatalog() {
             </div>
 
             {isLoading && (
-              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500">
+              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                 Cargando productos...
               </div>
             )}
 
             {!isLoading && error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center text-red-700 dark:border-red-900 dark:bg-red-900/30 dark:text-red-200">
                 {error}
               </div>
             )}
@@ -260,7 +260,7 @@ export default function ProductCatalog() {
             )}
 
             {!isLoading && !error && filteredProducts.length === 0 && (
-              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500">
+              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                 No hay productos que coincidan con los filtros seleccionados.
               </div>
             )}

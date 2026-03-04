@@ -8,7 +8,7 @@ import MainFooter from "../../components/IU/footers/MainFooter";
 export function HomePage() {
   return (
     <>
-      <main className="flex flex-col min-h-screen">
+      <main className="flex min-h-screen flex-col bg-white dark:bg-gray-900">
         <MainHeader/>
         <Home/>
         <MainFooter/>

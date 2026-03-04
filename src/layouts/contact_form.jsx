@@ -5,7 +5,7 @@ function ContactForm() {
 
   return (
 
-    <div className="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div className="bg-white flex items-center justify-center min-h-screen">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           Registro

@@ -1,9 +1,11 @@
 import React, { useContext, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Moon, Sun } from "lucide-react";
 import ImageComponent from "../image";
 import { AuthContext } from "../../../context/AuthContext";
 import CustomerService from "../../../services/customer/CustomerService";
+import cartService from "../../../services/cart/cartService";
+import useTheme from "../../../hooks/useTheme";
 
 const getRolePathPrefix = () => {
   const token = localStorage.getItem("access_token");
@@ -28,6 +30,8 @@ const getRolePathPrefix = () => {
 export default function MainHeader() {
   const { logout } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [dark, toggleTheme] = useTheme();
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const isAuthenticated = CustomerService.isAuthenticated();
@@ -47,6 +51,25 @@ export default function MainHeader() {
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
+
+  React.useEffect(() => {
+    const loadCartCount = async () => {
+      const items = await cartService.getCartItems();
+      const summary = cartService.getCartSummary(items);
+      setCartCount(summary.itemCount);
+    };
+
+    loadCartCount();
+
+    const handleUpdated = () => {
+      loadCartCount();
+    };
+
+    window.addEventListener(cartService.CART_UPDATED_EVENT, handleUpdated);
+    return () => {
+      window.removeEventListener(cartService.CART_UPDATED_EVENT, handleUpdated);
+    };
+  }, []);
 
   const handleProfile = () => {
     setMenuOpen(false);
@@ -79,9 +102,28 @@ export default function MainHeader() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <button className="text-gray-200 transition hover:text-white">
-            <ShoppingCart color="#ffffffff" />
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="rounded-md p-1.5 text-gray-200 transition hover:bg-slate-700 hover:text-white"
+            aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+            title={dark ? "Tema claro" : "Tema oscuro"}
+          >
+            {dark ? <Sun className="h-4 w-4 text-yellow-300" /> : <Moon className="h-4 w-4" />}
           </button>
+
+          <Link
+            to="/cart"
+            className="relative text-gray-200 transition hover:text-white"
+            aria-label="Ir al carrito"
+          >
+            <ShoppingCart color="#ffffffff" />
+            {cartCount > 0 && (
+              <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-cyan-400 px-1.5 py-0.5 text-center text-xs font-bold text-slate-900">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
+          </Link>
 
           {isAuthenticated ? (
             <div className="relative" ref={menuRef}>

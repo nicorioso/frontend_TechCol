@@ -3,10 +3,13 @@ import App from './App';
 
 import LoginLayout from './layouts/auth/login/login_form';
 import RegisterLayout from './layouts/auth/register/register_form';
-import UserProfile from './components/dashboard/profile';
+import AdminProfile from './components/dashboard/adminProfile';
+import UserProfile from './layouts/dashboard/userProfile';
 import UserSettings from './layouts/dashboard/userSettings';
 import UserEntities from './layouts/dashboard/userEntities';
 import CatalogLayout from './layouts/catalog/catalog';
+import CartView from './layouts/cart/cart';
+import CheckoutPage from './layouts/checkout/checkout';
 
 const getToken = () => localStorage.getItem('access_token');
 
@@ -65,6 +68,14 @@ export const router = createBrowserRouter([
     element: <CatalogLayout />,
   },
   {
+    path: '/cart',
+    element: <CartView />,
+  },
+  {
+    path: '/checkout',
+    element: <CheckoutPage />,
+  },
+  {
     path: '/auth/login',
     element: <LoginLayout />,
   },
@@ -78,7 +89,7 @@ export const router = createBrowserRouter([
     element: (
       <RequireAuth>
         <RequireAdmin>
-          <UserProfile />
+          <AdminProfile />
         </RequireAdmin>
       </RequireAuth>
     ),

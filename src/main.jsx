@@ -6,6 +6,13 @@ import { RouterProvider } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
+try {
+  const storedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark = storedTheme ? storedTheme === "dark" : prefersDark;
+  document.documentElement.classList.toggle("dark", dark);
+} catch {}
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>

@@ -15,7 +15,7 @@ import ProductShowcase from "../IU/cards/ProductShowcase";
 import { images } from "../../assets/img/img_url";
 import CustomerService from "../../services/customer/CustomerService";
 import productService from "../../services/product/productService";
-import { axiosInstance } from "../../services/api";
+import cartService from "../../services/cart/cartService";
 import config from "../../config/config";
 
 const parseJwtPayload = (token) => {
@@ -71,6 +71,7 @@ function Home() {
   const [productsError, setProductsError] = useState("");
   const [homeError, setHomeError] = useState("");
   const [cartItems, setCartItems] = useState([]);
+  const [notice, setNotice] = useState("");
 
   const isAuthenticated = CustomerService.isAuthenticated();
   const storedUser = CustomerService.getCurrentUser();
@@ -139,8 +140,8 @@ function Home() {
       }
 
       try {
-        const response = await axiosInstance.get(`/cart/${customerId}`);
-        setCartItems(Array.isArray(response.data) ? response.data : []);
+        const items = await cartService.getCartItems();
+        setCartItems(items);
         setHomeError("");
       } catch {
         setCartItems([]);
@@ -149,7 +150,32 @@ function Home() {
     };
 
     loadCart();
+    const handleUpdated = () => {
+      loadCart();
+    };
+
+    window.addEventListener(cartService.CART_UPDATED_EVENT, handleUpdated);
+    return () => window.removeEventListener(cartService.CART_UPDATED_EVENT, handleUpdated);
   }, [isAuthenticated, customerId]);
+
+  const handleAddToCart = async (product) => {
+    if (product.stockAmount <= 0) return;
+
+    try {
+      const result = await cartService.addItem(product, 1);
+      if (result.mode === "backend") {
+        setNotice("Producto agregado al carrito de tu cuenta.");
+      } else {
+        setNotice("Producto agregado al carrito temporal.");
+      }
+    } catch {
+      setNotice("No se pudo agregar el producto al carrito.");
+    }
+
+    window.setTimeout(() => {
+      setNotice("");
+    }, 2500);
+  };
 
   const productsById = useMemo(() => {
     return allProducts.reduce((acc, product) => {
@@ -218,32 +244,32 @@ function Home() {
   const accessPathPrefix = getAccessPathPrefix();
 
   const authenticatedHome = (
-    <section className="w-full bg-slate-100 py-8">
+    <section className="w-full bg-white py-8 dark:bg-gray-900">
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
         <header className="mb-6">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-gray-100">
             Bienvenido de vuelta, {displayName} !
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-gray-400">
             Aqui esta lo que necesitas saber sobre tu cuenta.
           </p>
         </header>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-          <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Estado del Pedido Actual</h2>
-              <Package className="h-5 w-5 text-slate-600" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-gray-100">Estado del Pedido Actual</h2>
+              <Package className="h-5 w-5 text-slate-600 dark:text-gray-300" />
             </div>
 
-            <div className="rounded-md bg-slate-100 p-4">
+            <div className="rounded-md bg-slate-100 p-4 dark:bg-gray-900">
               <div className="mb-3 flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs text-slate-500">Compra actual</p>
-                  <p className="text-2xl font-bold leading-tight text-slate-900">
+                  <p className="text-xs text-slate-500 dark:text-gray-400">Compra actual</p>
+                  <p className="text-2xl font-bold leading-tight text-slate-900 dark:text-gray-100">
                     {orderProduct?.name ?? "Aun no tienes compras en curso"}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-gray-400">
                     Pedido actualizado el {formatDateLabel(currentOrderItem?.updatedAt ?? currentOrderItem?.createdAt)}
                   </p>
                 </div>
@@ -252,22 +278,22 @@ function Home() {
                 </span>
               </div>
 
-              <div className="mb-3 grid grid-cols-3 gap-2 text-xs text-slate-600">
-                <div className="rounded border border-cyan-300 bg-cyan-50 p-2">
+              <div className="mb-3 grid grid-cols-3 gap-2 text-xs text-slate-600 dark:text-gray-300">
+                <div className="rounded border border-cyan-300 bg-cyan-50 p-2 dark:border-cyan-800 dark:bg-cyan-900/30">
                   <p className="mb-1 flex items-center gap-1 font-semibold text-cyan-800">
                     <CircleDashed className="h-3.5 w-3.5" />
                     {orderStateLabel}
                   </p>
                   <p>Estado actual</p>
                 </div>
-                <div className="rounded border border-slate-200 bg-white p-2">
+                <div className="rounded border border-slate-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800">
                   <p className="mb-1 flex items-center gap-1 font-semibold">
                     <Truck className="h-3.5 w-3.5" />
                     En camino
                   </p>
                   <p>Proximo</p>
                 </div>
-                <div className="rounded border border-slate-200 bg-white p-2 opacity-70">
+                <div className="rounded border border-slate-200 bg-white p-2 opacity-70 dark:border-gray-700 dark:bg-gray-800">
                   <p className="mb-1 flex items-center gap-1 font-semibold">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Entregado
@@ -276,7 +302,7 @@ function Home() {
                 </div>
               </div>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-gray-400">
                 Total de items en carrito: {cartItems.reduce((sum, item) => sum + Number(item?.quantity ?? 0), 0)}
               </p>
             </div>
@@ -289,27 +315,27 @@ function Home() {
             </Link>
           </article>
 
-          <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-3 text-lg font-bold text-slate-900">Accesos Rapidos</h2>
+          <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-gray-100">Accesos Rapidos</h2>
 
             <div className="space-y-2">
               <Link
                 to="/products"
-                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 <Package className="h-4 w-4" />
                 Continuar comprando
               </Link>
               <Link
                 to={`/${accessPathPrefix}/entities/orders`}
-                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Mis Pedidos
               </Link>
               <Link
                 to={`/${accessPathPrefix}/profile`}
-                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 <UserCircle2 className="h-4 w-4" />
                 Mi Perfil
@@ -318,8 +344,8 @@ function Home() {
           </article>
         </div>
 
-        <article className="mt-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900">
+        <article className="mt-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-gray-100">
             <Bell className="h-4 w-4" />
             Notificaciones
           </h2>
@@ -328,10 +354,10 @@ function Home() {
             {notifications.map((notification, index) => {
               const toneClass =
                 notification.tone === "green"
-                  ? "border-emerald-200 bg-emerald-50"
+                  ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-900/30"
                   : notification.tone === "gray"
-                    ? "border-slate-200 bg-slate-50"
-                    : "border-blue-200 bg-blue-50";
+                    ? "border-slate-200 bg-slate-50 dark:border-gray-700 dark:bg-gray-900"
+                    : "border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-900/30";
 
               const timeClass =
                 notification.tone === "green"
@@ -342,8 +368,8 @@ function Home() {
 
               return (
                 <div key={`${notification.title}-${index}`} className={`rounded border px-3 py-2 ${toneClass}`}>
-                  <p className="text-sm font-semibold text-slate-800">{notification.title}</p>
-                  <p className="text-xs text-slate-600">{notification.body}</p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-gray-100">{notification.title}</p>
+                  <p className="text-xs text-slate-600 dark:text-gray-300">{notification.body}</p>
                   <p className={`text-xs ${timeClass}`}>{notification.time}</p>
                 </div>
               );
@@ -352,13 +378,13 @@ function Home() {
         </article>
 
         {homeError && (
-          <div className="mt-4 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <div className="mt-4 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
             {homeError}
           </div>
         )}
       </div>
 
-      <ProductShowcase title="Productos Destacados para Ti" products={featuredProducts} />
+      <ProductShowcase title="Productos Destacados para Ti" products={featuredProducts} onAddToCart={handleAddToCart} />
     </section>
   );
 
@@ -371,7 +397,7 @@ function Home() {
       />
 
       <FeaturesGrid />
-      <ProductShowcase products={featuredProducts} />
+      <ProductShowcase products={featuredProducts} onAddToCart={handleAddToCart} />
 
       <ConsultationSection
         title="Necesitas asesoramiento?"
@@ -382,17 +408,17 @@ function Home() {
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full dark:bg-gray-900">
       {isAuthenticated ? authenticatedHome : guestHome}
 
       <div className="w-full">
         {error && (
-          <div className="w-full bg-red-100 p-4 text-center text-red-800">
+          <div className="w-full bg-red-100 p-4 text-center text-red-800 dark:bg-red-900/30 dark:text-red-200">
             <p>{error}</p>
           </div>
         )}
         {productsError && (
-          <div className="w-full bg-yellow-100 p-4 text-center text-yellow-800">
+          <div className="w-full bg-yellow-100 p-4 text-center text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
             <p>{productsError}</p>
           </div>
         )}
