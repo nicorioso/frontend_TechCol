@@ -1,6 +1,6 @@
 export default function MainFooter() {
   return (
-    <footer className="w-full bg-gradient-to-b from-slate-800 to-slate-900 text-gray-300">
+    <footer className="mt-auto w-full bg-gradient-to-b from-slate-800 to-slate-900 text-gray-300">
       <div className="mx-auto max-w-7xl px-6 py-6">
         <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const Alert = ({ type = 'info', message, onClose, duration = 10000, closeable = true }) => {
+const Alert = ({ type = 'info', message, onClose, duration = 0, closeable = true }) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {

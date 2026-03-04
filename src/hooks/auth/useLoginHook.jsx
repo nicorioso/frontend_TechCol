@@ -97,10 +97,7 @@ const useLoginForm = () => {
   const handleVerified = (res) => {
     setVerifyOpen(false);
     setSuccessMessage('¡Inicio de sesión confirmado!');
-    // redirigir tras corto delay
-    setTimeout(() => {
-      window.location.href = '/user/profile';
-    }, 800);
+    window.location.href = '/user/profile';
   };
 
   const resetForm = () => {

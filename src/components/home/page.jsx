@@ -171,10 +171,6 @@ function Home() {
     } catch {
       setNotice("No se pudo agregar el producto al carrito.");
     }
-
-    window.setTimeout(() => {
-      setNotice("");
-    }, 2500);
   };
 
   const productsById = useMemo(() => {

@@ -52,7 +52,6 @@ export default function CartView() {
 
   const showNotice = (message) => {
     setNotice(message);
-    window.setTimeout(() => setNotice(""), 2000);
   };
 
   const handleRemoveItem = async (productId) => {

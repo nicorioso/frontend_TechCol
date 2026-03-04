@@ -1,15 +1,28 @@
-﻿import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './App';
 
-import LoginLayout from './layouts/auth/login/login_form';
-import RegisterLayout from './layouts/auth/register/register_form';
-import AdminProfile from './components/dashboard/adminProfile';
-import UserProfile from './layouts/dashboard/userProfile';
-import UserSettings from './layouts/dashboard/userSettings';
-import UserEntities from './layouts/dashboard/userEntities';
-import CatalogLayout from './layouts/catalog/catalog';
-import CartView from './layouts/cart/cart';
-import CheckoutPage from './layouts/checkout/checkout';
+const LoginLayout = lazy(() => import('./layouts/auth/login/login_form'));
+const RegisterLayout = lazy(() => import('./layouts/auth/register/register_form'));
+const AdminProfile = lazy(() => import('./components/dashboard/adminProfile'));
+const UserProfile = lazy(() => import('./layouts/dashboard/userProfile'));
+const UserSettings = lazy(() => import('./layouts/dashboard/userSettings'));
+const UserEntities = lazy(() => import('./layouts/dashboard/userEntities'));
+const CatalogLayout = lazy(() => import('./layouts/catalog/catalog'));
+const CartView = lazy(() => import('./layouts/cart/cart'));
+const CheckoutPage = lazy(() => import('./layouts/checkout/checkout'));
+
+const withSuspense = (node) => (
+  <Suspense
+    fallback={
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700 dark:bg-gray-900 dark:text-gray-200">
+        Cargando...
+      </div>
+    }
+  >
+    {node}
+  </Suspense>
+);
 
 const getToken = () => localStorage.getItem('access_token');
 
@@ -65,32 +78,30 @@ export const router = createBrowserRouter([
   },
   {
     path: '/products',
-    element: <CatalogLayout />,
+    element: withSuspense(<CatalogLayout />),
   },
   {
     path: '/cart',
-    element: <CartView />,
+    element: withSuspense(<CartView />),
   },
   {
     path: '/checkout',
-    element: <CheckoutPage />,
+    element: withSuspense(<CheckoutPage />),
   },
   {
     path: '/auth/login',
-    element: <LoginLayout />,
+    element: withSuspense(<LoginLayout />),
   },
   {
     path: '/auth/register',
-    element: <RegisterLayout />,
+    element: withSuspense(<RegisterLayout />),
   },
 
   {
     path: '/admin/profile',
     element: (
       <RequireAuth>
-        <RequireAdmin>
-          <AdminProfile />
-        </RequireAdmin>
+        <RequireAdmin>{withSuspense(<AdminProfile />)}</RequireAdmin>
       </RequireAuth>
     ),
   },
@@ -98,9 +109,7 @@ export const router = createBrowserRouter([
     path: '/admin/settings',
     element: (
       <RequireAuth>
-        <RequireAdmin>
-          <UserSettings />
-        </RequireAdmin>
+        <RequireAdmin>{withSuspense(<UserSettings />)}</RequireAdmin>
       </RequireAuth>
     ),
   },
@@ -108,9 +117,7 @@ export const router = createBrowserRouter([
     path: '/admin/entities',
     element: (
       <RequireAuth>
-        <RequireAdmin>
-          <UserEntities />
-        </RequireAdmin>
+        <RequireAdmin>{withSuspense(<UserEntities />)}</RequireAdmin>
       </RequireAuth>
     ),
   },
@@ -118,9 +125,7 @@ export const router = createBrowserRouter([
     path: '/admin/entities/:entity',
     element: (
       <RequireAuth>
-        <RequireAdmin>
-          <UserEntities />
-        </RequireAdmin>
+        <RequireAdmin>{withSuspense(<UserEntities />)}</RequireAdmin>
       </RequireAuth>
     ),
   },
@@ -129,9 +134,7 @@ export const router = createBrowserRouter([
     path: '/user/profile',
     element: (
       <RequireAuth>
-        <RequireUser>
-          <UserProfile />
-        </RequireUser>
+        <RequireUser>{withSuspense(<UserProfile />)}</RequireUser>
       </RequireAuth>
     ),
   },
@@ -139,9 +142,7 @@ export const router = createBrowserRouter([
     path: '/user/settings',
     element: (
       <RequireAuth>
-        <RequireUser>
-          <UserSettings />
-        </RequireUser>
+        <RequireUser>{withSuspense(<UserSettings />)}</RequireUser>
       </RequireAuth>
     ),
   },
@@ -149,9 +150,7 @@ export const router = createBrowserRouter([
     path: '/user/entities',
     element: (
       <RequireAuth>
-        <RequireUser>
-          <UserEntities />
-        </RequireUser>
+        <RequireUser>{withSuspense(<UserEntities />)}</RequireUser>
       </RequireAuth>
     ),
   },
@@ -159,9 +158,7 @@ export const router = createBrowserRouter([
     path: '/user/entities/:entity',
     element: (
       <RequireAuth>
-        <RequireUser>
-          <UserEntities />
-        </RequireUser>
+        <RequireUser>{withSuspense(<UserEntities />)}</RequireUser>
       </RequireAuth>
     ),
   },

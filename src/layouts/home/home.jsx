@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { Send } from "lucide-react";
-
 import MainHeader from "../../components/IU/headers/Main";
 import Home from "../../components/home/page";
 import MainFooter from "../../components/IU/footers/MainFooter";
