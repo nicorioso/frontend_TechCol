@@ -3,12 +3,12 @@ import { Input } from "../../IU/forms/input";
 import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
 import useLoginForm from "../../../hooks/auth/useLoginHook";
-import { GoogleLogin } from "@react-oauth/google";
 import VerifyCodeModal from "../../IU/modal/VerifyCodeModal";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginWithGoogleCredential } from "../../../services/auth/googleAuth";
+import GoogleLoginConsent from "../GoogleLoginConsent";
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -86,18 +86,11 @@ export default function LoginForm() {
             <p className="text-center text-sm text-gray-400">O continua con</p>
 
             <div className="flex justify-center">
-              <GoogleLogin
+              <GoogleLoginConsent
+                buttonLabel="Habilitar login con Google"
                 onSuccess={(credentialResponse) => {
-                  try {
-                    loginWithGoogleCredential(credentialResponse, navigate);
-                  } catch (error) {
-                    console.error("Error en login con Google:", error);
-                  }
+                  loginWithGoogleCredential(credentialResponse, navigate);
                 }}
-                onError={() => {
-                  console.log("Login con Google fallo");
-                }}
-                width="100%"
               />
             </div>
           </form>

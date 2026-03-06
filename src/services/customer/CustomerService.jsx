@@ -1,77 +1,85 @@
-﻿import crudService from '../generic/crud_services';
+import crudService from "../generic/crud_services";
+import { upsertIdentityProfile } from "../../utils/identityProfile";
+import { storageGateway } from "../../utils/storageGateway";
+import { logError, logInfo, logWarn } from "../../utils/logger";
 
 class CustomerService extends crudService {
   constructor() {
-    super('customers');
+    super("customers");
   }
 
   async register(customerData) {
     try {
-      const response = await this.api.post('/auth/register', customerData, { skipAuth: true });
-      console.log('Cliente registrado:', response.data);
+      const response = await this.api.post("/auth/register", customerData, { skipAuth: true });
+      logInfo("Cliente registrado:", response.data);
       return response.data;
     } catch (error) {
-      console.error('Error registrando cliente:', error);
+      logError("Error registrando cliente:", error);
       throw error;
     }
   }
 
   async login(email, password) {
     try {
-      console.log('Intentando login con:', email);
-      const response = await this.api.post('/auth/login', { email, password }, { skipAuth: true });
+      logInfo("Intentando login con:", email);
+      const response = await this.api.post("/auth/login", { email, password }, { skipAuth: true });
 
-      console.log('Login inicial OK, server response:', response.data);
+      logInfo("Login inicial OK, server response:", response.data);
       return response.data;
     } catch (error) {
-      console.error('Error en login:', error.response?.data ?? error.message, 'status:', error.response?.status);
+      logError(
+        "Error en login:",
+        error.response?.data ?? error.message,
+        "status:",
+        error.response?.status
+      );
       throw error;
     }
   }
 
   async verify(email, code) {
     try {
-      console.log('Verificando codigo para:', email);
-      const response = await this.api.post('/auth/verify', { email, code }, { skipAuth: true });
+      logInfo("Verificando codigo para:", email);
+      const response = await this.api.post("/auth/verify", { email, code }, { skipAuth: true });
 
       const { accessToken } = response.data;
 
       if (!accessToken) {
-        console.warn('verify: accessToken no presente en la respuesta', response.data);
+        logWarn("verify: accessToken no presente en la respuesta", response.data);
         return response.data;
       }
 
-      localStorage.setItem('access_token', accessToken);
+      storageGateway.set("access_token", accessToken);
       if (response.data.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        const normalizedUser = upsertIdentityProfile(response.data.user, email);
+        storageGateway.setJson("user", normalizedUser);
       }
 
-      console.log('Verificacion exitosa, token guardado');
+      logInfo("Verificacion exitosa, token guardado");
       return response.data;
     } catch (error) {
-      console.error('Error en verify:', error.response?.data ?? error.message, 'status:', error.response?.status);
+      logError(
+        "Error en verify:",
+        error.response?.data ?? error.message,
+        "status:",
+        error.response?.status
+      );
       throw error;
     }
   }
 
   logout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    console.log('Logout exitoso');
+    storageGateway.remove("access_token");
+    storageGateway.remove("user");
+    logInfo("Logout exitoso");
   }
 
   getCurrentUser() {
-    const user = localStorage.getItem('user');
-    if (!user || user === 'undefined') return null;
-    try {
-      return JSON.parse(user);
-    } catch (e) {
-      return null;
-    }
+    return storageGateway.getJson("user", null);
   }
 
   isAuthenticated() {
-    return !!localStorage.getItem('access_token');
+    return !!storageGateway.get("access_token");
   }
 }
 

@@ -7,3 +7,10 @@ html {
   @apply text-gray-900 bg-white dark:text-gray-100 dark:bg-gray-900;
 }
 
+/* smooth color changes across the app when toggling theme */
+@layer base {
+  *, *::before, *::after {
+    @apply transition-colors duration-300 ease-in-out;
+  }
+}
+

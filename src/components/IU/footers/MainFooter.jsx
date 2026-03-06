@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function MainFooter() {
   return (
     <footer className="mt-auto w-full bg-gradient-to-b from-slate-800 to-slate-900 text-gray-300">
@@ -6,7 +8,7 @@ export default function MainFooter() {
           <div>
             <h3 className="mb-3 text-xl font-bold text-white">TechCol</h3>
             <p className="text-sm leading-relaxed text-gray-400">
-              Tu tienda de confianza para partes de computador
+              Tienda de confianza en Colombia para componentes de computador, hardware gamer y asesoramiento tecnico.
             </p>
           </div>
 
@@ -14,14 +16,19 @@ export default function MainFooter() {
             <h4 className="mb-4 text-lg font-semibold text-white">Enlaces</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-400 transition hover:text-cyan-400">
+                <Link to="/" className="text-gray-400 transition hover:text-cyan-400">
                   Inicio
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 transition hover:text-cyan-400">
+                <Link to="/products" className="text-gray-400 transition hover:text-cyan-400">
                   Productos
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-gray-400 transition hover:text-cyan-400">
+                  Asesoria
+                </Link>
               </li>
             </ul>
           </div>

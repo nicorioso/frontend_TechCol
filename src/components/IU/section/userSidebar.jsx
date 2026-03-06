@@ -1,10 +1,11 @@
 import { ChevronRightIcon, ChevronDoubleLeftIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useContext } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
 import CustomerService from "../../../services/customer/CustomerService";
 import SelectInput from "../forms/selectInput";
 import CollapsibleMenu from "../forms/collapsibleMenu";
+import useClickOutside from "../../../hooks/useClickOutside";
 
 export default function UserSidebar({ items = [], user, onToggleCollapse, dark, onToggleTheme, className = "" }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,25 +24,11 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
     user?.name ||
     "Usuario";
 
-  function handleClickOutside(e) {
-    if (menuRef.current && !menuRef.current.contains(e.target)) {
-      setMenuOpen(false);
-    }
-  }
-
-  useEffect(() => {
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+  useClickOutside(menuRef, menuOpen, () => setMenuOpen(false));
 
   const handleLogout = () => {
     setMenuOpen(false);
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
+    CustomerService.logout();
     logout();
     navigate("/");
   };
@@ -105,8 +92,12 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
 
           <div className="h-16 border-t border-gray-200 dark:border-gray-700 px-2 relative flex items-center" ref={menuRef}>
             <button
+              type="button"
               onClick={() => setMenuOpen((v) => !v)}
               className="w-full flex items-center justify-between hover:bg-gray-200 dark:hover:bg-gray-800 p-2 rounded-lg transition cursor-pointer"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-label="Abrir menu de usuario"
             >
               <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 {displayName}
@@ -115,14 +106,16 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
             </button>
 
             {menuOpen && (
-              <div className="absolute left-full bottom-0 ml-2 bg-white dark:bg-gray-800 rounded shadow-lg py-2 z-[60] animate-fade-in min-w-max">
+              <div className="absolute left-full bottom-0 ml-2 bg-white dark:bg-gray-800 rounded shadow-lg py-2 z-[60] animate-fade-in min-w-max" role="menu">
                 <button
+                  type="button"
                   className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-cyan-100 dark:hover:bg-gray-700 transition whitespace-nowrap"
                   onClick={handleGoHome}
                 >
                   Ir a inicio
                 </button>
                 <button
+                  type="button"
                   className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-cyan-100 dark:hover:bg-gray-700 transition whitespace-nowrap"
                   onClick={handleLogout}
                 >

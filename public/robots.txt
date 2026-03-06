@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /user/
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /cart
+
+Sitemap: https://techcol.com/sitemap.xml

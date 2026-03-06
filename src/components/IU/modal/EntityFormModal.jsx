@@ -86,6 +86,8 @@ export default function EntityFormModal({
                         <img
                           src={values[field.name]}
                           alt={field.label}
+                          loading="lazy"
+                          decoding="async"
                           className="max-h-24 object-contain"
                         />
                       </div>

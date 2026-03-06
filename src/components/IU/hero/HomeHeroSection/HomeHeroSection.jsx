@@ -1,10 +1,10 @@
-﻿import PropTypes from "prop-types";
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 const HomeHeroSection = ({
   brand = "TechCol",
-  title = "Tu tienda especializada en partes de computador de alta calidad",
-  description = "Encuentra los mejores componentes para armar o mejorar tu PC gamer, workstation o servidor",
+  title = "Tu tienda de componentes de computador en Colombia",
+  description = "Encuentra partes PC, hardware gamer y componentes para workstation con asesoria de compatibilidad y envio nacional",
   primaryLabel = "Comienza ahora",
   primaryTo = "/auth/register",
   secondaryLabel = "Ver productos",
@@ -47,7 +47,12 @@ const HomeHeroSection = ({
             <img
               src={imageUrl}
               alt={imageAlt}
-              className="h-44 w-44 rounded-sm bg-white object-cover p-1 shadow-lg md:h-52 md:w-52"
+              width="208"
+              height="208"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="h-44 w-44 rounded-sm bg-transparent object-cover md:h-52 md:w-52"
             />
           ) : null}
         </div>
@@ -70,3 +75,5 @@ HomeHeroSection.propTypes = {
 };
 
 export default HomeHeroSection;
+
+

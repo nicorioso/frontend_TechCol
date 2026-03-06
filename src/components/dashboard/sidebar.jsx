@@ -4,6 +4,7 @@ import { useNavigate, NavLink } from 'react-router-dom';
 import useStore from '../../store/useStore';
 import useTheme from '../../hooks/useTheme';
 import { axiosInstance } from '../../services/api';
+import { getRolePathPrefix, parseJwtPayload } from '../../utils/authSession';
 
 import {
   ChevronDoubleRightIcon,
@@ -16,32 +17,11 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
-const decodeTokenPayload = () => {
+const getEmailFromToken = () => {
   const token = localStorage.getItem('access_token');
-  if (!token) return null;
-
-  try {
-    const payload = token.split('.')[1];
-    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const json = decodeURIComponent(
-      atob(normalized)
-        .split('')
-        .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
-        .join('')
-    );
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
+  if (!token) return '';
+  return String(parseJwtPayload(token)?.sub ?? '');
 };
-
-const getRolePathPrefix = () => {
-  const payload = decodeTokenPayload();
-  const role = String(payload?.role ?? '').toUpperCase();
-  return role.includes('ADMIN') ? 'admin' : 'user';
-};
-
-const getEmailFromToken = () => String(decodeTokenPayload()?.sub ?? '');
 
 export default function Sidebar({ content, onEntitySelect }) {
   const navigate = useNavigate();

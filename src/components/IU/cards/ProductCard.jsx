@@ -25,6 +25,8 @@ const ProductCard = ({
             alt={name}
             loading="lazy"
             decoding="async"
+            width="320"
+            height="220"
             className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
           />
         ) : (

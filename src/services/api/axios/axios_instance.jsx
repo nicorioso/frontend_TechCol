@@ -1,16 +1,18 @@
-import axios from 'axios';
-import { setupInterceptors } from '../interceptors';
-import config from '../../../config/config';
+import axios from "axios";
+import { setupInterceptors } from "../interceptors";
+import config from "../../../config/config";
+
+const DEFAULT_HEADERS = Object.freeze({
+  "Content-Type": "application/json",
+});
 
 const axiosInstance = axios.create({
   baseURL: config.api.baseURL,
   timeout: config.api.timeout,
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  headers: DEFAULT_HEADERS,
 });
-setupInterceptors(axiosInstance);
 
+setupInterceptors(axiosInstance);
 
 export default axiosInstance;

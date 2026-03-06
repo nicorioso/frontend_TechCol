@@ -10,13 +10,8 @@ import {
 import MainHeader from "../../components/IU/headers/Main";
 import MainFooter from "../../components/IU/footers/MainFooter";
 import cartService from "../../services/cart/cartService";
-
-const formatPrice = (price) =>
-  new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(price ?? 0);
+import SeoHead from "../../seo/SeoHead";
+import { formatCopCurrency } from "../../utils/currency";
 
 const SHIPPING_METHODS = [
   { id: "standard", label: "Estandar (5-7 dias)", cost: 29999 },
@@ -148,8 +143,10 @@ export default function CheckoutPage() {
 
   if (cartItems.length === 0 && step < 3) {
     return (
-      <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
-        <MainHeader />
+      <>
+        <SeoHead routeKey="checkout" />
+        <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
+          <MainHeader />
         <section className="flex-1 py-12">
           <div className="mx-auto max-w-2xl px-4">
             <div className="rounded-lg border border-gray-200 bg-white p-10 text-center dark:border-gray-700 dark:bg-gray-800">
@@ -172,14 +169,17 @@ export default function CheckoutPage() {
             </div>
           </div>
         </section>
-        <MainFooter />
-      </main>
+          <MainFooter />
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
-      <MainHeader />
+    <>
+      <SeoHead routeKey="checkout" />
+      <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
+        <MainHeader />
 
       <section className="border-b-2 border-cyan-500 bg-gradient-to-r from-slate-900 to-slate-800 py-8">
         <div className="mx-auto w-full max-w-6xl px-4">
@@ -367,7 +367,7 @@ export default function CheckoutPage() {
                             className="sr-only"
                           />
                           <p className="text-sm font-semibold text-slate-800">{method.label}</p>
-                          <p className="text-xs text-slate-500">Costo: {formatPrice(method.cost)}</p>
+                          <p className="text-xs text-slate-500">Costo: {formatCopCurrency(method.cost)}</p>
                         </label>
                       );
                     })}
@@ -406,21 +406,21 @@ export default function CheckoutPage() {
                   <div className="space-y-2 border-b border-slate-200 pb-4 text-sm">
                     <div className="flex justify-between text-slate-600">
                       <span>Subtotal</span>
-                      <span>{formatPrice(summary.subtotal)}</span>
+                      <span>{formatCopCurrency(summary.subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>IVA (19%)</span>
-                      <span>{formatPrice(summary.tax)}</span>
+                      <span>{formatCopCurrency(summary.tax)}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Envio</span>
-                      <span>{formatPrice(summary.shipping)}</span>
+                      <span>{formatCopCurrency(summary.shipping)}</span>
                     </div>
                   </div>
 
                   <div className="my-4 flex justify-between">
                     <span className="text-lg font-bold text-slate-900">Total</span>
-                    <span className="text-3xl font-bold text-cyan-500">{formatPrice(summary.total)}</span>
+                    <span className="text-3xl font-bold text-cyan-500">{formatCopCurrency(summary.total)}</span>
                   </div>
 
                   <button
@@ -443,7 +443,8 @@ export default function CheckoutPage() {
         </div>
       </section>
 
-      <MainFooter />
-    </main>
+        <MainFooter />
+      </main>
+    </>
   );
 }

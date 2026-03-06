@@ -1,10 +1,12 @@
 import MainHeader from "../../../components/IU/headers/Main";
 import LoginForm from "../../../components/auth/login/form";
 import MainFooter from "../../../components/IU/footers/MainFooter";
+import SeoHead from "../../../seo/SeoHead";
 
 function LoginLayout() {
   return (
     <>
+      <SeoHead routeKey="auth" override={{ path: "/auth/login", title: "Iniciar Sesion | TechCol" }} />
       <main className="flex flex-col min-h-screen">
         <MainHeader/>
         <LoginForm/>

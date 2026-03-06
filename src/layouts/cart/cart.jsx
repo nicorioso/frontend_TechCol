@@ -14,21 +14,14 @@ import {
 import { cartService } from "../../services/cart/cartService";
 import MainHeader from "../../components/IU/headers/Main";
 import MainFooter from "../../components/IU/footers/MainFooter";
-
-const formatPrice = (price) =>
-  new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(price ?? 0);
+import SeoHead from "../../seo/SeoHead";
+import { formatCopCurrency } from "../../utils/currency";
 
 export default function CartView() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
-
-  const session = cartService.getSession();
 
   const loadCart = async () => {
     setIsLoading(true);
@@ -74,8 +67,10 @@ export default function CartView() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
-      <MainHeader />
+    <>
+      <SeoHead routeKey="cart" />
+      <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
+        <MainHeader />
 
       <section className="border-b-2 border-cyan-500 bg-gradient-to-r from-slate-900 to-slate-800 py-4">
         <div className="mx-auto w-full max-w-6xl px-4">
@@ -86,7 +81,7 @@ export default function CartView() {
             <span aria-hidden="true">&lt;</span>
             Volver a Productos
           </Link>
-          <h1 className="text-3xl font-bold text-white">Checkout</h1>
+          <h1 className="text-3xl font-bold text-white">Carrito de Compras</h1>
         </div>
       </section>
 
@@ -175,6 +170,10 @@ export default function CartView() {
                             <img
                               src={item.imageUrl}
                               alt={item.product_name}
+                              loading="lazy"
+                              decoding="async"
+                              width="64"
+                              height="64"
                               className="h-16 w-16 rounded-md bg-gray-100 object-cover dark:bg-gray-700"
                             />
                           ) : (
@@ -187,10 +186,10 @@ export default function CartView() {
                             <div className="mb-2 flex items-start justify-between gap-2">
                               <div>
                                 <h3 className="font-semibold text-slate-900 dark:text-white">{item.product_name}</h3>
-                                <p className="text-xs text-slate-500">{formatPrice(item.unit_price)} por unidad</p>
+                                <p className="text-xs text-slate-500">{formatCopCurrency(item.unit_price)} por unidad</p>
                               </div>
                               <span className="font-bold text-cyan-600 dark:text-cyan-400">
-                                {formatPrice(item.unit_price * item.quantity)}
+                                {formatCopCurrency(item.unit_price * item.quantity)}
                               </span>
                             </div>
 
@@ -237,23 +236,23 @@ export default function CartView() {
                   <div className="space-y-3 border-b border-gray-200 pb-4 text-sm dark:border-gray-700">
                     <div className="flex justify-between text-gray-600 dark:text-gray-400">
                       <span>Subtotal</span>
-                      <span>{formatPrice(summary.subtotal)}</span>
+                      <span>{formatCopCurrency(summary.subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-gray-600 dark:text-gray-400">
                       <span>IVA (19%)</span>
-                      <span>{formatPrice(summary.tax)}</span>
+                      <span>{formatCopCurrency(summary.tax)}</span>
                     </div>
                     <div className="flex justify-between text-gray-600 dark:text-gray-400">
                       <span>Envio</span>
                       <span className={summary.shipping === 0 ? "text-green-600 dark:text-green-400" : ""}>
-                        {summary.shipping === 0 ? "Gratis" : formatPrice(summary.shipping)}
+                        {summary.shipping === 0 ? "Gratis" : formatCopCurrency(summary.shipping)}
                       </span>
                     </div>
                   </div>
 
                   <div className="my-4 flex justify-between">
                     <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
-                    <span className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{formatPrice(summary.total)}</span>
+                    <span className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{formatCopCurrency(summary.total)}</span>
                   </div>
 
                   <button
@@ -275,7 +274,8 @@ export default function CartView() {
         </div>
       </section>
 
-      <MainFooter />
-    </main>
+        <MainFooter />
+      </main>
+    </>
   );
 }

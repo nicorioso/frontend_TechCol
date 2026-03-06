@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Filter, Search, SlidersHorizontal } from "lucide-react";
+import { Link } from "react-router-dom";
 import ProductCard from "../IU/cards/ProductCard";
 import productService from "../../services/product/productService";
 import cartService from "../../services/cart/cartService";
 import config from "../../config/config";
+import SeoHead from "../../seo/SeoHead";
+import { buildProductListSchema } from "../../seo/schema";
 
 const CATEGORY_RULES = [
   { category: "Procesadores", keywords: ["intel", "ryzen", "cpu", "procesador"] },
@@ -136,10 +139,18 @@ export default function ProductCatalog() {
 
   return (
     <section className="w-full bg-white py-8 dark:bg-gray-900">
+      <SeoHead
+        routeKey="products"
+        schema={buildProductListSchema(products.map((product) => ({ ...product, imageUrl: product.image })))}
+      />
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
         <header className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-gray-100">Catalogo de Productos</h1>
-          <p className="text-sm text-slate-500 dark:text-gray-400">Encuentra los mejores componentes para tu PC.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-gray-100">
+            Catalogo de Componentes de Computador en Colombia
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-gray-400">
+            Descubre tarjetas graficas, procesadores, memorias RAM, SSD y partes PC con asesoria de compatibilidad y envio nacional.
+          </p>
         </header>
 
         <div className="mb-6 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -259,6 +270,25 @@ export default function ProductCatalog() {
               <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                 No hay productos que coincidan con los filtros seleccionados.
               </div>
+            )}
+
+            {!isLoading && !error && (
+              <section className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                <h2 className="mb-2 text-base font-semibold text-slate-900 dark:text-gray-100">
+                  Necesitas ayuda para elegir componentes?
+                </h2>
+                <p className="mb-3">
+                  Si estas armando tu computador gamer o de trabajo, visita nuestra pagina de{" "}
+                  <Link to="/contact" className="font-semibold text-cyan-600 hover:text-cyan-700">
+                    asesoramiento tecnico
+                  </Link>{" "}
+                  o vuelve al{" "}
+                  <Link to="/" className="font-semibold text-cyan-600 hover:text-cyan-700">
+                    inicio de la tienda
+                  </Link>{" "}
+                  para revisar recomendaciones destacadas.
+                </p>
+              </section>
             )}
           </div>
         </div>

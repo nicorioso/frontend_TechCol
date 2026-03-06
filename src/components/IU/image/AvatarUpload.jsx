@@ -46,6 +46,10 @@ export default function AvatarUpload({ initialSrc = '', onChange, maxSize = 1 * 
         <img
           src={preview || '/default-avatar.png'}
           alt="avatar"
+          loading="lazy"
+          decoding="async"
+          width="80"
+          height="80"
           className="w-full h-full object-cover"
         />
       </div>

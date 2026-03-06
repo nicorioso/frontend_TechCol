@@ -9,17 +9,17 @@ const ConsultationSection = ({
 }) => {
   return (
     <section className="w-full bg-slate-50 py-10 dark:bg-gray-900 lg:py-12">
-      <div className="container mx-auto px-6 lg:px-12">
-        <div className="space-y-5 rounded-md bg-cyan-500 px-6 py-14 text-center lg:px-10">
+      <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
+        <div className="space-y-5 rounded-md bg-cyan-500 px-6 py-14 text-center dark:border dark:border-cyan-400/40 dark:bg-slate-900/70 dark:shadow-lg dark:shadow-cyan-950/40 lg:px-10">
           <h2 className="text-5xl font-bold text-white">{title}</h2>
-          <p className="mx-auto max-w-3xl text-base text-cyan-50">{description}</p>
+          <p className="mx-auto max-w-3xl text-base text-cyan-50 dark:text-cyan-100">{description}</p>
 
           <div className="pt-3">
             <Button
               variant="primary"
               size="lg"
               onClick={onContactClick}
-              className="border-white bg-white px-6 py-2 text-cyan-600 hover:bg-gray-100"
+              className="rounded-md border border-slate-200 bg-cyan-500 px-6 py-3 text-sm font-semibold !text-slate-100 transition hover:bg-slate-800 hover:!text-white dark:border-slate-200 dark:bg-slate-900 dark:!text-slate-100 dark:hover:bg-slate-800 dark:hover:!text-white"
             >
               {buttonText}
             </Button>

@@ -175,6 +175,10 @@ export const Table = ({
                               <img
                                 src={value}
                                 alt={col.label}
+                                loading="lazy"
+                                decoding="async"
+                                width="48"
+                                height="48"
                                 className="h-12 w-12 object-contain"
                               />
                             );

@@ -4,21 +4,23 @@ import "./index.css";
 import { router } from "./routes"
 import { RouterProvider } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext";
-import { GoogleOAuthProvider } from '@react-oauth/google';
+import { HelmetProvider } from "react-helmet-async";
 
 try {
   const storedTheme = localStorage.getItem("theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const dark = storedTheme ? storedTheme === "dark" : prefersDark;
   document.documentElement.classList.toggle("dark", dark);
-} catch {}
+} catch {
+  // Ignore storage access failures (private mode / blocked storage).
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <HelmetProvider>
       <AuthProvider>
         <RouterProvider router={router} />
       </AuthProvider>
-    </GoogleOAuthProvider>
+    </HelmetProvider>
   </React.StrictMode>
 );

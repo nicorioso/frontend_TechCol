@@ -1,8 +1,10 @@
 import Sidebar from "./sidebar";
+import SeoHead from "../../seo/SeoHead";
 
 export default function AdminProfile() {
   return (
     <>
+      <SeoHead routeKey="private" override={{ path: "/admin/profile", title: "Panel Administrativo | TechCol" }} />
       <div className="flex">
       <Sidebar
         content={

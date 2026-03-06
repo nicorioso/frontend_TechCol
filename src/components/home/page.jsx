@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Bell,
   CheckCircle2,
@@ -17,18 +17,8 @@ import CustomerService from "../../services/customer/CustomerService";
 import productService from "../../services/product/productService";
 import cartService from "../../services/cart/cartService";
 import config from "../../config/config";
-
-const parseJwtPayload = (token) => {
-  try {
-    const payload = token.split(".")[1];
-    if (!payload) return null;
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const json = atob(normalized);
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-};
+import { getRolePathPrefix } from "../../utils/authSession";
+import { getUserDisplayName } from "../../utils/userIdentity";
 
 const formatDateLabel = (value) => {
   if (!value) return "Sin fecha";
@@ -41,30 +31,11 @@ const formatDateLabel = (value) => {
   });
 };
 
-const getAccessPathPrefix = () => {
-  const token = localStorage.getItem("access_token");
-  if (!token) return "user";
-
-  try {
-    const payload = parseJwtPayload(token);
-    const role = String(payload?.role ?? "").toUpperCase();
-    return role.includes("ADMIN") ? "admin" : "user";
-  } catch {
-    return "user";
-  }
-};
-
-const getTokenEmail = () => {
-  const token = localStorage.getItem("access_token");
-  if (!token) return "";
-  const payload = parseJwtPayload(token);
-  return String(payload?.sub ?? "");
-};
-
 const getCustomerId = (user) =>
   user?.customerId ?? user?.customer_id ?? user?.id ?? user?.userId ?? null;
 
 function Home() {
+  const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [error] = useState(null);
@@ -76,12 +47,7 @@ function Home() {
   const isAuthenticated = CustomerService.isAuthenticated();
   const storedUser = CustomerService.getCurrentUser();
   const customerId = getCustomerId(storedUser);
-  const tokenEmail = getTokenEmail();
-  const displayName =
-    storedUser?.customerName ||
-    storedUser?.name ||
-    storedUser?.username ||
-    (tokenEmail ? tokenEmail.split("@")[0] : "Demo User");
+  const displayName = getUserDisplayName(storedUser);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -237,7 +203,7 @@ function Home() {
     return items;
   }, [allProducts, cartItems]);
 
-  const accessPathPrefix = getAccessPathPrefix();
+  const accessPathPrefix = getRolePathPrefix();
 
   const authenticatedHome = (
     <section className="w-full bg-white py-8 dark:bg-gray-900">
@@ -388,17 +354,39 @@ function Home() {
     <>
       <HomeHeroSection
         showPrimaryAction={!isAuthenticated}
-        imageUrl={images.TechCol_logo_light.url}
+        imageUrl={images.TechCol_logo.url}
         imageAlt="Logo oficial de TechCol"
       />
 
       <FeaturesGrid />
+      <section className="w-full bg-white py-6 dark:bg-gray-900">
+        <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
+          <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+            <h2 className="mb-2 text-lg font-semibold text-slate-900 dark:text-gray-100">
+              Tu tienda de hardware y partes PC en Colombia
+            </h2>
+            <p className="mb-2">
+              En TechCol encuentras componentes de computador para gaming, oficina y creacion de contenido.
+              Si quieres optimizar tu equipo, revisa nuestro{" "}
+              <Link to="/products" className="font-semibold text-cyan-600 hover:text-cyan-700">
+                catalogo de productos
+              </Link>{" "}
+              o solicita{" "}
+              <Link to="/contact" className="font-semibold text-cyan-600 hover:text-cyan-700">
+                asesoria de compatibilidad
+              </Link>{" "}
+              con nuestro equipo.
+            </p>
+          </article>
+        </div>
+      </section>
       <ProductShowcase products={featuredProducts} onAddToCart={handleAddToCart} />
 
       <ConsultationSection
         title="Necesitas asesoramiento?"
         description="Nuestro equipo de expertos esta disponible para ayudarte a elegir los mejores componentes."
         buttonText="Contactar soporte"
+        onContactClick={() => navigate("/contact")}
       />
     </>
   );
@@ -424,3 +412,4 @@ function Home() {
 }
 
 export default Home;
+

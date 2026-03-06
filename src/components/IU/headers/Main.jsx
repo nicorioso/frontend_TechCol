@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useCallback, useContext, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Moon, Sun } from "lucide-react";
 import ImageComponent from "../image";
@@ -6,26 +6,9 @@ import { AuthContext } from "../../../context/AuthContext";
 import CustomerService from "../../../services/customer/CustomerService";
 import cartService from "../../../services/cart/cartService";
 import useTheme from "../../../hooks/useTheme";
-
-const getRolePathPrefix = () => {
-  const token = localStorage.getItem("access_token");
-  if (!token) return "user";
-
-  try {
-    const payload = token.split(".")[1];
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const json = decodeURIComponent(
-      atob(normalized)
-        .split("")
-        .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
-        .join("")
-    );
-    const role = String(JSON.parse(json)?.role ?? "").toUpperCase();
-    return role.includes("ADMIN") ? "admin" : "user";
-  } catch {
-    return "user";
-  }
-};
+import useClickOutside from "../../../hooks/useClickOutside";
+import { getRolePathPrefix } from "../../../utils/authSession";
+import { getUserDisplayName, getUserShortName } from "../../../utils/userIdentity";
 
 export default function MainHeader() {
   const { logout } = useContext(AuthContext);
@@ -36,40 +19,27 @@ export default function MainHeader() {
   const navigate = useNavigate();
   const isAuthenticated = CustomerService.isAuthenticated();
   const currentUser = CustomerService.getCurrentUser();
+  const shortName = getUserShortName(currentUser);
+  const displayName = getUserDisplayName(currentUser);
 
-  function handleClickOutside(e) {
-    if (menuRef.current && !menuRef.current.contains(e.target)) {
-      setMenuOpen(false);
-    }
-  }
+  useClickOutside(menuRef, menuOpen, () => setMenuOpen(false));
 
-  React.useEffect(() => {
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+  const loadCartCount = useCallback(async () => {
+    const items = await cartService.getCartItems();
+    const summary = cartService.getCartSummary(items);
+    setCartCount(summary.itemCount);
+  }, []);
 
   React.useEffect(() => {
-    const loadCartCount = async () => {
-      const items = await cartService.getCartItems();
-      const summary = cartService.getCartSummary(items);
-      setCartCount(summary.itemCount);
-    };
-
     loadCartCount();
 
-    const handleUpdated = () => {
-      loadCartCount();
-    };
+    const handleUpdated = () => loadCartCount();
 
     window.addEventListener(cartService.CART_UPDATED_EVENT, handleUpdated);
     return () => {
       window.removeEventListener(cartService.CART_UPDATED_EVENT, handleUpdated);
     };
-  }, []);
+  }, [loadCartCount]);
 
   const handleProfile = () => {
     setMenuOpen(false);
@@ -79,8 +49,7 @@ export default function MainHeader() {
 
   const handleLogout = () => {
     setMenuOpen(false);
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
+    CustomerService.logout();
     logout();
     navigate("/");
   };
@@ -98,6 +67,9 @@ export default function MainHeader() {
           </Link>
           <Link to="/products" className="text-gray-200 transition hover:text-white">
             Productos
+          </Link>
+          <Link to="/contact" className="text-gray-200 transition hover:text-white">
+            Asesoria
           </Link>
         </nav>
 
@@ -128,24 +100,32 @@ export default function MainHeader() {
           {isAuthenticated ? (
             <div className="relative" ref={menuRef}>
               <button
+                type="button"
                 className="flex items-center gap-2 focus:outline-none"
                 onClick={() => setMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="Abrir menu de usuario"
               >
-                <img
-                  src={currentUser?.photoUrl || currentUser?.avatar || "/default-avatar.png"}
-                  alt="avatar"
-                  className="h-10 w-10 rounded-full border-2 border-cyan-400 object-cover"
-                />
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-cyan-400 bg-slate-700 text-sm font-semibold uppercase text-cyan-100"
+                  aria-label="Usuario"
+                  title={displayName}
+                >
+                  {shortName}
+                </div>
               </button>
               {menuOpen && (
-                <div className="animate-fade-in absolute right-0 z-50 mt-2 w-44 rounded bg-white py-2 text-slate-900 shadow-lg">
+                <div className="animate-fade-in absolute right-0 z-50 mt-2 w-44 rounded bg-white py-2 text-slate-900 shadow-lg" role="menu">
                   <button
+                    type="button"
                     className="block w-full px-4 py-2 text-left hover:bg-cyan-100"
                     onClick={handleProfile}
                   >
                     Perfil
                   </button>
                   <button
+                    type="button"
                     className="block w-full px-4 py-2 text-left hover:bg-cyan-100"
                     onClick={handleLogout}
                   >

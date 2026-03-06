@@ -97,7 +97,7 @@ const useLoginForm = () => {
   const handleVerified = (res) => {
     setVerifyOpen(false);
     setSuccessMessage('¡Inicio de sesión confirmado!');
-    window.location.href = '/user/profile';
+    window.location.href = '/';
   };
 
   const resetForm = () => {
@@ -127,3 +127,4 @@ const useLoginForm = () => {
 };
 
 export default useLoginForm;
+

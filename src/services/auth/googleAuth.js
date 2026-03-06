@@ -1,14 +1,6 @@
-const parseJwtPayload = (token) => {
-  try {
-    const payload = token.split(".")[1];
-    if (!payload) return null;
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const json = atob(normalized);
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-};
+import { parseJwtPayload, resolveRoleFromPayload } from "../../utils/authSession";
+import { upsertIdentityProfile } from "../../utils/identityProfile";
+import { storageGateway } from "../../utils/storageGateway";
 
 export const loginWithGoogleCredential = (credentialResponse, navigate) => {
   const credential = credentialResponse?.credential;
@@ -21,21 +13,16 @@ export const loginWithGoogleCredential = (credentialResponse, navigate) => {
     throw new Error("No se pudo leer el token de Google.");
   }
 
-  const role = String(payload?.role ?? "CLIENTE").toUpperCase();
-  const isAdmin = role.includes("ADMIN");
-
-  const user = {
+  const user = upsertIdentityProfile({
     customerName: payload?.given_name ?? payload?.name ?? "",
     customerLastName: payload?.family_name ?? "",
     customerEmail: payload?.email ?? "",
     name: payload?.name ?? "",
     photoUrl: payload?.picture ?? "",
-    role: isAdmin ? "ADMIN" : "CLIENTE",
-  };
+    role: resolveRoleFromPayload(payload) || "CLIENTE",
+  });
 
-  localStorage.setItem("access_token", credential);
-  localStorage.setItem("user", JSON.stringify(user));
-
-  navigate(isAdmin ? "/admin/profile" : "/user/profile");
+  storageGateway.set("access_token", credential);
+  storageGateway.setJson("user", user);
+  navigate("/");
 };
-

@@ -6,9 +6,9 @@ import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
 import useRegister from "../../../hooks/auth/useRegisterHook";
 import Alert from "../../IU/alerts/Alerts";
-import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { loginWithGoogleCredential } from "../../../services/auth/googleAuth";
+import GoogleLoginConsent from "../GoogleLoginConsent";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -132,18 +132,11 @@ export default function RegisterForm() {
             <p className="text-center text-sm text-gray-400">O continua con</p>
 
             <div className="flex justify-center">
-              <GoogleLogin
+              <GoogleLoginConsent
+                buttonLabel="Habilitar registro con Google"
                 onSuccess={(credentialResponse) => {
-                  try {
-                    loginWithGoogleCredential(credentialResponse, navigate);
-                  } catch (error) {
-                    console.error("Error en registro con Google:", error);
-                  }
+                  loginWithGoogleCredential(credentialResponse, navigate);
                 }}
-                onError={() => {
-                  console.log("Registro con Google fallo");
-                }}
-                width="100%"
               />
             </div>
           </form>

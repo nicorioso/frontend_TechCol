@@ -11,7 +11,9 @@ function ImageComponent({style, id, alttext = 'Imagen' }) {
   return (
     <img
       src={image.url}
-      alttext={alttext}
+      alt={alttext}
+      loading="lazy"
+      decoding="async"
       className={`mx-auto ${style}`}
     />
   );
