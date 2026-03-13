@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Moon, Sun } from "lucide-react";
+import { ShoppingCart, Moon, Sun, Menu, X } from "lucide-react";
 import ImageComponent from "../image";
 import { AuthContext } from "../../../context/AuthContext";
 import CustomerService from "../../../services/customer/CustomerService";
@@ -13,6 +13,7 @@ import { getUserDisplayName, getUserShortName } from "../../../utils/userIdentit
 export default function MainHeader() {
   const { logout } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [dark, toggleTheme] = useTheme();
   const menuRef = useRef(null);
@@ -42,12 +43,14 @@ export default function MainHeader() {
   }, [loadCartCount]);
 
   const handleProfile = () => {
+    setMobileOpen(false);
     setMenuOpen(false);
     const pathPrefix = getRolePathPrefix();
     navigate(`/${pathPrefix}/profile`);
   };
 
   const handleLogout = () => {
+    setMobileOpen(false);
     setMenuOpen(false);
     CustomerService.logout();
     logout();
@@ -57,9 +60,9 @@ export default function MainHeader() {
   return (
     <header className="sticky top-0 z-10 w-full bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-2 text-white shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <div className="flex items-center gap-2 text-2xl font-bold">
+        <Link to="/" className="flex items-center gap-2 text-2xl font-bold">
           <ImageComponent id="TechCol_logo" alttext="TechCol_logo" style="h-12" />
-        </div>
+        </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
           <Link to="/" className="text-gray-200 transition hover:text-white">
@@ -97,8 +100,17 @@ export default function MainHeader() {
             )}
           </Link>
 
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md p-2 text-gray-200 transition hover:bg-slate-700 hover:text-white md:hidden"
+            aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
           {isAuthenticated ? (
-            <div className="relative" ref={menuRef}>
+            <div className="relative hidden md:block" ref={menuRef}>
               <button
                 type="button"
                 className="flex items-center gap-2 focus:outline-none"
@@ -135,7 +147,7 @@ export default function MainHeader() {
               )}
             </div>
           ) : (
-            <>
+            <div className="hidden items-center gap-3 md:flex">
               <Link
                 className="rounded border-2 border-gray-400 px-4 py-2 text-gray-200 transition hover:bg-gray-700"
                 to="/auth/login"
@@ -148,10 +160,78 @@ export default function MainHeader() {
               >
                 Registrarse
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="md:hidden">
+          <div className="mt-3 rounded-lg bg-slate-900/90 p-4 shadow-xl">
+            <nav className="flex flex-col gap-3">
+              <Link
+                to="/"
+                onClick={() => setMobileOpen(false)}
+                className="text-gray-200 transition hover:text-white"
+              >
+                Inicio
+              </Link>
+              <Link
+                to="/products"
+                onClick={() => setMobileOpen(false)}
+                className="text-gray-200 transition hover:text-white"
+              >
+                Productos
+              </Link>
+              <Link
+                to="/contact"
+                onClick={() => setMobileOpen(false)}
+                className="text-gray-200 transition hover:text-white"
+              >
+                Asesoria
+              </Link>
+            </nav>
+
+            <div className="mt-4 border-t border-slate-700 pt-4">
+              {isAuthenticated ? (
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="button"
+                    className="rounded border border-cyan-300/60 px-3 py-2 text-left text-cyan-100 transition hover:bg-cyan-600/20"
+                    onClick={handleProfile}
+                  >
+                    Perfil
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded border border-red-300/60 px-3 py-2 text-left text-red-100 transition hover:bg-red-600/20"
+                    onClick={handleLogout}
+                  >
+                    Cerrar sesion
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <Link
+                    className="rounded border border-gray-400 px-4 py-2 text-gray-200 transition hover:bg-gray-700"
+                    to="/auth/login"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Iniciar sesion
+                  </Link>
+                  <Link
+                    className="rounded bg-cyan-400 px-4 py-2 font-semibold text-slate-900 transition hover:bg-cyan-300"
+                    to="/auth/register"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Registrarse
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

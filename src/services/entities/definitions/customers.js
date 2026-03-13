@@ -1,4 +1,6 @@
-﻿const getCustomerId = (customer) => customer?.customerId ?? customer?.customer_id ?? customer?.id;
+﻿import CustomerService from '../../customer/CustomerService';
+
+const getCustomerId = (customer) => customer?.customerId ?? customer?.customer_id ?? customer?.id;
 
 const getCustomerName = (customer) => {
   const firstName = customer?.customerName ?? customer?.customer_name ?? customer?.name ?? '';
@@ -52,6 +54,21 @@ export const customersEntity = {
 
     return customerService.register(payload);
   },
+  update: async (id, values = {}) => {
+    const payload = {
+      customerName: values.customer_name,
+      customerLastName: values.customer_last_name,
+      customerEmail: values.customer_email,
+      customerPhoneNumber: `${values.customer_country_code || ''} ${values.customer_phone_number || ''}`.trim(),
+    };
+
+    if (values.customer_password) {
+      payload.customerPassword = values.customer_password;
+    }
+
+    return CustomerService.patch(id, payload);
+  },
+  delete: async (id) => CustomerService.delete(id),
   toFormValues: (row = {}) => {
     const fullName = String(row.name || '').trim();
     const [firstName, ...lastNameParts] = fullName.split(' ');

@@ -1,10 +1,14 @@
-const parsedTimeout = Number(import.meta.env.VITE_API_TIMEOUT);
-const apiTimeout = Number.isFinite(parsedTimeout) && parsedTimeout > 0 ? parsedTimeout : 0;
+const apiTimeout = 0;
 const defaultApiBaseURL = import.meta.env.DEV ? "http://localhost:8080/api" : "/api";
+const apiUrlFromReactEnv =
+  typeof process !== "undefined" ? process.env?.REACT_APP_API_URL : undefined;
+
+export const API_URL =
+  apiUrlFromReactEnv || import.meta.env.VITE_API_URL || defaultApiBaseURL;
 
 const config = Object.freeze({
   api: {
-    baseURL: import.meta.env.VITE_API_URL || defaultApiBaseURL,
+    baseURL: API_URL,
     // 0 means no timeout in Axios.
     timeout: apiTimeout,
   },

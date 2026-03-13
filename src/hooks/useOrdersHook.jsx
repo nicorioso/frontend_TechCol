@@ -21,8 +21,9 @@ export function useOrdersHook(customerId) {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get(`/orders/customer/${customerId}`);
-        const ordersData = Array.isArray(response.data) ? response.data : [];
+        const response = await axiosInstance.get(`/order/${customerId}`);
+        const raw = response.data;
+        const ordersData = Array.isArray(raw) ? raw : raw ? [raw] : [];
 
         setOrders(ordersData);
 

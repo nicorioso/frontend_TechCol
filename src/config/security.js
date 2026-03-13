@@ -17,10 +17,10 @@ const CLOUDINARY_ORIGINS = ["https://res.cloudinary.com"];
 
 export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  `script-src 'self' ${GOOGLE_ORIGINS.join(" ")}`,
+  `script-src 'self' 'unsafe-eval' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' ${GOOGLE_ORIGINS.join(" ")}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${CLOUDINARY_ORIGINS.join(" ")}`,
-  `connect-src 'self' ${SITE_ORIGIN} ${GOOGLE_ORIGINS.join(" ")}`,
+  `connect-src 'self' http://localhost:8080 http://127.0.0.1:8080 ${SITE_ORIGIN} ${GOOGLE_ORIGINS.join(" ")}`,
   "font-src 'self' data:",
   "object-src 'none'",
   "base-uri 'self'",

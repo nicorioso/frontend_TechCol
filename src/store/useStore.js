@@ -1,4 +1,4 @@
-import create from 'zustand'
+import { create } from 'zustand'
 
 export const useStore = create((set) => ({
   selectedEntity: 'customers',
@@ -8,4 +8,3 @@ export const useStore = create((set) => ({
   logout: () => set({ user: null }),
 }));
 
-export default useStore;

@@ -64,7 +64,7 @@ export const cartsEntity = {
   toFormValues: (row = {}) => ({
     customer: row.customer || '',
     items: row.items ?? '',
-    subtotal: String(row.subtotal || '').replace(/[^\d.-]/g, ''),
+    subtotal: String(row.subtotal || '').replace(/[^\\d.-]/g, ''),
     status: row.status || '',
     createdAt: row.createdAt || '',
   }),

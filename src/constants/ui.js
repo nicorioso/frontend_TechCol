@@ -1,4 +1,4 @@
-export const ALERT_DEFAULT_DURATION = 5000;
+export const ALERT_DEFAULT_DURATION = 0;
 
 export const ALERT_STYLE_BY_TYPE = {
   success: "bg-green-500 text-white",
@@ -8,7 +8,7 @@ export const ALERT_STYLE_BY_TYPE = {
 };
 
 export const ALERT_ICON_BY_TYPE = {
-  success: "OK",
+  success: "✓",
   error: "X",
   warning: "!",
   info: "i",

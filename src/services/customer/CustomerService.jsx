@@ -20,6 +20,7 @@ class CustomerService extends crudService {
   }
 
   async login(email, password) {
+    const start = performance.now();
     try {
       logInfo("Intentando login con:", email);
       const response = await this.api.post("/auth/login", { email, password }, { skipAuth: true });
@@ -34,10 +35,14 @@ class CustomerService extends crudService {
         error.response?.status
       );
       throw error;
+    } finally {
+      const elapsed = Math.round(performance.now() - start);
+      logInfo(`Tiempo /auth/login: ${elapsed}ms`);
     }
   }
 
   async verify(email, code) {
+    const start = performance.now();
     try {
       logInfo("Verificando codigo para:", email);
       const response = await this.api.post("/auth/verify", { email, code }, { skipAuth: true });
@@ -65,6 +70,9 @@ class CustomerService extends crudService {
         error.response?.status
       );
       throw error;
+    } finally {
+      const elapsed = Math.round(performance.now() - start);
+      logInfo(`Tiempo /auth/verify: ${elapsed}ms`);
     }
   }
 
@@ -72,6 +80,14 @@ class CustomerService extends crudService {
     storageGateway.remove("access_token");
     storageGateway.remove("user");
     logInfo("Logout exitoso");
+  }
+
+  async logoutRemote() {
+    try {
+      await this.api.post("/auth/logout", {}, { skipAuth: true });
+    } catch (error) {
+      logWarn("logoutRemote: error al cerrar sesion remota", error?.response?.data ?? error?.message);
+    }
   }
 
   getCurrentUser() {

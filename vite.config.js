@@ -9,21 +9,26 @@ import { SECURITY_HEADERS } from "./src/config/security";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig({
-  plugins: [
-    react(),
-    vitePrerenderPlugin({
-      renderTarget: "#root",
-      prerenderScript: path.resolve(__dirname, "src/seo/prerender.js"),
-      additionalPrerenderRoutes: prerenderRoutes,
-    }),
-  ],
-  server: {
-    hmr: true,
-    open: true,
-    headers: SECURITY_HEADERS,
-  },
-  preview: {
-    headers: SECURITY_HEADERS,
-  },
+export default defineConfig(({ mode }) => {
+  const isDev = mode === "development";
+  const securityHeaders = isDev ? {} : SECURITY_HEADERS;
+
+  return {
+    plugins: [
+      react(),
+      vitePrerenderPlugin({
+        renderTarget: "#root",
+        prerenderScript: path.resolve(__dirname, "src/seo/prerender.js"),
+        additionalPrerenderRoutes: prerenderRoutes,
+      }),
+    ],
+    server: {
+      hmr: true,
+      open: true,
+      headers: securityHeaders,
+    },
+    preview: {
+      headers: securityHeaders,
+    },
+  };
 });

@@ -91,21 +91,10 @@ export const productsEntity = {
   update: async (id, values) => {
     return productsEntity._sendToService(values, (data) => productService.updateProduct(id, data));
   },
+  delete: async (id) => {
+    return productService.deleteProduct(id);
+  },
   _sendToService: async (values, serviceFn) => {
-    // convert to form data if necessary
-    const hasFile = Object.values(values).some(v => v instanceof File);
-    if (hasFile) {
-      const form = new FormData();
-      Object.entries(values).forEach(([k, v]) => {
-        if (v === undefined || v === null) return;
-        if (v instanceof File) {
-          form.append('image', v);
-        } else {
-          form.append(k, v);
-        }
-      });
-      return serviceFn(form);
-    }
     return serviceFn(values);
   },
 };

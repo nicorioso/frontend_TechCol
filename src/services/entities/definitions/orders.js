@@ -73,7 +73,7 @@ export const ordersEntity = {
     customer: row.customer || '',
     email: row.email || '',
     country: row.country || '',
-    shipping: String(row.shipping || '').replace(/[^\d.-]/g, ''),
+    shipping: String(row.shipping || '').replace(/[^\\d.-]/g, ''),
     source: row.source || '',
     orderType: row.orderType || '',
   }),

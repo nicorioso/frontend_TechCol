@@ -1,6 +1,41 @@
 ﻿import { axiosInstance } from "../api/axios";
 
 export const productService = {
+  _buildProductFormData: (productData = {}) => {
+    const {
+      image,
+      productName,
+      product_name,
+      name,
+      description,
+      category,
+      price,
+      stock,
+    } = productData || {};
+
+    const payload = new FormData();
+    payload.append(
+      "data",
+      JSON.stringify({
+        productName: productName ?? product_name ?? name ?? "",
+        description: description ?? category ?? "",
+        price:
+          price === "" || price === undefined || price === null
+            ? 0
+            : Number(price),
+        stock:
+          stock === "" || stock === undefined || stock === null
+            ? 0
+            : Number(stock),
+      })
+    );
+
+    if (image instanceof File) {
+      payload.append("image", image);
+    }
+
+    return payload;
+  },
   getAllProducts: async () => {
     try {
       const response = await axiosInstance.get("/products");
@@ -23,21 +58,13 @@ export const productService = {
 
   createProduct: async (productData) => {
     try {
-      let payload = productData;
-      let requestConfig = {};
-
-      if (productData && Object.values(productData).some((v) => v instanceof File)) {
-        payload = new FormData();
-        Object.entries(productData).forEach(([k, v]) => {
-          if (v === undefined || v === null) return;
-          if (v instanceof File) {
-            payload.append("image", v);
-          } else {
-            payload.append(k, v);
-          }
-        });
-        requestConfig.headers = { "Content-Type": "multipart/form-data" };
-      }
+      const isFormData = productData instanceof FormData;
+      const payload = isFormData
+        ? productData
+        : productService._buildProductFormData(productData);
+      const requestConfig = isFormData
+        ? {}
+        : { headers: { "Content-Type": "multipart/form-data" } };
 
       const response = await axiosInstance.post("/products", payload, requestConfig);
       return response.data;
@@ -49,21 +76,13 @@ export const productService = {
 
   updateProduct: async (id, productData) => {
     try {
-      let payload = productData;
-      let requestConfig = {};
-
-      if (productData && Object.values(productData).some((v) => v instanceof File)) {
-        payload = new FormData();
-        Object.entries(productData).forEach(([k, v]) => {
-          if (v === undefined || v === null) return;
-          if (v instanceof File) {
-            payload.append("image", v);
-          } else {
-            payload.append(k, v);
-          }
-        });
-        requestConfig.headers = { "Content-Type": "multipart/form-data" };
-      }
+      const isFormData = productData instanceof FormData;
+      const payload = isFormData
+        ? productData
+        : productService._buildProductFormData(productData);
+      const requestConfig = isFormData
+        ? {}
+        : { headers: { "Content-Type": "multipart/form-data" } };
 
       const response = await axiosInstance.post(`/products/update/${id}`, payload, requestConfig);
       return response.data;

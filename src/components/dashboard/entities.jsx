@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Sidebar from './sidebar';
-import useStore from '../../store/useStore';
+import { useStore } from '../../store/useStore';
 import CustomersTable from '../IU/tables/CustomersTable';
 import AdminsTable from '../IU/tables/AdminsTable';
 import ProductsTable from '../IU/tables/ProductsTable';
@@ -33,6 +33,12 @@ const INITIAL_EDIT_STATE = {
   values: {},
 };
 
+const INITIAL_ACTION_ALERT = {
+  visible: false,
+  type: 'info',
+  message: '',
+};
+
 export default function Entities() {
   const setSelectedEntity = useStore((s) => s.setSelectedEntity);
   const selectedEntity = useStore((s) => s.selectedEntity);
@@ -52,6 +58,7 @@ export default function Entities() {
   } = useEntityCreation(selectedEntity);
   const [deleteConfirmState, setDeleteConfirmState] = useState(INITIAL_DELETE_STATE);
   const [editModalState, setEditModalState] = useState(INITIAL_EDIT_STATE);
+  const [actionAlert, setActionAlert] = useState(INITIAL_ACTION_ALERT);
 
   useEffect(() => {
     if (params?.entity) setSelectedEntity(params.entity);
@@ -64,6 +71,14 @@ export default function Entities() {
 
   const openEditModal = (row) => {
     const definition = getEntityDefinition(selectedEntity);
+    if (!definition?.update) {
+      setActionAlert({
+        visible: true,
+        type: 'info',
+        message: `La edición de ${definition?.singularLabel || 'entidades'} aún no está conectada al backend.`,
+      });
+      return;
+    }
     const initialValues = definition?.toFormValues ? definition.toFormValues(row) : { ...row };
 
     setEditModalState({
@@ -74,6 +89,15 @@ export default function Entities() {
   };
 
   const openDeleteModal = (row) => {
+    const definition = getEntityDefinition(selectedEntity);
+    if (!definition?.delete) {
+      setActionAlert({
+        visible: true,
+        type: 'info',
+        message: `La eliminación de ${definition?.singularLabel || 'entidades'} aún no está conectada al backend.`,
+      });
+      return;
+    }
     setDeleteConfirmState({
       isOpen: true,
       row,
@@ -100,11 +124,43 @@ export default function Entities() {
 
   const singularLabel = getEntityDefinition(selectedEntity)?.singularLabel || 'Entidad';
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmState.row?.id !== undefined) {
-      removeEntityRow(selectedEntity, deleteConfirmState.row.id);
+  const handleConfirmDelete = async () => {
+    const definition = getEntityDefinition(selectedEntity);
+    const rowId = deleteConfirmState.row?.id;
+
+    if (rowId === undefined) {
+      setDeleteConfirmState(INITIAL_DELETE_STATE);
+      return;
     }
-    setDeleteConfirmState(INITIAL_DELETE_STATE);
+
+    if (!definition?.delete) {
+      setActionAlert({
+        visible: true,
+        type: 'info',
+        message: `La eliminación de ${definition?.singularLabel || 'entidades'} aún no está conectada al backend.`,
+      });
+      setDeleteConfirmState(INITIAL_DELETE_STATE);
+      return;
+    }
+
+    try {
+      await definition.delete(rowId);
+      removeEntityRow(selectedEntity, rowId);
+      setActionAlert({
+        visible: true,
+        type: 'success',
+        message: `${definition?.singularLabel || 'Entidad'} eliminada correctamente.`,
+      });
+    } catch (err) {
+      console.error('Error deleting entity', err);
+      setActionAlert({
+        visible: true,
+        type: 'error',
+        message: `No se pudo eliminar ${definition?.singularLabel || 'la entidad'}.`,
+      });
+    } finally {
+      setDeleteConfirmState(INITIAL_DELETE_STATE);
+    }
   };
 
   const handleCancelDelete = () => {
@@ -137,23 +193,34 @@ export default function Entities() {
       : { ...currentRow, ...editModalState.values };
 
     if (currentRow?.id !== undefined) {
-      // send to backend if definition provides update
       if (definition?.update) {
         try {
           const result = await definition.update(currentRow.id, editModalState.values);
-          // if service returns updated entity data, map it before updating state
           const mapped = definition?.map ? definition.map([result])[0] : null;
           if (mapped) {
             updateEntityRow(selectedEntity, currentRow.id, mapped);
           } else {
             updateEntityRow(selectedEntity, currentRow.id, updatedRow);
           }
+          setActionAlert({
+            visible: true,
+            type: 'success',
+            message: `${definition?.singularLabel || 'Entidad'} actualizada correctamente.`,
+          });
         } catch (err) {
           console.error('Error updating entity', err);
-          updateEntityRow(selectedEntity, currentRow.id, updatedRow);
+          setActionAlert({
+            visible: true,
+            type: 'error',
+            message: `No se pudo actualizar ${definition?.singularLabel || 'la entidad'}.`,
+          });
         }
       } else {
-        updateEntityRow(selectedEntity, currentRow.id, updatedRow);
+        setActionAlert({
+          visible: true,
+          type: 'info',
+          message: `La edición de ${definition?.singularLabel || 'entidades'} aún no está conectada al backend.`,
+        });
       }
     }
 
@@ -168,7 +235,6 @@ export default function Entities() {
             <div className="w-full">
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h1 className="text-2xl font-semibold">Entidades</h1>
-                {/* boton de creación se renderiza dentro de la tabla */}
               </div>
 
               {isLoading ? <div className="p-6">Cargando entidades...</div> : renderTable()}
@@ -201,6 +267,14 @@ export default function Entities() {
                   type={alertState.type}
                   message={alertState.message}
                   onClose={closeAlert}
+                  duration={6000}
+                />
+              )}
+              {actionAlert.visible && (
+                <Alert
+                  type={actionAlert.type}
+                  message={actionAlert.message}
+                  onClose={() => setActionAlert(INITIAL_ACTION_ALERT)}
                   duration={6000}
                 />
               )}

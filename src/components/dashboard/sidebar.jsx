@@ -1,7 +1,7 @@
 ﻿import { useState, useRef, useEffect } from 'react';
 import UserSidebar from '../IU/section/userSidebar';
 import { useNavigate, NavLink } from 'react-router-dom';
-import useStore from '../../store/useStore';
+import { useStore } from '../../store/useStore';
 import useTheme from '../../hooks/useTheme';
 import { axiosInstance } from '../../services/api';
 import { getRolePathPrefix, parseJwtPayload } from '../../utils/authSession';
@@ -187,20 +187,26 @@ export default function Sidebar({ content, onEntitySelect }) {
     <>
       <div className="flex w-full min-w-0 items-start overflow-x-hidden">
         {!collapsed && (
-          <UserSidebar
-            items={items}
-            user={{
-              name: accountName,
-              image: 'https://i.pravatar.cc/40',
-            }}
-            onToggleCollapse={toggleCollapse}
-            dark={dark}
-            onToggleTheme={toggleTheme}
-          />
+          <>
+            <div className="w-64 shrink-0" aria-hidden="true" />
+            <UserSidebar
+              items={items}
+              user={{
+                name: accountName,
+                image: 'https://i.pravatar.cc/40',
+              }}
+              onToggleCollapse={toggleCollapse}
+              dark={dark}
+              onToggleTheme={toggleTheme}
+              className="fixed left-0 top-0 h-[100dvh] w-64"
+            />
+          </>
         )}
 
         {collapsed && (
-          <aside className="sticky top-0 self-start h-screen w-14 shrink-0 overflow-visible border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900 flex flex-col">
+          <>
+            <div className="w-14 shrink-0" aria-hidden="true" />
+            <aside className="fixed left-0 top-0 h-[100dvh] w-14 shrink-0 overflow-visible border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900 flex flex-col">
             <div>
               <div className="h-14 flex items-center px-2 border-b border-gray-200 dark:border-gray-700">
                 <div className="w-full">
@@ -320,7 +326,8 @@ export default function Sidebar({ content, onEntitySelect }) {
                 )}
               </div>
             </div>
-          </aside>
+            </aside>
+          </>
         )}
 
         <main className="min-h-screen flex-1 min-w-0 bg-white p-4 dark:bg-gray-900 dark:text-gray-200 sm:p-6 lg:p-10">{content}</main>

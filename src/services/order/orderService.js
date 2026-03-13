@@ -8,7 +8,7 @@ const orderService = {
    */
   getCustomerOrders: async (customerId) => {
     try {
-      const response = await axiosInstance.get(`/orders/customer/${customerId}`);
+      const response = await axiosInstance.get(`/order/${customerId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching customer orders:', error);
@@ -23,7 +23,7 @@ const orderService = {
    */
   getOrderById: async (orderId) => {
     try {
-      const response = await axiosInstance.get(`/orders/${orderId}`);
+      const response = await axiosInstance.get(`/order/${orderId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching order:', error);
@@ -37,7 +37,7 @@ const orderService = {
    */
   getAllOrders: async () => {
     try {
-      const response = await axiosInstance.get('/orders');
+      const response = await axiosInstance.get('/order');
       return response.data;
     } catch (error) {
       console.error('Error fetching all orders:', error);
@@ -53,7 +53,7 @@ const orderService = {
    */
   updateOrder: async (orderId, updates) => {
     try {
-      const response = await axiosInstance.put(`/orders/${orderId}`, updates);
+      const response = await axiosInstance.put(`/order/${orderId}`, updates);
       return response.data;
     } catch (error) {
       console.error('Error updating order:', error);
