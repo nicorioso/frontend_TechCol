@@ -142,7 +142,7 @@ export default function RegisterForm() {
           </form>
 
           <LabelLinkTo
-            label="Ya tienes cuenta?"
+            label="¿Ya tienes cuenta?"
             linkPlaceholder="Inicia sesion aqui"
             pathname="/auth/login"
           />

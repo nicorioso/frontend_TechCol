@@ -1,10 +1,7 @@
 const apiTimeout = 0;
 const defaultApiBaseURL = import.meta.env.DEV ? "http://localhost:8080/api" : "/api";
-const apiUrlFromReactEnv =
-  typeof process !== "undefined" ? process.env?.REACT_APP_API_URL : undefined;
 
-export const API_URL =
-  apiUrlFromReactEnv || import.meta.env.VITE_API_URL || defaultApiBaseURL;
+export const API_URL = import.meta.env.VITE_API_URL || defaultApiBaseURL;
 
 const config = Object.freeze({
   api: {
