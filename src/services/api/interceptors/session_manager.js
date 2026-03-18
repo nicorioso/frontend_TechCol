@@ -52,6 +52,9 @@ export const refreshAccessToken = async (api) => {
       }
 
       localStorage.setItem('access_token', token);
+      if (response?.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
       return token;
     })
     .finally(() => {

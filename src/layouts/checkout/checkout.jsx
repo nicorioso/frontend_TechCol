@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   CheckCircleIcon,
   LockClosedIcon,
@@ -10,8 +10,11 @@ import {
 import MainHeader from "../../components/IU/headers/Main";
 import MainFooter from "../../components/IU/footers/MainFooter";
 import cartService from "../../services/cart/cartService";
+import exchangeRateService, { DEFAULT_USD_TO_COP_RATE } from "../../services/exchange/exchangeRateService";
+import paymentService from "../../services/payment/paymentService";
 import SeoHead from "../../seo/SeoHead";
-import { formatCopCurrency } from "../../utils/currency";
+import { formatCopCurrency, formatUsdCurrency } from "../../utils/currency";
+import { getCurrentRole } from "../../utils/authSession";
 
 const SHIPPING_METHODS = [
   { id: "standard", label: "Estandar (5-7 dias)", cost: 29999 },
@@ -21,7 +24,7 @@ const SHIPPING_METHODS = [
 
 const buildInitialFormData = () => {
   const user = cartService.getSession().user ?? {};
-  const draft = cartService.getCheckoutDraft();
+  const draft = cartService.getCheckoutDraft() ?? {};
 
   return {
     fullName:
@@ -42,14 +45,21 @@ const buildInitialFormData = () => {
 const requiredFields = ["fullName", "email", "phone", "street", "state", "city"];
 
 const getShippingCost = (methodId) => SHIPPING_METHODS.find((item) => item.id === methodId)?.cost ?? 0;
+const EXCHANGE_RATE_REFRESH_MS = 60 * 1000;
 
 export default function CheckoutPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: envio, 2: pago, 3: confirmado
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [notice, setNotice] = useState("");
   const [formData, setFormData] = useState(buildInitialFormData);
   const [cartItems, setCartItems] = useState(() => cartService.getGuestCart());
+  const [usdToCopRate, setUsdToCopRate] = useState(DEFAULT_USD_TO_COP_RATE);
+  const [rateFetchedAt, setRateFetchedAt] = useState(null);
+  const [exchangeRateError, setExchangeRateError] = useState("");
+  const isAdminUser = getCurrentRole().includes("ADMIN");
 
   const loadCart = async () => {
     const items = await cartService.getCartItems();
@@ -59,6 +69,90 @@ export default function CheckoutPage() {
   useEffect(() => {
     loadCart();
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadExchangeRate = async () => {
+      try {
+        const result = await exchangeRateService.getUsdToCopRate();
+        if (!isMounted) return;
+
+        setUsdToCopRate(result.usdToCopRate);
+        setRateFetchedAt(result.fetchedAt);
+        setExchangeRateError("");
+      } catch {
+        if (!isMounted) return;
+
+        setExchangeRateError("No fue posible actualizar la tasa en tiempo real. Se muestra una referencia aproximada.");
+      }
+    };
+
+    loadExchangeRate();
+    const intervalId = window.setInterval(loadExchangeRate, EXCHANGE_RATE_REFRESH_MS);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const paypalOrderId = params.get("token");
+    const wasCancelled = params.get("cancel") === "true";
+
+    if (wasCancelled) {
+      setStep(2);
+      setNotice("Aprobacion de PayPal cancelada. Puedes intentarlo de nuevo.");
+      return;
+    }
+
+    if (!paypalOrderId) return;
+
+    let isMounted = true;
+
+    const finalizePaypalPayment = async () => {
+      setIsSubmitting(true);
+      setNotice("");
+      setStep(2);
+
+      try {
+        await paymentService.capturePaypalOrder(paypalOrderId);
+        await cartService.clearCart();
+        cartService.clearCheckoutDraft();
+
+        if (!isMounted) return;
+
+        setOrderData({
+          orderCode: paypalOrderId,
+          paymentMethod: "paypal",
+        });
+        setStep(3);
+        navigate("/checkout", { replace: true });
+      } catch (error) {
+        if (!isMounted) return;
+
+        const message =
+          error?.response?.data?.message ??
+          error?.response?.data ??
+          "No fue posible confirmar el pago con PayPal. Intenta de nuevo.";
+
+        setNotice(String(message));
+        navigate("/checkout", { replace: true });
+      } finally {
+        if (isMounted) {
+          setIsSubmitting(false);
+        }
+      }
+    };
+
+    finalizePaypalPayment();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.search, navigate]);
 
   const summaryBase = useMemo(() => cartService.getCartSummary(cartItems), [cartItems]);
   const shippingCost = useMemo(() => getShippingCost(formData.shippingMethod), [formData.shippingMethod]);
@@ -70,6 +164,21 @@ export default function CheckoutPage() {
     }),
     [summaryBase, shippingCost]
   );
+  const convertCopToUsd = (copAmount) => copAmount / usdToCopRate;
+  const exchangeRateLabel = useMemo(() => formatCopCurrency(usdToCopRate), [usdToCopRate]);
+  const exchangeRateTimestamp = useMemo(() => {
+    if (!rateFetchedAt) return "actualizando...";
+
+    const date = new Date(rateFetchedAt);
+    if (Number.isNaN(date.getTime())) {
+      return "actualizacion reciente";
+    }
+
+    return date.toLocaleString("es-CO", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+  }, [rateFetchedAt]);
 
   const missingRequired = requiredFields.filter((field) => !String(formData[field] ?? "").trim());
 
@@ -83,6 +192,11 @@ export default function CheckoutPage() {
   };
 
   const handleContinue = () => {
+    if (isAdminUser) {
+      setNotice("Las cuentas administradoras no pueden continuar al pago desde checkout.");
+      return;
+    }
+
     if (summary.itemCount === 0) {
       setNotice("Tu carrito esta vacio. Agrega productos para continuar.");
       return;
@@ -100,42 +214,47 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     if (summary.itemCount === 0 || isSubmitting) return;
 
+    if (isAdminUser) {
+      setNotice("Las cuentas administradoras no pueden pagar por PayPal desde esta vista.");
+      return;
+    }
+
+    if (!cartService.getSession().isAuthenticated) {
+      setNotice("Debes iniciar sesion para pagar con PayPal.");
+      navigate("/auth/login");
+      return;
+    }
+
+    if (formData.paymentMethod !== "paypal") {
+      setNotice("Por ahora solo PayPal esta disponible como metodo de pago.");
+      return;
+    }
+
     setIsSubmitting(true);
     setNotice("");
 
-    const orderCode = `TC-${Date.now()}`;
-    const payload = {
-      orderCode,
-      customerId: cartService.getSession().customerId,
-      status: "paid",
-      items: cartItems,
-      delivery: {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        street: formData.street,
-        city: formData.city,
-        state: formData.state,
-        zipCode: formData.zipCode,
-        country: formData.country,
-      },
-      shippingMethod: formData.shippingMethod,
-      paymentMethod: formData.paymentMethod,
-      totals: summary,
-      createdAt: new Date().toISOString(),
-    };
-
     try {
-      const existingOrders = JSON.parse(localStorage.getItem("orders_local_v1") || "[]");
-      localStorage.setItem("orders_local_v1", JSON.stringify([payload, ...existingOrders]));
+      cartService.saveCheckoutDraft({
+        ...formData,
+        lastAttemptAt: new Date().toISOString(),
+      });
 
-      await cartService.clearCart();
-      cartService.clearCheckoutDraft();
+      const response = await paymentService.createPaypalOrder();
+      const approveUrl = response?.approveUrl;
 
-      setOrderData(payload);
-      setStep(3);
-    } catch {
-      setNotice("No fue posible completar la compra. Intenta de nuevo.");
+      if (!approveUrl) {
+        throw new Error("PayPal no devolvio una URL de aprobacion.");
+      }
+
+      window.location.href = approveUrl;
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ??
+        error?.response?.data ??
+        error?.message ??
+        "No fue posible iniciar el pago con PayPal. Intenta de nuevo.";
+
+      setNotice(String(message));
     } finally {
       setIsSubmitting(false);
     }
@@ -367,7 +486,9 @@ export default function CheckoutPage() {
                             className="sr-only"
                           />
                           <p className="text-sm font-semibold text-slate-800">{method.label}</p>
-                          <p className="text-xs text-slate-500">Costo: {formatCopCurrency(method.cost)}</p>
+                          <p className="text-xs text-slate-500">
+                            Costo: {formatCopCurrency(method.cost)} / {formatUsdCurrency(convertCopToUsd(method.cost))}
+                          </p>
                         </label>
                       );
                     })}
@@ -382,19 +503,35 @@ export default function CheckoutPage() {
                     </h2>
                     <div className="space-y-2">
                       {["paypal", "tarjeta", "transferencia"].map((method) => (
-                        <label key={method} className="flex items-center gap-2 rounded border border-slate-200 p-2">
+                        <label
+                          key={method}
+                          className={`flex items-center gap-2 rounded border p-2 ${
+                            method === "paypal"
+                              ? "border-slate-200"
+                              : "border-slate-100 bg-slate-50 text-slate-400"
+                          }`}
+                        >
                           <input
                             type="radio"
                             name="paymentMethod"
                             value={method}
                             checked={formData.paymentMethod === method}
                             onChange={handleChange}
+                            disabled={method !== "paypal" || isAdminUser}
                             className="h-4 w-4 accent-cyan-600"
                           />
-                          <span className="text-sm capitalize">{method}</span>
+                          <span className="text-sm capitalize">
+                            {method}
+                            {method !== "paypal" ? " (proximamente)" : ""}
+                          </span>
                         </label>
                       ))}
                     </div>
+                    {isAdminUser ? (
+                      <p className="mt-3 text-sm text-amber-700">
+                        El checkout esta deshabilitado para cuentas con rol administrador.
+                      </p>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -403,29 +540,55 @@ export default function CheckoutPage() {
                 <div className="sticky top-20 rounded-lg border border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                   <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Resumen del Pedido</h3>
 
+                  <div className="mb-4 rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-900">
+                    <p>1 USD = {exchangeRateLabel}</p>
+                    <p>Actualizado: {exchangeRateTimestamp}</p>
+                    {exchangeRateError ? <p className="mt-1 text-amber-700">{exchangeRateError}</p> : null}
+                  </div>
+
                   <div className="space-y-2 border-b border-slate-200 pb-4 text-sm">
                     <div className="flex justify-between text-slate-600">
                       <span>Subtotal</span>
-                      <span>{formatCopCurrency(summary.subtotal)}</span>
+                      <span className="text-right">
+                        {formatCopCurrency(summary.subtotal)}
+                        <span className="block text-xs text-slate-400">
+                          {formatUsdCurrency(convertCopToUsd(summary.subtotal))}
+                        </span>
+                      </span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>IVA (19%)</span>
-                      <span>{formatCopCurrency(summary.tax)}</span>
+                      <span className="text-right">
+                        {formatCopCurrency(summary.tax)}
+                        <span className="block text-xs text-slate-400">
+                          {formatUsdCurrency(convertCopToUsd(summary.tax))}
+                        </span>
+                      </span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Envio</span>
-                      <span>{formatCopCurrency(summary.shipping)}</span>
+                      <span className="text-right">
+                        {formatCopCurrency(summary.shipping)}
+                        <span className="block text-xs text-slate-400">
+                          {formatUsdCurrency(convertCopToUsd(summary.shipping))}
+                        </span>
+                      </span>
                     </div>
                   </div>
 
                   <div className="my-4 flex justify-between">
                     <span className="text-lg font-bold text-slate-900">Total</span>
-                    <span className="text-3xl font-bold text-cyan-500">{formatCopCurrency(summary.total)}</span>
+                    <span className="text-right">
+                      <span className="block text-3xl font-bold text-cyan-500">{formatCopCurrency(summary.total)}</span>
+                      <span className="block text-sm font-semibold text-slate-500">
+                        {formatUsdCurrency(convertCopToUsd(summary.total))}
+                      </span>
+                    </span>
                   </div>
 
                   <button
                     onClick={step === 1 ? handleContinue : handlePlaceOrder}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isAdminUser}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 py-3 font-semibold text-white shadow-md transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-cyan-300"
                   >
                     {step === 1 ? "Continuar a Pago" : isSubmitting ? "Procesando..." : "Confirmar y Pagar"}

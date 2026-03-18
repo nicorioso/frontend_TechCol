@@ -53,7 +53,7 @@ function Home() {
     const fetchProducts = async () => {
       try {
         const products = await productService.getAllProducts();
-        const host = config.api.baseURL.replace(/\/api\/?$/, "");
+        const host = config.api.baseURL.replace(/\/+$/, "");
         const uploadsPath = config.uploadsPath.replace(/\/+$/, "");
 
         const normalized = (products || []).map((product) => {

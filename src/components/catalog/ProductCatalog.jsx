@@ -37,7 +37,7 @@ const buildImageUrl = (imageName) => {
   if (!imageName) return "";
   if (imageName.startsWith("http")) return imageName;
 
-  const host = config.api.baseURL.replace(/\/api\/?$/, "");
+  const host = config.api.baseURL.replace(/\/+$/, "");
   const uploadsPath = config.uploadsPath.replace(/\/+$/, "");
   return `${host}${uploadsPath}/${imageName}`;
 };
