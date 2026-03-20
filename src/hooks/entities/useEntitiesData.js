@@ -68,6 +68,15 @@ export default function useEntitiesData() {
     }));
   };
 
+  const addEntityRow = (entityKey, newRow) => {
+    if (!newRow) return;
+
+    setTablesData((prev) => ({
+      ...prev,
+      [entityKey]: [newRow, ...(prev[entityKey] || [])],
+    }));
+  };
+
   return {
     tablesData,
     isLoading,
@@ -75,5 +84,6 @@ export default function useEntitiesData() {
     reloadEntitiesData: loadEntitiesData,
     removeEntityRow,
     updateEntityRow,
+    addEntityRow,
   };
 }

@@ -46,6 +46,10 @@ const requiredFields = ["fullName", "email", "phone", "street", "state", "city"]
 
 const getShippingCost = (methodId) => SHIPPING_METHODS.find((item) => item.id === methodId)?.cost ?? 0;
 const EXCHANGE_RATE_REFRESH_MS = 60 * 1000;
+const checkoutFieldClassName =
+  "w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-cyan-400";
+const checkoutLabelClassName =
+  "mb-1 block text-xs font-semibold text-slate-700 dark:text-gray-300";
 
 export default function CheckoutPage() {
   const location = useLocation();
@@ -300,38 +304,43 @@ export default function CheckoutPage() {
       <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
         <MainHeader />
 
-      <section className="border-b-2 border-cyan-500 bg-gradient-to-r from-slate-900 to-slate-800 py-8">
+      <section className="border-b-2 border-cyan-500 bg-gradient-to-r from-slate-900 to-slate-800 py-4">
         <div className="mx-auto w-full max-w-6xl px-4">
           <Link to="/cart" className="inline-flex items-center gap-2 text-sm text-slate-200 transition hover:text-white">
             <span aria-hidden="true">&lt;</span>
             Volver al paso anterior
           </Link>
-          <h1 className="mt-3 text-4xl font-bold text-white">Checkout</h1>
+          <h1 className="text-3xl font-bold text-white">Checkout</h1>
         </div>
       </section>
 
       <section className="flex-1 py-8">
         <div className="mx-auto w-full max-w-6xl px-4">
-          <div className="mb-6 flex items-center justify-center gap-6 text-sm">
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs font-semibold">1</span>
-              <span>Carrito</span>
-              <span className="h-5 w-5 rounded-full border border-slate-300 bg-white"></span>
+          <div className="mb-8 flex items-center justify-center gap-4 text-sm">
+            <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-bold dark:border-gray-600 dark:bg-gray-800">
+                1
+              </span>
+              <span className="font-semibold">Carrito</span>
             </div>
-            <div className="flex items-center gap-2 text-cyan-600">
-              <span className="text-xs font-semibold">2</span>
+            <ChevronRightIcon className="h-4 w-4 text-slate-400 dark:text-gray-500" />
+            <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-cyan-500 bg-cyan-50 text-xs font-bold dark:bg-cyan-950/40">
+                2
+              </span>
               <span className="font-semibold">Envio</span>
-              <span className="h-5 w-5 rounded-full border border-cyan-500 bg-cyan-50"></span>
             </div>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs font-semibold">3</span>
-              <span>Pago</span>
-              <span className="h-5 w-5 rounded-full border border-slate-300 bg-white"></span>
+            <ChevronRightIcon className="h-4 w-4 text-slate-400 dark:text-gray-500" />
+            <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-bold dark:border-gray-600 dark:bg-gray-800">
+                3
+              </span>
+              <span className="font-semibold">Pago</span>
             </div>
           </div>
 
           {notice && (
-            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
               {notice}
             </div>
           )}
@@ -362,93 +371,93 @@ export default function CheckoutPage() {
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-slate-700">Nombre Completo *</label>
+                      <label className={checkoutLabelClassName}>Nombre Completo *</label>
                       <input
                         type="text"
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleChange}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                        className={checkoutFieldClassName}
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-slate-700">Email *</label>
+                      <label className={checkoutLabelClassName}>Email *</label>
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                        className={checkoutFieldClassName}
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-slate-700">Telefono *</label>
+                      <label className={checkoutLabelClassName}>Telefono *</label>
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="+57 312 345 6789"
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                        className={checkoutFieldClassName}
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-slate-700">Codigo Postal</label>
+                      <label className={checkoutLabelClassName}>Codigo Postal</label>
                       <input
                         type="text"
                         name="zipCode"
                         value={formData.zipCode}
                         onChange={handleChange}
                         placeholder="110111"
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                        className={checkoutFieldClassName}
                       />
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="mb-1 block text-xs font-semibold text-slate-700">Direccion *</label>
+                    <label className={checkoutLabelClassName}>Direccion *</label>
                     <input
                       type="text"
                       name="street"
                       value={formData.street}
                       onChange={handleChange}
                       placeholder="Calle 123 #45-67"
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                      className={checkoutFieldClassName}
                     />
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-slate-700">Departamento *</label>
+                      <label className={checkoutLabelClassName}>Departamento *</label>
                       <input
                         type="text"
                         name="state"
                         value={formData.state}
                         onChange={handleChange}
                         placeholder="Bogota"
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                        className={checkoutFieldClassName}
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-slate-700">Ciudad *</label>
+                      <label className={checkoutLabelClassName}>Ciudad *</label>
                       <input
                         type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
                         placeholder="Bogota"
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                        className={checkoutFieldClassName}
                       />
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="mb-1 block text-xs font-semibold text-slate-700">Pais</label>
+                    <label className={checkoutLabelClassName}>Pais</label>
                     <select
                       name="country"
                       value={formData.country}
                       onChange={handleChange}
-                      className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-500"
+                      className={checkoutFieldClassName}
                     >
                       <option value="">Choose option...</option>
                       <option value="Colombia">Colombia</option>
@@ -473,8 +482,8 @@ export default function CheckoutPage() {
                           key={method.id}
                           className={`block cursor-pointer rounded border p-3 transition ${
                             active
-                              ? "border-cyan-500 bg-cyan-50"
-                              : "border-slate-200 bg-white hover:border-cyan-300"
+                              ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-950/30"
+                              : "border-slate-200 bg-white hover:border-cyan-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-cyan-700"
                           }`}
                         >
                           <input
@@ -485,8 +494,8 @@ export default function CheckoutPage() {
                             onChange={handleChange}
                             className="sr-only"
                           />
-                          <p className="text-sm font-semibold text-slate-800">{method.label}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-sm font-semibold text-slate-800 dark:text-gray-100">{method.label}</p>
+                          <p className="text-xs text-slate-500 dark:text-gray-400">
                             Costo: {formatCopCurrency(method.cost)} / {formatUsdCurrency(convertCopToUsd(method.cost))}
                           </p>
                         </label>
@@ -507,8 +516,8 @@ export default function CheckoutPage() {
                           key={method}
                           className={`flex items-center gap-2 rounded border p-2 ${
                             method === "paypal"
-                              ? "border-slate-200"
-                              : "border-slate-100 bg-slate-50 text-slate-400"
+                              ? "border-slate-200 dark:border-gray-700 dark:bg-gray-900"
+                              : "border-slate-100 bg-slate-50 text-slate-400 dark:border-gray-800 dark:bg-gray-900/70 dark:text-gray-500"
                           }`}
                         >
                           <input
@@ -520,7 +529,7 @@ export default function CheckoutPage() {
                             disabled={method !== "paypal" || isAdminUser}
                             className="h-4 w-4 accent-cyan-600"
                           />
-                          <span className="text-sm capitalize">
+                          <span className="text-sm capitalize dark:text-gray-200">
                             {method}
                             {method !== "paypal" ? " (proximamente)" : ""}
                           </span>
@@ -528,7 +537,7 @@ export default function CheckoutPage() {
                       ))}
                     </div>
                     {isAdminUser ? (
-                      <p className="mt-3 text-sm text-amber-700">
+                      <p className="mt-3 text-sm text-amber-700 dark:text-amber-300">
                         El checkout esta deshabilitado para cuentas con rol administrador.
                       </p>
                     ) : null}
@@ -540,36 +549,36 @@ export default function CheckoutPage() {
                 <div className="sticky top-20 rounded-lg border border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                   <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Resumen del Pedido</h3>
 
-                  <div className="mb-4 rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-900">
+                  <div className="mb-4 rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-900 dark:border-cyan-900/50 dark:bg-cyan-950/30 dark:text-cyan-100">
                     <p>1 USD = {exchangeRateLabel}</p>
                     <p>Actualizado: {exchangeRateTimestamp}</p>
-                    {exchangeRateError ? <p className="mt-1 text-amber-700">{exchangeRateError}</p> : null}
+                    {exchangeRateError ? <p className="mt-1 text-amber-700 dark:text-amber-300">{exchangeRateError}</p> : null}
                   </div>
 
-                  <div className="space-y-2 border-b border-slate-200 pb-4 text-sm">
-                    <div className="flex justify-between text-slate-600">
+                  <div className="space-y-2 border-b border-slate-200 pb-4 text-sm dark:border-gray-700">
+                    <div className="flex justify-between text-slate-600 dark:text-gray-300">
                       <span>Subtotal</span>
                       <span className="text-right">
                         {formatCopCurrency(summary.subtotal)}
-                        <span className="block text-xs text-slate-400">
+                        <span className="block text-xs text-slate-400 dark:text-gray-500">
                           {formatUsdCurrency(convertCopToUsd(summary.subtotal))}
                         </span>
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
+                    <div className="flex justify-between text-slate-600 dark:text-gray-300">
                       <span>IVA (19%)</span>
                       <span className="text-right">
                         {formatCopCurrency(summary.tax)}
-                        <span className="block text-xs text-slate-400">
+                        <span className="block text-xs text-slate-400 dark:text-gray-500">
                           {formatUsdCurrency(convertCopToUsd(summary.tax))}
                         </span>
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
+                    <div className="flex justify-between text-slate-600 dark:text-gray-300">
                       <span>Envio</span>
                       <span className="text-right">
                         {formatCopCurrency(summary.shipping)}
-                        <span className="block text-xs text-slate-400">
+                        <span className="block text-xs text-slate-400 dark:text-gray-500">
                           {formatUsdCurrency(convertCopToUsd(summary.shipping))}
                         </span>
                       </span>
@@ -577,10 +586,10 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="my-4 flex justify-between">
-                    <span className="text-lg font-bold text-slate-900">Total</span>
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">Total</span>
                     <span className="text-right">
                       <span className="block text-3xl font-bold text-cyan-500">{formatCopCurrency(summary.total)}</span>
-                      <span className="block text-sm font-semibold text-slate-500">
+                      <span className="block text-sm font-semibold text-slate-500 dark:text-gray-400">
                         {formatUsdCurrency(convertCopToUsd(summary.total))}
                       </span>
                     </span>
@@ -595,7 +604,7 @@ export default function CheckoutPage() {
                     <ChevronRightIcon className="h-4 w-4" />
                   </button>
 
-                  <p className="mt-4 flex items-center justify-center gap-1 text-center text-xs text-slate-500">
+                  <p className="mt-4 flex items-center justify-center gap-1 text-center text-xs text-slate-500 dark:text-gray-400">
                     <LockClosedIcon className="h-3.5 w-3.5" />
                     Pago 100% seguro y encriptado
                   </p>

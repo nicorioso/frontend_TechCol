@@ -5,11 +5,13 @@ import { RequireAdmin, RequireAuth, RequireUser } from "./routes/guards";
 
 const LoginLayout = lazy(() => import("./layouts/auth/login/login_form"));
 const RegisterLayout = lazy(() => import("./layouts/auth/register/register_form"));
+const PasswordRecoveryLayout = lazy(() => import("./layouts/auth/passwordRecovery/password_recovery_form"));
 const AdminProfile = lazy(() => import("./components/dashboard/adminProfile"));
 const UserProfile = lazy(() => import("./layouts/dashboard/userProfile"));
 const UserSettings = lazy(() => import("./layouts/dashboard/userSettings"));
 const UserEntities = lazy(() => import("./layouts/dashboard/userEntities"));
 const CatalogLayout = lazy(() => import("./layouts/catalog/catalog"));
+const ProductDetailLayout = lazy(() => import("./layouts/catalog/product_detail"));
 const ContactLayout = lazy(() => import("./layouts/contact_form"));
 const CartView = lazy(() => import("./layouts/cart/cart"));
 const CheckoutPage = lazy(() => import("./layouts/checkout/checkout"));
@@ -57,6 +59,10 @@ export const router = createBrowserRouter([
     element: withSuspense(<CatalogLayout />),
   },
   {
+    path: "/products/:id",
+    element: withSuspense(<ProductDetailLayout />),
+  },
+  {
     path: "/contact",
     element: withSuspense(<ContactLayout />),
   },
@@ -75,6 +81,10 @@ export const router = createBrowserRouter([
   {
     path: "/auth/register",
     element: withSuspense(<RegisterLayout />),
+  },
+  {
+    path: "/auth/password-recovery",
+    element: withSuspense(<PasswordRecoveryLayout />),
   },
   ...getRoleRoutes("admin", RequireAdmin, AdminProfile),
   ...getRoleRoutes("user", RequireUser, UserProfile),

@@ -88,12 +88,20 @@ export default function LoginForm() {
             <div className="flex justify-center">
               <GoogleLoginConsent
                 buttonLabel="Habilitar login con Google"
-                onSuccess={(credentialResponse) => {
-                  loginWithGoogleCredential(credentialResponse, navigate);
+                onSuccess={async (credentialResponse) => {
+                  await loginWithGoogleCredential(credentialResponse, navigate);
                 }}
               />
             </div>
           </form>
+
+          <div className="mt-4">
+            <LabelLinkTo
+              label="Olvidaste tu contrasena?"
+              linkPlaceholder="Recuperala aqui"
+              pathname="/auth/password-recovery"
+            />
+          </div>
 
           <VerifyCodeModal
             isOpen={verify.open}

@@ -89,21 +89,21 @@ export default function CartView() {
         <div className="mx-auto w-full max-w-6xl px-4">
           <div className="mb-8 flex items-center justify-center gap-4 text-sm">
             <div className="flex items-center gap-2 text-cyan-600">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-cyan-500 bg-cyan-50 text-xs font-bold">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-cyan-400 bg-cyan-500/15 text-xs font-bold text-cyan-300">
                 1
               </span>
               <span className="font-semibold">Carrito</span>
             </div>
             <ChevronRightIcon className="h-4 w-4 text-slate-400" />
             <div className="flex items-center gap-2 text-slate-500">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-bold">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-500 bg-slate-800 text-xs font-bold text-slate-200">
                 2
               </span>
               <span className="font-semibold">Envio</span>
             </div>
             <ChevronRightIcon className="h-4 w-4 text-slate-400" />
             <div className="flex items-center gap-2 text-slate-500">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-bold">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-500 bg-slate-800 text-xs font-bold text-slate-200">
                 3
               </span>
               <span className="font-semibold">Pago</span>

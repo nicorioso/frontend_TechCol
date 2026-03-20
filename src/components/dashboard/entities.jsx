@@ -44,7 +44,7 @@ export default function Entities() {
   const selectedEntity = useStore((s) => s.selectedEntity);
   const params = useParams();
 
-  const { tablesData, isLoading, error, removeEntityRow, updateEntityRow } = useEntitiesData();
+  const { tablesData, isLoading, error, removeEntityRow, updateEntityRow, addEntityRow } = useEntitiesData();
   const {
     formFields,
     isCreateModalOpen,
@@ -66,7 +66,25 @@ export default function Entities() {
 
   const handleCreateSubmit = async (event) => {
     event.preventDefault();
-    await submitEntityCreation();
+    const definition = getEntityDefinition(selectedEntity);
+    const createdEntity = await submitEntityCreation();
+
+    if (!createdEntity || !definition) {
+      return;
+    }
+
+    const mappedCreatedEntity = definition?.map ? definition.map([createdEntity])[0] : null;
+
+    if (mappedCreatedEntity) {
+      addEntityRow(selectedEntity, mappedCreatedEntity);
+      return;
+    }
+
+    const fallbackRow = definition?.fromFormValues
+      ? definition.fromFormValues(newEntityValues, createdEntity)
+      : createdEntity;
+
+    addEntityRow(selectedEntity, fallbackRow);
   };
 
   const openEditModal = (row) => {
@@ -123,6 +141,7 @@ export default function Entities() {
   };
 
   const singularLabel = getEntityDefinition(selectedEntity)?.singularLabel || 'Entidad';
+  const editFields = formFields.filter((field) => !field.hideOnEdit);
 
   const handleConfirmDelete = async () => {
     const definition = getEntityDefinition(selectedEntity);
@@ -254,7 +273,7 @@ export default function Entities() {
               <EntityFormModal
                 isOpen={editModalState.isOpen}
                 title={`Editar ${singularLabel}`}
-                fields={formFields}
+                fields={editFields}
                 values={editModalState.values}
                 onChange={handleEditChange}
                 onClose={handleCloseEditModal}

@@ -134,8 +134,8 @@ export default function RegisterForm() {
             <div className="flex justify-center">
               <GoogleLoginConsent
                 buttonLabel="Habilitar registro con Google"
-                onSuccess={(credentialResponse) => {
-                  loginWithGoogleCredential(credentialResponse, navigate);
+                onSuccess={async (credentialResponse) => {
+                  await loginWithGoogleCredential(credentialResponse, navigate);
                 }}
               />
             </div>

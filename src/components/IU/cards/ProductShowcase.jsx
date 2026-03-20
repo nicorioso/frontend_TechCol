@@ -23,6 +23,7 @@ const ProductShowcase = ({
               name={product.name}
               stock={product.stock}
               price={product.price}
+              productUrl={product.productUrl || (product.id ? `/products/${product.id}` : "#")}
               onAddToCart={() => onAddToCart(product)}
               disableAddToCart={product.stockAmount <= 0}
             />

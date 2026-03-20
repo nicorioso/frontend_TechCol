@@ -60,13 +60,14 @@ export default function useEntityCreation(selectedEntity) {
     }
 
     try {
-      await definition.create(newEntityValues, { customerService: CustomerService });
+      const createdEntity = await definition.create(newEntityValues, { customerService: CustomerService });
       setAlertState({
         visible: true,
         type: 'success',
         message: `${definition?.singularLabel || 'Entidad'} creada correctamente.`,
       });
       setIsCreateModalOpen(false);
+      return createdEntity;
     } catch (err) {
       const status = err?.response?.status;
       const serverData = err?.response?.data;
@@ -84,6 +85,7 @@ export default function useEntityCreation(selectedEntity) {
         type: 'error',
         message: isDuplicatedEmail ? 'Este correo ya está registrado' : 'No se pudo crear el usuario.',
       });
+      return null;
     }
   };
 

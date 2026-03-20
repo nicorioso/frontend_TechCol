@@ -21,11 +21,24 @@ const getVerifyErrorMessage = (err) => {
   return dataMessage || err?.message || "Codigo invalido";
 };
 
-export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, originalPassword }) {
+export default function VerifyCodeModal({
+  isOpen,
+  email,
+  onClose,
+  onVerified,
+  originalPassword,
+  onSubmitCode,
+  onResendCode,
+  title = "Verificacion",
+  descriptionPrefix = "Hemos enviado un codigo de seguridad a",
+  submitLabel = "Verificar Codigo",
+  backLabel = "Volver al inicio de sesion",
+  resendCooldownSeconds = 41,
+}) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(41);
+  const [secondsLeft, setSecondsLeft] = useState(resendCooldownSeconds);
   const [error, setError] = useState("");
   const inputRefs = useRef([]);
 
@@ -51,10 +64,10 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
     if (!isOpen) return;
     setCode("");
     setError("");
-    setSecondsLeft(41);
+    setSecondsLeft(resendCooldownSeconds);
     setLoading(false);
     setResending(false);
-  }, [isOpen]);
+  }, [isOpen, resendCooldownSeconds]);
 
   useEffect(() => {
     if (!isOpen || secondsLeft <= 0) return;
@@ -115,7 +128,9 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
         return;
       }
 
-      const res = await CustomerService.verify(email, code);
+      const res = onSubmitCode
+        ? await onSubmitCode(code)
+        : await CustomerService.verify(email, code);
       onVerified && onVerified(res);
       onClose && onClose();
     } catch (err) {
@@ -130,15 +145,19 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
     if (secondsLeft > 0 || resending) return;
 
     try {
-      if (!originalPassword) {
+      if (!onResendCode && !originalPassword) {
         setError("No se puede reenviar sin la contrasena original");
         return;
       }
 
       setResending(true);
       setError("");
-      await CustomerService.login(email, originalPassword);
-      setSecondsLeft(41);
+      if (onResendCode) {
+        await onResendCode();
+      } else {
+        await CustomerService.login(email, originalPassword);
+      }
+      setSecondsLeft(resendCooldownSeconds);
     } catch (err) {
       console.error("Error reenviando codigo:", err);
       setError("No se pudo reenviar el codigo");
@@ -157,10 +176,10 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
         </div>
 
         <h3 className="text-center text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          Verificacion
+          {title}
         </h3>
         <p className="mx-auto mt-3 max-w-sm text-center text-lg text-slate-600 dark:text-slate-300">
-          Hemos enviado un codigo de seguridad a
+          {descriptionPrefix}
           <span className="block font-semibold text-slate-900 dark:text-slate-100">{maskedEmail}</span>
         </p>
 
@@ -196,7 +215,7 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
             disabled={loading}
             className="w-full rounded-xl bg-cyan-500 px-6 py-3 text-xl font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? "Verificando..." : "Verificar Codigo"}
+            {loading ? "Verificando..." : submitLabel}
           </button>
 
           <div className="flex items-center justify-center gap-3 text-base text-slate-500 dark:text-slate-400">
@@ -222,7 +241,7 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
               className="mx-auto flex items-center gap-2 text-base text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver al inicio de sesion
+              {backLabel}
             </button>
           </div>
 

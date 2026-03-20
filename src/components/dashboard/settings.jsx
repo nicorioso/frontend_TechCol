@@ -3,6 +3,7 @@ import { Input } from "../IU/forms/input";
 import PhoneInput from "../IU/forms/phoneInput";
 import Button from "../IU/forms/button";
 import Alert from "../IU/alerts/Alerts";
+import VerifyCodeModal from "../IU/modal/VerifyCodeModal";
 import UserService from "../../services/customer/UserService";
 import CustomerService from "../../services/customer/CustomerService";
 import { useState, useEffect, useRef } from "react";
@@ -43,6 +44,7 @@ export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isVerifyPasswordModalOpen, setIsVerifyPasswordModalOpen] = useState(false);
   const [logoutPassword, setLogoutPassword] = useState("");
   const [alertState, setAlertState] = useState({ visible: false, type: "info", message: "" });
 
@@ -144,6 +146,20 @@ export default function Settings() {
 
   async function handlePasswordSubmit(e) {
     e.preventDefault();
+    const email =
+      formValues.customer_email ||
+      CustomerService.getCurrentUser()?.customerEmail ||
+      CustomerService.getCurrentUser()?.email;
+
+    if (!email) {
+      setAlertState({
+        visible: true,
+        type: "error",
+        message: "No se pudo identificar el correo del usuario",
+      });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setAlertState({
         visible: true,
@@ -154,16 +170,12 @@ export default function Settings() {
     }
     setIsChangingPassword(true);
     try {
-      const id = getCurrentCustomerId();
-      if (!id) throw new Error("Usuario no autenticado");
-      await UserService.patchProfile(id, { customerPassword: newPassword });
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      await UserService.startPasswordChange(email, currentPassword);
+      setIsVerifyPasswordModalOpen(true);
       setAlertState({
         visible: true,
         type: "success",
-        message: "Contrasena actualizada",
+        message: "Te enviamos un codigo de verificacion para continuar con el cambio de contrasena",
       });
     } catch (err) {
       console.error(err);
@@ -327,10 +339,52 @@ export default function Settings() {
 
                   <div>
                     <Button type="submit" disabled={isChangingPassword}>
-                      {isChangingPassword ? "Guardando..." : "Guardar"}
+                      {isChangingPassword ? "Guardando..." : "Enviar codigo"}
                     </Button>
                   </div>
                 </form>
+
+                <VerifyCodeModal
+                  isOpen={isVerifyPasswordModalOpen}
+                  email={
+                    formValues.customer_email ||
+                    CustomerService.getCurrentUser()?.customerEmail ||
+                    CustomerService.getCurrentUser()?.email
+                  }
+                  originalPassword={currentPassword}
+                  title="Verificar cambio"
+                  descriptionPrefix="Hemos enviado un codigo para autorizar el cambio de contrasena a"
+                  submitLabel="Verificar y guardar"
+                  backLabel="Cancelar cambio"
+                  onClose={() => setIsVerifyPasswordModalOpen(false)}
+                  onResendCode={() =>
+                    UserService.startPasswordChange(
+                      formValues.customer_email ||
+                        CustomerService.getCurrentUser()?.customerEmail ||
+                        CustomerService.getCurrentUser()?.email,
+                      currentPassword
+                    )
+                  }
+                  onSubmitCode={async (code) => {
+                    const email =
+                      formValues.customer_email ||
+                      CustomerService.getCurrentUser()?.customerEmail ||
+                      CustomerService.getCurrentUser()?.email;
+                    await UserService.verifyPasswordChangeCode(email, code);
+                    return UserService.changePassword(email, newPassword);
+                  }}
+                  onVerified={() => {
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setIsVerifyPasswordModalOpen(false);
+                    setAlertState({
+                      visible: true,
+                      type: "success",
+                      message: "Contrasena actualizada",
+                    });
+                  }}
+                />
               </div>
 
               <div className="col-span-3 mt-12">

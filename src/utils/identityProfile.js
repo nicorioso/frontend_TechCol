@@ -12,6 +12,10 @@ const writeProfileCache = (cache) => {
   storageGateway.setJson(PROFILE_CACHE_KEY, cache);
 };
 
+export const clearIdentityProfileCache = () => {
+  storageGateway.remove(PROFILE_CACHE_KEY);
+};
+
 export const upsertIdentityProfile = (user, fallbackEmail = "") => {
   if (!user || typeof user !== "object") return user;
 

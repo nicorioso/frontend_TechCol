@@ -1,4 +1,4 @@
-const PUBLIC_ENDPOINTS = ['/auth/register', '/auth/login', '/auth/verify', '/auth/refresh'];
+const PUBLIC_ENDPOINTS = ['/auth/register', '/auth/login', '/auth/verify', '/auth/refresh', '/auth/google'];
 const REFRESH_THRESHOLD_SECONDS = 60;
 
 let refreshPromise = null;

@@ -55,10 +55,14 @@ class CustomerService extends crudService {
       }
 
       storageGateway.set("access_token", accessToken);
-      if (response.data.user) {
-        const normalizedUser = upsertIdentityProfile(response.data.user, email);
-        storageGateway.setJson("user", normalizedUser);
-      }
+      const normalizedUser = upsertIdentityProfile(
+        response.data.user || {
+          customerEmail: email,
+          email,
+        },
+        email
+      );
+      storageGateway.setJson("user", normalizedUser);
 
       logInfo("Verificacion exitosa, token guardado");
       return response.data;

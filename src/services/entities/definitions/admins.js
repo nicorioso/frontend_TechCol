@@ -1,4 +1,6 @@
-﻿const getCustomerId = (customer) => customer?.customerId ?? customer?.customer_id ?? customer?.id;
+import CustomerService from '../../customer/CustomerService';
+
+const getCustomerId = (customer) => customer?.customerId ?? customer?.customer_id ?? customer?.id;
 
 const getCustomerName = (customer) => {
   const firstName = customer?.customerName ?? customer?.customer_name ?? customer?.name ?? '';
@@ -23,6 +25,7 @@ export const adminsEntity = {
       name: 'role',
       label: 'Rol',
       type: 'select',
+      disabled: true,
       options: [
         { value: 'ROLE_ADMIN', label: 'ROLE_ADMIN' },
         { value: 'ROLE_SUPER_ADMIN', label: 'ROLE_SUPER_ADMIN' },
@@ -50,6 +53,37 @@ export const adminsEntity = {
         permissions: 'Acceso total',
         status: customer?.enabled === false || customer?.active === false ? 'Inactivo' : 'Activo',
       })),
+  update: async (id, values = {}) => {
+    const fullName = String(values.name || '').trim();
+    const [firstName, ...lastNameParts] = fullName.split(' ');
+    const lastName = lastNameParts.join(' ');
+    const payload = {
+      customerName: firstName || fullName,
+      customerLastName: lastName,
+      customerEmail: values.email || '',
+    };
+
+    try {
+      return await CustomerService.patch(id, payload);
+    } catch (error) {
+      if (error?.response?.status !== 404) {
+        throw error;
+      }
+
+      const existingCustomer = await CustomerService.getById(id);
+      const fallbackPayload = {
+        ...existingCustomer,
+        customerId: existingCustomer?.customerId ?? id,
+        customerName: payload.customerName,
+        customerLastName: payload.customerLastName,
+        customerEmail: payload.customerEmail,
+      };
+
+      const response = await CustomerService.api.put('/customers', fallbackPayload);
+      return response.data;
+    }
+  },
+  delete: async (id) => CustomerService.delete(id),
   toFormValues: (row = {}) => ({
     name: row.name || '',
     email: row.email || '',

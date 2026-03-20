@@ -15,6 +15,21 @@ const UserService = {
     const res = await axiosInstance.delete(`/customers/${id}`);
     return res.data;
   },
+
+  startPasswordChange: async (email, password) => {
+    const res = await axiosInstance.post("/auth/changePasswordAuthen", { email, password });
+    return res.data;
+  },
+
+  verifyPasswordChangeCode: async (email, code) => {
+    const res = await axiosInstance.post("/auth/changePasswordVerifiCode", { email, code });
+    return res.data;
+  },
+
+  changePassword: async (email, newPassword) => {
+    const res = await axiosInstance.post("/auth/changePassword", { email, newPassword });
+    return res.data;
+  },
 };
 
 export default UserService;

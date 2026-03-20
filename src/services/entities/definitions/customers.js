@@ -16,7 +16,14 @@ export const customersEntity = {
     { name: 'customer_name', label: 'nombre_cliente', placeholder: 'Juan' },
     { name: 'customer_last_name', label: 'apellido_cliente', placeholder: 'Pérez' },
     { name: 'customer_email', label: 'correo_cliente', type: 'email', placeholder: 'juan@email.com' },
-    { name: 'customer_password', label: 'contrasena_cliente', type: 'password', placeholder: '********', required: false },
+    {
+      name: 'customer_password',
+      label: 'contrasena_cliente',
+      type: 'password',
+      placeholder: '********',
+      required: false,
+      hideOnEdit: true,
+    },
     {
       name: 'customer_phone_number',
       label: 'telefono_cliente',
