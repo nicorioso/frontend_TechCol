@@ -1,4 +1,5 @@
-﻿import { clearSession, isPublicEndpoint, refreshAccessToken } from './session_manager';
+import { clearSession, isPublicEndpoint, refreshAccessToken } from './session_manager';
+import { logError } from '../../../utils/logger';
 
 const responseInterceptor = (api) => {
   api.interceptors.response.use(
@@ -6,12 +7,13 @@ const responseInterceptor = (api) => {
     async (error) => {
       const status = error?.response?.status;
       const originalRequest = error?.config || {};
+      const isPublicRequest = isPublicEndpoint(originalRequest.url);
 
       if (
         (status === 401 || status === 403) &&
         !originalRequest._retry &&
         !originalRequest.skipAuth &&
-        !isPublicEndpoint(originalRequest.url)
+        !isPublicRequest
       ) {
         originalRequest._retry = true;
 
@@ -32,8 +34,8 @@ const responseInterceptor = (api) => {
         window.location.href = '/auth/login';
       }
 
-      if (status === 403) {
-        console.error('Acceso denegado (403)');
+      if (status === 403 && !originalRequest.skipAuth && !isPublicRequest) {
+        logError('Acceso denegado (403)');
       }
 
       return Promise.reject(error);

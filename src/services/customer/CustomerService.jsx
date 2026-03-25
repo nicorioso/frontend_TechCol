@@ -23,7 +23,15 @@ class CustomerService extends crudService {
     const start = performance.now();
     try {
       logInfo("Intentando login con:", email);
-      const response = await this.api.post("/auth/login", { email, password }, { skipAuth: true });
+      const response = await this.api.post(
+        "/auth/login",
+        {
+          email,
+          password,
+          channel: "EMAIL",
+        },
+        { skipAuth: true }
+      );
 
       logInfo("Login inicial OK, server response:", response.data);
       return response.data;
