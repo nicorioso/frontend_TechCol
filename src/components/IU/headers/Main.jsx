@@ -58,7 +58,7 @@ export default function MainHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-10 w-full bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-2 text-white shadow-lg">
+    <header className="sticky top-0 z-[1000] w-full bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-2 text-white shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <Link to="/" className="flex items-center gap-2 text-2xl font-bold">
           <ImageComponent id="TechCol_logo" alttext="TechCol_logo" style="h-12" />

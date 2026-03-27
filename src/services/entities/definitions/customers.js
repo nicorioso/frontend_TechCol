@@ -1,4 +1,5 @@
-﻿import CustomerService from '../../customer/CustomerService';
+import CustomerService from '../../customer/CustomerService';
+import { normalizePhoneToE164, splitE164Phone } from '../../../utils/phone';
 
 const getCustomerId = (customer) => customer?.customerId ?? customer?.customer_id ?? customer?.id;
 
@@ -14,7 +15,7 @@ export const customersEntity = {
   sourceKey: 'customers',
   formFields: [
     { name: 'customer_name', label: 'nombre_cliente', placeholder: 'Juan' },
-    { name: 'customer_last_name', label: 'apellido_cliente', placeholder: 'Pérez' },
+    { name: 'customer_last_name', label: 'apellido_cliente', placeholder: 'Perez' },
     { name: 'customer_email', label: 'correo_cliente', type: 'email', placeholder: 'juan@email.com' },
     {
       name: 'customer_password',
@@ -31,8 +32,8 @@ export const customersEntity = {
       placeholder: '3001234567',
       countryName: 'customer_country',
       codeName: 'customer_country_code',
-      defaultCountry: 'US',
-      defaultCode: '+1',
+      defaultCountry: 'CO',
+      defaultCode: '+57',
     },
     {
       name: 'role_id',
@@ -51,22 +52,40 @@ export const customersEntity = {
       status: customer?.enabled === false || customer?.active === false ? 'Inactivo' : 'Activo',
     })),
   create: async (values, { customerService }) => {
+    const rawPhone = `${values.customer_country_code || ''}${values.customer_phone_number || ''}`.trim();
+    const customerPhoneNumber = normalizePhoneToE164(
+      rawPhone,
+      { defaultCountryCode: '+57' }
+    );
+    if (rawPhone && !customerPhoneNumber) {
+      throw new Error('Telefono invalido. Usa formato internacional E.164, ejemplo +573001234567.');
+    }
+
     const payload = {
       customerName: values.customer_name,
       customerLastName: values.customer_last_name,
       customerEmail: values.customer_email,
       customerPassword: values.customer_password,
-      customerPhoneNumber: `${values.customer_country_code || ''} ${values.customer_phone_number || ''}`.trim(),
+      customerPhoneNumber,
     };
 
     return customerService.register(payload);
   },
   update: async (id, values = {}) => {
+    const rawPhone = `${values.customer_country_code || ''}${values.customer_phone_number || ''}`.trim();
+    const customerPhoneNumber = normalizePhoneToE164(
+      rawPhone,
+      { defaultCountryCode: '+57' }
+    );
+    if (rawPhone && !customerPhoneNumber) {
+      throw new Error('Telefono invalido. Usa formato internacional E.164, ejemplo +573001234567.');
+    }
+
     const payload = {
       customerName: values.customer_name,
       customerLastName: values.customer_last_name,
       customerEmail: values.customer_email,
-      customerPhoneNumber: `${values.customer_country_code || ''} ${values.customer_phone_number || ''}`.trim(),
+      customerPhoneNumber,
     };
 
     if (values.customer_password) {
@@ -80,21 +99,16 @@ export const customersEntity = {
     const fullName = String(row.name || '').trim();
     const [firstName, ...lastNameParts] = fullName.split(' ');
     const lastName = lastNameParts.join(' ');
-
-    const phoneRaw = String(row.phone || '').trim();
-    const phoneParts = phoneRaw.split(' ');
-    const hasCode = phoneParts.length > 1 && phoneParts[0].startsWith('+');
-    const code = hasCode ? phoneParts[0] : '+1';
-    const phoneNumber = hasCode ? phoneParts.slice(1).join(' ') : phoneRaw;
+    const phoneInfo = splitE164Phone(String(row.phone || '').trim(), { defaultCountryCode: '+57' });
 
     return {
       customer_name: firstName || '',
       customer_last_name: lastName || '',
       customer_email: row.email || '',
       customer_password: '',
-      customer_phone_number: phoneNumber || '',
-      customer_country_code: code,
-      customer_country: 'US',
+      customer_phone_number: phoneInfo.nationalNumber || '',
+      customer_country_code: phoneInfo.code,
+      customer_country: 'CO',
       role_id: 'cliente',
     };
   },
@@ -102,6 +116,9 @@ export const customersEntity = {
     ...currentRow,
     name: `${values.customer_name || ''} ${values.customer_last_name || ''}`.trim(),
     email: values.customer_email || '',
-    phone: `${values.customer_country_code || ''} ${values.customer_phone_number || ''}`.trim(),
+    phone:
+      normalizePhoneToE164(`${values.customer_country_code || ''}${values.customer_phone_number || ''}`, {
+        defaultCountryCode: '+57',
+      }) || '',
   }),
 };

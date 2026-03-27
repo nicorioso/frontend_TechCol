@@ -130,7 +130,7 @@ export default function ProductCatalog() {
   };
 
   return (
-    <section className="w-full bg-white py-8 dark:bg-gray-900">
+    <section className="w-full py-8">
       <SeoHead
         routeKey="products"
         schema={buildProductListSchema(products.map((product) => ({ ...product, imageUrl: product.image })))}

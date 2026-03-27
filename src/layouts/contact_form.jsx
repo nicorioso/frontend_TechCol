@@ -67,7 +67,7 @@ function ContactForm() {
   return (
     <>
       <SeoHead routeKey="contact" />
-      <main className="min-h-screen bg-white dark:bg-gray-900">
+      <main className="min-h-screen bg-slate-100 dark:bg-gray-900">
         <MainHeader />
 
         <section className="mx-auto w-full max-w-3xl px-4 py-10 lg:px-6">

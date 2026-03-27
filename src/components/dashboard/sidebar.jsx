@@ -27,6 +27,7 @@ export default function Sidebar({ content, onEntitySelect }) {
   const navigate = useNavigate();
   const setSelectedEntity = useStore((s) => s.setSelectedEntity);
   const pathPrefix = getRolePathPrefix();
+  const isAdmin = pathPrefix === 'admin';
 
   const currentUser = (() => {
     try {
@@ -170,18 +171,23 @@ export default function Sidebar({ content, onEntitySelect }) {
     { value: 'orders', label: 'Pedidos' },
   ];
 
-  const items = [
-    { label: 'Inicio', icon: HomeIcon, href: `/${pathPrefix}/profile` },
-    {
-      label: 'Entidades',
-      icon: Square2StackIcon,
-      type: 'collapsible',
-      options: entityOptions,
-      onSelectOption: handleEntitySelect,
-    },
-    { label: 'Difusiones', icon: MegaphoneIcon, href: '/broadcasts' },
-    { label: 'Configuración', icon: Cog6ToothIcon, href: `/${pathPrefix}/settings` },
-  ];
+  const items = isAdmin
+    ? [
+        { label: 'Inicio', icon: HomeIcon, href: `/${pathPrefix}/profile` },
+        {
+          label: 'Entidades',
+          icon: Square2StackIcon,
+          type: 'collapsible',
+          options: entityOptions,
+          onSelectOption: handleEntitySelect,
+        },
+        { label: 'Difusiones', icon: MegaphoneIcon, href: '/broadcasts' },
+        { label: 'Configuración', icon: Cog6ToothIcon, href: `/${pathPrefix}/settings` },
+      ]
+    : [
+        { label: 'Inicio', icon: HomeIcon, href: `/${pathPrefix}/profile` },
+        { label: 'Configuración', icon: Cog6ToothIcon, href: `/${pathPrefix}/settings` },
+      ];
 
   return (
     <>
@@ -206,17 +212,17 @@ export default function Sidebar({ content, onEntitySelect }) {
         {collapsed && (
           <>
             <div className="w-14 shrink-0" aria-hidden="true" />
-            <aside className="fixed left-0 top-0 h-[100dvh] w-14 shrink-0 overflow-visible border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900 flex flex-col">
+            <aside className="fixed left-0 top-0 h-[100dvh] w-14 shrink-0 overflow-visible border-r border-slate-200 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 flex flex-col">
             <div>
-              <div className="h-14 flex items-center px-2 border-b border-gray-200 dark:border-gray-700">
+              <div className="h-14 flex items-center px-2 border-b border-slate-200 dark:border-slate-700">
                 <div className="w-full">
                   <button
                     type="button"
                     onClick={toggleCollapse}
-                    className="rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none text-gray-700 dark:text-gray-200 w-9 h-9 flex items-center justify-center"
+                    className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-700 transition hover:bg-slate-100 focus:outline-none dark:text-slate-200 dark:hover:bg-slate-800"
                     aria-label="Expandir menú"
                   >
-                    <ChevronDoubleRightIcon className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+                    <ChevronDoubleRightIcon className="h-5 w-5 text-cyan-600 dark:text-cyan-300" />
                   </button>
                 </div>
               </div>
@@ -233,17 +239,17 @@ export default function Sidebar({ content, onEntitySelect }) {
                             setMenuOpen(false);
                             setEntityMenuOpen((v) => !v);
                           }}
-                          className="w-9 h-9 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-gray-700 dark:text-gray-200 flex items-center justify-center"
+                          className="w-9 h-9 rounded-lg text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 flex items-center justify-center"
                         >
-                          {Icon && <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />}
+                          {Icon && <Icon className="w-5 h-5 text-cyan-600 dark:text-cyan-300" />}
                         </button>
 
                         {entityMenuOpen && item.options && item.options.length > 0 && (
-                          <div className="absolute left-full top-0 ml-2 bg-white dark:bg-gray-800 rounded shadow-lg py-2 z-[60] animate-fade-in min-w-max">
+                          <div className="absolute left-full top-0 z-[60] ml-2 min-w-max rounded-xl border border-slate-200 bg-white py-2 shadow-lg animate-fade-in dark:border-slate-700 dark:bg-slate-800">
                             {item.options.map((option) => (
                               <button
                                 key={option.value}
-                                className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-cyan-100 dark:hover:bg-gray-700 transition whitespace-nowrap"
+                                className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
                                 onClick={() => {
                                   if (item.onSelectOption) item.onSelectOption(option.value);
                                   setEntityMenuOpen(false);
@@ -267,12 +273,12 @@ export default function Sidebar({ content, onEntitySelect }) {
                       className={({ isActive }) =>
                         `w-9 h-9 rounded-lg transition flex items-center justify-center ${
                           isActive
-                            ? 'bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100'
-                            : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200'
+                            ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200'
+                            : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
                         }`
                       }
                     >
-                      {Icon && <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />}
+                      {Icon && <Icon className="w-5 h-5 text-cyan-600 dark:text-cyan-300" />}
                     </NavLink>
                   );
                 })}
@@ -280,11 +286,11 @@ export default function Sidebar({ content, onEntitySelect }) {
             </div>
 
             <div className="mt-auto">
-              <div className="h-14 border-t border-gray-200 dark:border-gray-700 px-2 flex items-center">
+              <div className="h-14 border-t border-slate-200 dark:border-slate-700 px-2 flex items-center">
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className="w-9 h-9 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none flex items-center justify-center text-gray-700 dark:text-gray-200"
+                  className="w-9 h-9 rounded-lg transition hover:bg-slate-100 focus:outline-none flex items-center justify-center text-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                   aria-label={dark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
                   title="Tema"
                 >
@@ -296,28 +302,28 @@ export default function Sidebar({ content, onEntitySelect }) {
                 </button>
               </div>
 
-              <div className="h-16 border-t border-gray-200 dark:border-gray-700 px-2 relative flex items-center" ref={menuRef}>
+              <div className="h-16 border-t border-slate-200 dark:border-slate-700 px-2 relative flex items-center" ref={menuRef}>
                 <button
                   onClick={() => {
                     setEntityMenuOpen(false);
                     setMenuOpen((v) => !v);
                   }}
-                  className="w-9 h-9 rounded-lg transition cursor-pointer flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-800"
+                  className="w-9 h-9 rounded-lg transition cursor-pointer flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"
                   title="Menú de usuario"
                 >
-                  <ChevronRightIcon className={`w-5 h-5 text-gray-700 dark:text-gray-200 transition-transform ${menuOpen ? 'rotate-180' : 'rotate-0'}`} />
+                  <ChevronRightIcon className={`w-5 h-5 text-cyan-600 dark:text-cyan-300 transition-transform ${menuOpen ? 'rotate-180' : 'rotate-0'}`} />
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute left-full bottom-0 ml-2 bg-white dark:bg-gray-800 rounded shadow-lg py-2 z-[60] animate-fade-in min-w-max">
+                  <div className="absolute left-full bottom-0 z-[60] ml-2 min-w-max rounded-xl border border-slate-200 bg-white py-2 shadow-lg animate-fade-in dark:border-slate-700 dark:bg-slate-800">
                     <button
-                      className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-cyan-100 dark:hover:bg-gray-700 transition whitespace-nowrap"
+                      className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
                       onClick={handleGoHome}
                     >
                       Ir a inicio
                     </button>
                     <button
-                      className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-cyan-100 dark:hover:bg-gray-700 transition whitespace-nowrap"
+                      className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
                       onClick={handleLogout}
                     >
                       Cerrar sesión

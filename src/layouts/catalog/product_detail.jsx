@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   CheckBadgeIcon,
@@ -24,10 +24,19 @@ const buildSpecRows = (product) => [
 
 export default function ProductDetailLayout() {
   const { id } = useParams();
+  const imageFrameRef = useRef(null);
+  const productImageRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [zoomPosition, setZoomPosition] = useState({
+    x: 0.5,
+    y: 0.5,
+    imageWidth: 0,
+    imageHeight: 0,
+    active: false,
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -59,6 +68,11 @@ export default function ProductDetailLayout() {
 
   const highlights = useMemo(() => buildProductHighlights(product), [product]);
   const specRows = useMemo(() => buildSpecRows(product || {}), [product]);
+  const ZOOM_FACTOR = 3;
+  const ZOOM_PANE_WIDTH = 480;
+  const ZOOM_PANE_HEIGHT = 420;
+  const LENS_WIDTH = Math.round(ZOOM_PANE_WIDTH / ZOOM_FACTOR);
+  const LENS_HEIGHT = Math.round(ZOOM_PANE_HEIGHT / ZOOM_FACTOR);
 
   const handleAddToCart = async () => {
     if (!product || product.stockAmount <= 0) return;
@@ -75,8 +89,59 @@ export default function ProductDetailLayout() {
     }
   };
 
+  const handleImageMove = (event) => {
+    const frame = imageFrameRef.current;
+    const image = productImageRef.current;
+    if (!frame || !image) return;
+
+    const frameBounds = frame.getBoundingClientRect();
+    const imageBounds = image.getBoundingClientRect();
+
+    const insideImage =
+      event.clientX >= imageBounds.left &&
+      event.clientX <= imageBounds.right &&
+      event.clientY >= imageBounds.top &&
+      event.clientY <= imageBounds.bottom;
+
+    if (!insideImage) {
+      setZoomPosition((prev) => ({ ...prev, active: false }));
+      return;
+    }
+
+    const x = (event.clientX - imageBounds.left) / imageBounds.width;
+    const y = (event.clientY - imageBounds.top) / imageBounds.height;
+
+    const imageLeftInFrame = imageBounds.left - frameBounds.left;
+    const imageTopInFrame = imageBounds.top - frameBounds.top;
+
+    const unclampedLensLeft = event.clientX - frameBounds.left - LENS_WIDTH / 2;
+    const unclampedLensTop = event.clientY - frameBounds.top - LENS_HEIGHT / 2;
+
+    const minLensLeft = imageLeftInFrame;
+    const maxLensLeft = imageLeftInFrame + imageBounds.width - LENS_WIDTH;
+    const minLensTop = imageTopInFrame;
+    const maxLensTop = imageTopInFrame + imageBounds.height - LENS_HEIGHT;
+
+    const lensLeft = Math.max(minLensLeft, Math.min(maxLensLeft, unclampedLensLeft));
+    const lensTop = Math.max(minLensTop, Math.min(maxLensTop, unclampedLensTop));
+
+    setZoomPosition({
+      x: Math.max(0, Math.min(1, x)),
+      y: Math.max(0, Math.min(1, y)),
+      imageWidth: imageBounds.width,
+      imageHeight: imageBounds.height,
+      lensLeft,
+      lensTop,
+      active: true,
+    });
+  };
+
+  const handleImageLeave = () => {
+    setZoomPosition((prev) => ({ ...prev, active: false }));
+  };
+
   return (
-    <main className="flex min-h-screen flex-col bg-white dark:bg-gray-900">
+    <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
       <SeoHead
         routeKey="products"
         override={{
@@ -122,10 +187,16 @@ export default function ProductDetailLayout() {
               ) : null}
 
               <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1.15fr_1.35fr_0.9fr]">
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-                  <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-slate-50 p-6 dark:bg-gray-900">
+                <div className="relative rounded-2xl border border-slate-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+                  <div
+                    ref={imageFrameRef}
+                    onMouseMove={product.image ? handleImageMove : undefined}
+                    onMouseLeave={handleImageLeave}
+                    className="relative flex min-h-[420px] cursor-crosshair items-center justify-center overflow-hidden rounded-2xl bg-slate-50 p-6 dark:bg-gray-900"
+                  >
                     {product.image ? (
                       <img
+                        ref={productImageRef}
                         src={product.image}
                         alt={product.displayName}
                         className="max-h-[420px] w-full object-contain"
@@ -135,7 +206,46 @@ export default function ProductDetailLayout() {
                         Imagen no disponible
                       </div>
                     )}
+
+                    {product.image && zoomPosition.active ? (
+                      <div
+                        className="pointer-events-none absolute rounded-md border border-slate-300/90 bg-white/35 shadow-[0_0_0_999px_rgba(15,23,42,0.06)]"
+                        style={{
+                          width: `${LENS_WIDTH}px`,
+                          height: `${LENS_HEIGHT}px`,
+                          left: `${zoomPosition.lensLeft ?? 0}px`,
+                          top: `${zoomPosition.lensTop ?? 0}px`,
+                        }}
+                      />
+                    ) : null}
                   </div>
+
+                  {product.image && zoomPosition.active ? (
+                    <div
+                      className="pointer-events-none absolute left-[calc(100%+1rem)] top-6 z-50 hidden overflow-hidden rounded-xl border border-slate-300 bg-white shadow-2xl lg:block dark:border-gray-700 dark:bg-gray-900"
+                      style={{ width: `${ZOOM_PANE_WIDTH}px`, height: `${ZOOM_PANE_HEIGHT}px` }}
+                    >
+                      <img
+                        src={product.image}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute max-w-none"
+                        style={{
+                          width: `${zoomPosition.imageWidth * ZOOM_FACTOR}px`,
+                          height: `${zoomPosition.imageHeight * ZOOM_FACTOR}px`,
+                          left: `${ZOOM_PANE_WIDTH / 2 - zoomPosition.x * zoomPosition.imageWidth * ZOOM_FACTOR}px`,
+                          top: `${ZOOM_PANE_HEIGHT / 2 - zoomPosition.y * zoomPosition.imageHeight * ZOOM_FACTOR}px`,
+                        }}
+                      />
+                    </div>
+                  ) : null}
+
+                  {product.image ? (
+                    <p className="mt-4 text-center text-sm text-slate-500 dark:text-gray-400">
+                      Pasa el cursor sobre la imagen para ampliar
+                    </p>
+                  ) : null}
+
                 </div>
 
                 <div className="space-y-6">

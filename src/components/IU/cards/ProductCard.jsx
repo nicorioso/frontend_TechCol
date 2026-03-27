@@ -25,8 +25,8 @@ const ProductCard = ({
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-xl hover:shadow-cyan-950/10 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-cyan-900/60">
       <Link to={productUrl} className="block">
-        <div className="relative flex h-52 w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_rgba(255,255,255,0)_55%)] from-transparent to-transparent dark:bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_rgba(15,23,42,0)_55%)]">
-          <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
+        <div className="relative flex h-52 w-full items-center justify-center overflow-hidden">
+          <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between p-4">
             <span className="rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-700 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-900/80 dark:text-cyan-300">
               {category}
             </span>
@@ -43,15 +43,16 @@ const ProductCard = ({
               decoding="async"
               width="320"
               height="220"
-              className="h-full w-full object-contain px-6 pb-4 pt-10 transition-transform duration-500 group-hover:scale-105"
+              className="relative z-0 h-full w-full object-contain px-6 pb-4 pt-10 transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <span className="text-2xl font-semibold tracking-[0.35em] text-slate-700 dark:text-gray-200" aria-hidden="true">
+            <span className="relative z-10 text-2xl font-semibold tracking-[0.35em] text-slate-700 dark:text-gray-200" aria-hidden="true">
               {imageIcon || "ITEM"}
             </span>
           )}
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-gray-800 dark:via-gray-800/70" />
+          <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.28),_rgba(255,255,255,0)_58%)] dark:bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.32),_rgba(15,23,42,0)_58%)]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-gray-800 dark:via-gray-800/70" />
         </div>
 
         <div className="space-y-3 p-5">

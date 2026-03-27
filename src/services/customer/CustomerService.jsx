@@ -10,7 +10,7 @@ class CustomerService extends crudService {
 
   async register(customerData) {
     try {
-      const response = await this.api.post("/auth/register", customerData, { skipAuth: true });
+      const response = await this.api.post("/auth/registerRequest", customerData, { skipAuth: true });
       logInfo("Cliente registrado:", response.data);
       return response.data;
     } catch (error) {
@@ -47,6 +47,11 @@ class CustomerService extends crudService {
       const elapsed = Math.round(performance.now() - start);
       logInfo(`Tiempo /auth/login: ${elapsed}ms`);
     }
+  }
+
+  async checkAccountExists(email) {
+    const response = await this.api.post("/auth/account-exists", { email }, { skipAuth: true });
+    return response.data;
   }
 
   async verify(email, code) {

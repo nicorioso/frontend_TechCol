@@ -20,5 +20,16 @@ export const loginWithGoogleCredential = async (credentialResponse, navigate) =>
 
   storageGateway.set("access_token", accessToken);
   storageGateway.setJson("user", user);
-  navigate("/");
+
+  const requiresPasswordSetup = Boolean(response?.data?.requiresPasswordSetup);
+
+  if (!requiresPasswordSetup) {
+    navigate("/");
+  }
+
+  return {
+    requiresPasswordSetup,
+    user,
+    accessToken,
+  };
 };

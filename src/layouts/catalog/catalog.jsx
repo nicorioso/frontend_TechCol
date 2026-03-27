@@ -4,7 +4,7 @@ import ProductCatalog from "../../components/catalog/ProductCatalog";
 
 export default function CatalogLayout() {
   return (
-    <main className="flex min-h-screen flex-col bg-white dark:bg-gray-900">
+    <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
       <MainHeader />
       <ProductCatalog />
       <MainFooter />

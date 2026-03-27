@@ -8,6 +8,7 @@ import UserService from "../../services/customer/UserService";
 import CustomerService from "../../services/customer/CustomerService";
 import { useState, useEffect, useRef } from "react";
 import { getEntityDefinition } from "../../services/entities/definitions";
+import { splitE164Phone } from "../../utils/phone";
 
 const getCurrentCustomerId = () => {
   const current = CustomerService.getCurrentUser();
@@ -16,19 +17,17 @@ const getCurrentCustomerId = () => {
 
 const mapProfileToForm = (profile) => {
   const p = profile?.customer || profile || {};
-  const phoneRaw = String(p.customerPhoneNumber || p.phone || "").trim();
-  const phoneParts = phoneRaw.split(" ");
-  const hasCode = phoneParts.length > 1 && phoneParts[0].startsWith("+");
-  const code = hasCode ? phoneParts[0] : "+1";
-  const phoneNumber = hasCode ? phoneParts.slice(1).join(" ") : phoneRaw;
+  const phoneInfo = splitE164Phone(String(p.customerPhoneNumber || p.phone || "").trim(), {
+    defaultCountryCode: "+57",
+  });
 
   return {
     customer_name: p.customerName || p.name || "",
     customer_last_name: p.customerLastName || "",
     customer_email: p.customerEmail || p.email || "",
-    customer_phone_number: phoneNumber || "",
-    customer_country_code: code,
-    customer_country: "US",
+    customer_phone_number: phoneInfo.nationalNumber || "",
+    customer_country_code: phoneInfo.code,
+    customer_country: "CO",
   };
 };
 

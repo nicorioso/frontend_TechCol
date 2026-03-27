@@ -9,6 +9,7 @@ import Alert from "../../IU/alerts/Alerts";
 import { useNavigate } from "react-router-dom";
 import { loginWithGoogleCredential } from "../../../services/auth/googleAuth";
 import GoogleLoginConsent from "../GoogleLoginConsent";
+import GooglePasswordSetupModal from "../../IU/modal/GooglePasswordSetupModal";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showGooglePasswordModal, setShowGooglePasswordModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,7 +137,10 @@ export default function RegisterForm() {
               <GoogleLoginConsent
                 buttonLabel="Habilitar registro con Google"
                 onSuccess={async (credentialResponse) => {
-                  await loginWithGoogleCredential(credentialResponse, navigate);
+                  const result = await loginWithGoogleCredential(credentialResponse, navigate);
+                  if (result?.requiresPasswordSetup) {
+                    setShowGooglePasswordModal(true);
+                  }
                 }}
               />
             </div>
@@ -145,6 +150,12 @@ export default function RegisterForm() {
             label="¿Ya tienes cuenta?"
             linkPlaceholder="Inicia sesion aqui"
             pathname="/auth/login"
+          />
+
+          <GooglePasswordSetupModal
+            isOpen={showGooglePasswordModal}
+            onClose={() => setShowGooglePasswordModal(false)}
+            onSuccess={() => navigate("/")}
           />
         </>
       }

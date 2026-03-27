@@ -1,4 +1,5 @@
 import { axiosInstance } from "../api";
+import { normalizePhoneToE164 } from "../../utils/phone";
 
 const UserService = {
   getProfile: async (id) => {
@@ -7,7 +8,17 @@ const UserService = {
   },
 
   patchProfile: async (id, data) => {
-    const res = await axiosInstance.patch(`/customers/${id}`, data);
+    const payload = { ...data };
+    if (typeof payload.customerPhoneNumber === "string" && payload.customerPhoneNumber.trim()) {
+      const normalizedPhone = normalizePhoneToE164(payload.customerPhoneNumber, {
+        defaultCountryCode: "+57",
+      });
+      if (!normalizedPhone) {
+        throw new Error("Telefono invalido. Usa formato internacional E.164, ejemplo +573001234567.");
+      }
+      payload.customerPhoneNumber = normalizedPhone;
+    }
+    const res = await axiosInstance.patch(`/customers/${id}`, payload);
     return res.data;
   },
 
@@ -21,6 +32,45 @@ const UserService = {
     return res.data;
   },
 
+  requestPasswordRecovery: async (identifier, channel) => {
+    const normalizedIdentifier =
+      String(channel || "").toUpperCase() === "SMS"
+        ? normalizePhoneToE164(identifier, { defaultCountryCode: "+57" }) || identifier
+        : identifier;
+    const res = await axiosInstance.post(
+      "/auth/password-recovery/request",
+      { identifier: normalizedIdentifier, channel },
+      { skipAuth: true }
+    );
+    return res.data;
+  },
+
+  verifyPasswordRecoveryCodeByChannel: async (identifier, channel, code) => {
+    const normalizedIdentifier =
+      String(channel || "").toUpperCase() === "SMS"
+        ? normalizePhoneToE164(identifier, { defaultCountryCode: "+57" }) || identifier
+        : identifier;
+    const res = await axiosInstance.post(
+      "/auth/password-recovery/verify",
+      { identifier: normalizedIdentifier, channel, code },
+      { skipAuth: true }
+    );
+    return res.data;
+  },
+
+  resetPasswordByRecovery: async (identifier, channel, newPassword) => {
+    const normalizedIdentifier =
+      String(channel || "").toUpperCase() === "SMS"
+        ? normalizePhoneToE164(identifier, { defaultCountryCode: "+57" }) || identifier
+        : identifier;
+    const res = await axiosInstance.post(
+      "/auth/password-recovery/reset",
+      { identifier: normalizedIdentifier, channel, newPassword },
+      { skipAuth: true }
+    );
+    return res.data;
+  },
+
   verifyPasswordChangeCode: async (email, code) => {
     const res = await axiosInstance.post("/auth/changePasswordVerifiCode", { email, code });
     return res.data;
@@ -28,6 +78,11 @@ const UserService = {
 
   changePassword: async (email, newPassword) => {
     const res = await axiosInstance.post("/auth/changePassword", { email, newPassword });
+    return res.data;
+  },
+
+  setGooglePassword: async (newPassword) => {
+    const res = await axiosInstance.post("/auth/google/set-password", { newPassword });
     return res.data;
   },
 };

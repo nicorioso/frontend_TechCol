@@ -8,7 +8,7 @@ export function HomePage() {
   return (
     <>
       <SeoHead routeKey="home" schema={buildOrganizationSchema()} />
-      <main className="flex min-h-screen flex-col bg-white dark:bg-gray-900">
+      <main className="flex min-h-screen flex-col bg-slate-100 dark:bg-gray-900">
         <MainHeader/>
         <Home/>
         <MainFooter/>

@@ -24,6 +24,7 @@ const getVerifyErrorMessage = (err) => {
 export default function VerifyCodeModal({
   isOpen,
   email,
+  channel,
   onClose,
   onVerified,
   originalPassword,
@@ -42,23 +43,40 @@ export default function VerifyCodeModal({
   const [error, setError] = useState("");
   const inputRefs = useRef([]);
 
-  const maskedEmail = useMemo(() => {
-    const safeEmail = String(email || "");
-    if (!safeEmail) return "****";
-    const atIndex = safeEmail.indexOf("@");
-    if (atIndex === -1) {
-      if (safeEmail.length <= 4) return `${safeEmail}${"*".repeat(4)}`;
-      return `${safeEmail.slice(0, 4)}${"*".repeat(safeEmail.length - 4)}`;
+  const contactValue = useMemo(() => String(email || "").trim(), [email]);
+  const inferredChannel = useMemo(() => {
+    if (channel) return channel;
+    return contactValue.includes("@") ? "EMAIL" : "SMS";
+  }, [channel, contactValue]);
+
+  const maskedContact = useMemo(() => {
+    if (!contactValue) return "****";
+
+    if (inferredChannel === "EMAIL") {
+      const atIndex = contactValue.indexOf("@");
+      if (atIndex === -1) {
+        if (contactValue.length <= 4) return `${contactValue}${"*".repeat(4)}`;
+        return `${contactValue.slice(0, 4)}${"*".repeat(contactValue.length - 4)}`;
+      }
+
+      const localPart = contactValue.slice(0, atIndex);
+      const domainPart = contactValue.slice(atIndex);
+      if (localPart.length <= 4) {
+        return `${localPart}${"*".repeat(4)}${domainPart}`;
+      }
+
+      return `${localPart.slice(0, 4)}****${localPart.slice(-1)}${domainPart}`;
     }
 
-    const localPart = safeEmail.slice(0, atIndex);
-    const domainPart = safeEmail.slice(atIndex);
-    if (localPart.length <= 4) {
-      return `${localPart}${"*".repeat(4)}${domainPart}`;
-    }
+    const hasPlusPrefix = contactValue.startsWith("+");
+    const digits = contactValue.replace(/\D/g, "");
+    if (!digits) return "****";
+    if (digits.length <= 4) return `${hasPlusPrefix ? "+" : ""}${digits}${"*".repeat(4)}`;
 
-    return `${localPart.slice(0, 4)}****${localPart.slice(-1)}${domainPart}`;
-  }, [email]);
+    const prefix = digits.slice(0, Math.min(3, Math.max(digits.length - 2, 1)));
+    const suffix = digits.slice(-2);
+    return `${hasPlusPrefix ? "+" : ""}${prefix}****${suffix}`;
+  }, [contactValue, inferredChannel]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -180,7 +198,7 @@ export default function VerifyCodeModal({
         </h3>
         <p className="mx-auto mt-3 max-w-sm text-center text-lg text-slate-600 dark:text-slate-300">
           {descriptionPrefix}
-          <span className="block font-semibold text-slate-900 dark:text-slate-100">{maskedEmail}</span>
+          <span className="block font-semibold text-slate-900 dark:text-slate-100">{maskedContact}</span>
         </p>
 
         {error && (
@@ -246,7 +264,7 @@ export default function VerifyCodeModal({
           </div>
 
           <div className="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-center text-xs text-cyan-900 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-100">
-            El codigo se valida con informacion real enviada a tu correo.
+            El codigo se valida con informacion real enviada a tu {inferredChannel === "EMAIL" ? "correo" : "telefono"}.
           </div>
 
           {secondsLeft <= 0 && error && (

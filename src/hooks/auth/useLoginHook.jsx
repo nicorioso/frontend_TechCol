@@ -14,7 +14,7 @@ const useLoginForm = () => {
         : err?.response?.data?.message;
 
     if (status === 401 || status === 403) {
-      return 'Correo o contrasena incorrectos.';
+      return 'Correo incorrecto.';
     }
 
     if (responseMessage) {
@@ -28,6 +28,7 @@ const useLoginForm = () => {
     customerEmail: '',
     customerPassword: ''
   });
+  const [step, setStep] = useState(1);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,11 +42,30 @@ const useLoginForm = () => {
    */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => (name === 'customerEmail'
+      ? { ...prev, customerEmail: value, customerPassword: '' }
+      : { ...prev, [name]: value }));
+
+    if (name === 'customerEmail') {
+      setStep(1);
+    }
+
     setError('');
+  };
+
+  const validateEmailStep = () => {
+    if (!formData.customerEmail) {
+      setError('El correo electronico es requerido');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.customerEmail)) {
+      setError('El correo electronico no es valido');
+      return false;
+    }
+
+    return true;
   };
 
   /**
@@ -81,6 +101,25 @@ const useLoginForm = () => {
     setSuccessMessage('');
 
     try {
+      if (step === 1) {
+        if (!validateEmailStep()) {
+          setLoading(false);
+          return;
+        }
+
+        const accountCheck = await CustomerService.checkAccountExists(formData.customerEmail);
+        if (!accountCheck?.exists) {
+          setError('No existe una cuenta registrada con ese correo.');
+          setLoading(false);
+          return;
+        }
+
+        setStep(2);
+        setSuccessMessage('Cuenta encontrada. Ahora ingresa tu contrasena.');
+        setLoading(false);
+        return { success: true, data: accountCheck };
+      }
+
       if (!validateForm()) {
         setLoading(false);
         return;
@@ -115,6 +154,14 @@ const useLoginForm = () => {
 
   const resetForm = () => {
     setFormData({ customerEmail: '', customerPassword: '' });
+    setStep(1);
+    setError('');
+    setSuccessMessage('');
+  };
+
+  const goBackToEmailStep = () => {
+    setStep(1);
+    setFormData(prev => ({ ...prev, customerPassword: '' }));
     setError('');
     setSuccessMessage('');
   };
@@ -127,6 +174,8 @@ const useLoginForm = () => {
     handleInputChange,
     handleSubmit,
     resetForm,
+    step,
+    goBackToEmailStep,
     isAuthenticated: CustomerService.isAuthenticated(),
     verify: {
       open: verifyOpen,

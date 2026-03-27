@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import CustomerService from '../../services/customer/CustomerService';
 import { getErrorMessage } from '../../services/errors/error_handler';
+import { normalizePhoneToE164 } from '../../utils/phone';
 
 const useRegister = () => {
   const initialFormData = {
@@ -37,16 +38,30 @@ const useRegister = () => {
       const source = payloadOverride || formData;
       const dataToSend = { ...source };
       delete dataToSend.confirmPassword;
+      if (dataToSend.customerPhoneNumber) {
+        const normalizedPhone = normalizePhoneToE164(dataToSend.customerPhoneNumber, {
+          defaultCountryCode: '+57',
+        });
+        if (!normalizedPhone) {
+          setErrorMessage('El telefono debe estar en formato internacional E.164, ejemplo +573001234567.');
+          return { success: false, error: new Error('Invalid phone format') };
+        }
+        dataToSend.customerPhoneNumber = normalizedPhone;
+      }
 
       const response = await CustomerService.register(dataToSend);
       
-      setSuccessMessage('¡Cliente registrado exitosamente!');
+      setSuccessMessage('Cliente registrado exitosamente.');
       setFormData(initialFormData);
       
       return { success: true, data: response };
       
     } catch (error) {
-      const displayMessage = error.message || getErrorMessage(error.status);
+      const backendMessage =
+        typeof error?.response?.data === 'string'
+          ? error.response.data
+          : error?.response?.data?.message;
+      const displayMessage = backendMessage || getErrorMessage(error?.response?.status) || error.message;
       setErrorMessage(displayMessage);
       
       console.error('Error capturado en hook:', error);
