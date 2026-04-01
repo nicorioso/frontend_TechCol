@@ -39,6 +39,25 @@ const INITIAL_ACTION_ALERT = {
   message: '',
 };
 
+const getFileValidationMessage = (field, file) => {
+  if (!file || !field || (field.type !== 'file' && field.type !== 'image')) {
+    return '';
+  }
+
+  const maxSizeMB = Number(field.maxSizeMB ?? 0);
+  if (maxSizeMB <= 0) {
+    return '';
+  }
+
+  const maxBytes = maxSizeMB * 1024 * 1024;
+  if (file.size <= maxBytes) {
+    return '';
+  }
+
+  const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+  return `La imagen pesa ${fileSizeMB} MB y el maximo permitido es ${maxSizeMB} MB.`;
+};
+
 export default function Entities() {
   const setSelectedEntity = useStore((s) => s.setSelectedEntity);
   const selectedEntity = useStore((s) => s.selectedEntity);
@@ -49,6 +68,7 @@ export default function Entities() {
     formFields,
     isCreateModalOpen,
     newEntityValues,
+    fieldErrors,
     alertState,
     openCreateModal,
     closeCreateModal,
@@ -58,6 +78,7 @@ export default function Entities() {
   } = useEntityCreation(selectedEntity);
   const [deleteConfirmState, setDeleteConfirmState] = useState(INITIAL_DELETE_STATE);
   const [editModalState, setEditModalState] = useState(INITIAL_EDIT_STATE);
+  const [editFieldErrors, setEditFieldErrors] = useState({});
   const [actionAlert, setActionAlert] = useState(INITIAL_ACTION_ALERT);
 
   useEffect(() => {
@@ -104,6 +125,7 @@ export default function Entities() {
       row,
       values: initialValues,
     });
+    setEditFieldErrors({});
   };
 
   const openDeleteModal = (row) => {
@@ -188,7 +210,25 @@ export default function Entities() {
 
   const handleEditChange = (event) => {
     const { name, type, files, value } = event.target;
-    const newValue = type === 'file' || type === 'image' ? files[0] : value;
+    const field = editFields.find((item) => item.name === name);
+    const fileValue = type === 'file' || type === 'image' ? files?.[0] : null;
+    const validationMessage = getFileValidationMessage(field, fileValue);
+
+    if (validationMessage) {
+      event.target.value = '';
+      setEditFieldErrors((prev) => ({
+        ...prev,
+        [name]: validationMessage,
+      }));
+      return;
+    }
+
+    setEditFieldErrors((prev) => ({
+      ...prev,
+      [name]: '',
+    }));
+
+    const newValue = fileValue || value;
     setEditModalState((prev) => ({
       ...prev,
       values: {
@@ -200,6 +240,7 @@ export default function Entities() {
 
   const handleCloseEditModal = () => {
     setEditModalState(INITIAL_EDIT_STATE);
+    setEditFieldErrors({});
   };
 
   const handleEditSubmit = async (event) => {
@@ -264,6 +305,7 @@ export default function Entities() {
                 title={`Crear ${singularLabel}`}
                 fields={formFields}
                 values={newEntityValues}
+                fieldErrors={fieldErrors}
                 onChange={handleNewEntityChange}
                 onClose={closeCreateModal}
                 onSubmit={handleCreateSubmit}
@@ -275,6 +317,7 @@ export default function Entities() {
                 title={`Editar ${singularLabel}`}
                 fields={editFields}
                 values={editModalState.values}
+                fieldErrors={editFieldErrors}
                 onChange={handleEditChange}
                 onClose={handleCloseEditModal}
                 onSubmit={handleEditSubmit}

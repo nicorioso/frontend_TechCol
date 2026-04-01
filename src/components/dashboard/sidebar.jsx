@@ -222,7 +222,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                     className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-700 transition hover:bg-slate-100 focus:outline-none dark:text-slate-200 dark:hover:bg-slate-800"
                     aria-label="Expandir menú"
                   >
-                    <ChevronDoubleRightIcon className="h-5 w-5 text-cyan-600 dark:text-cyan-300" />
+                    <ChevronDoubleRightIcon className="h-5 w-5 text-slate-700 dark:text-slate-200" />
                   </button>
                 </div>
               </div>
@@ -241,7 +241,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                           }}
                           className="w-9 h-9 rounded-lg text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 flex items-center justify-center"
                         >
-                          {Icon && <Icon className="w-5 h-5 text-cyan-600 dark:text-cyan-300" />}
+                          {Icon && <Icon className="w-5 h-5 text-slate-700 dark:text-slate-200" />}
                         </button>
 
                         {entityMenuOpen && item.options && item.options.length > 0 && (
@@ -249,7 +249,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                             {item.options.map((option) => (
                               <button
                                 key={option.value}
-                                className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
+                                className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                                 onClick={() => {
                                   if (item.onSelectOption) item.onSelectOption(option.value);
                                   setEntityMenuOpen(false);
@@ -273,12 +273,12 @@ export default function Sidebar({ content, onEntitySelect }) {
                       className={({ isActive }) =>
                         `w-9 h-9 rounded-lg transition flex items-center justify-center ${
                           isActive
-                            ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200'
+                            ? 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white'
                             : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
                         }`
                       }
                     >
-                      {Icon && <Icon className="w-5 h-5 text-cyan-600 dark:text-cyan-300" />}
+                      {Icon && <Icon className="w-5 h-5 text-slate-700 dark:text-slate-200" />}
                     </NavLink>
                   );
                 })}
@@ -297,7 +297,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                   {dark ? (
                     <SunIcon className="w-5 h-5 text-yellow-500" />
                   ) : (
-                    <MoonIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                    <MoonIcon className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                   )}
                 </button>
               </div>
@@ -311,19 +311,19 @@ export default function Sidebar({ content, onEntitySelect }) {
                   className="w-9 h-9 rounded-lg transition cursor-pointer flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"
                   title="Menú de usuario"
                 >
-                  <ChevronRightIcon className={`w-5 h-5 text-cyan-600 dark:text-cyan-300 transition-transform ${menuOpen ? 'rotate-180' : 'rotate-0'}`} />
+                  <ChevronRightIcon className={`w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform ${menuOpen ? 'rotate-180' : 'rotate-0'}`} />
                 </button>
 
                 {menuOpen && (
                   <div className="absolute left-full bottom-0 z-[60] ml-2 min-w-max rounded-xl border border-slate-200 bg-white py-2 shadow-lg animate-fade-in dark:border-slate-700 dark:bg-slate-800">
                     <button
-                      className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
+                      className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                       onClick={handleGoHome}
                     >
                       Ir a inicio
                     </button>
                     <button
-                      className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
+                      className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                       onClick={handleLogout}
                     >
                       Cerrar sesión

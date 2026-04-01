@@ -12,7 +12,6 @@ export const CollapsibleMenu = ({
   const [isOpen, setIsOpen] = useState(false);
   const isEntitiesRoute = location.pathname.includes('/entities');
   const activeOptionValue = location.pathname.split('/').filter(Boolean).at(-1);
-
   useEffect(() => {
     if (isEntitiesRoute) {
       setIsOpen(true);
@@ -29,10 +28,10 @@ export const CollapsibleMenu = ({
           }
           setIsOpen(!isOpen);
         }}
-        className={`w-full flex items-center gap-3 p-2 rounded-t-lg transition ${
-          isOpen 
-            ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100' 
-            : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200'
+        className={`w-full flex items-center gap-3 p-2 transition ${
+          isOpen
+            ? 'rounded-t-lg bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100'
+            : 'rounded-lg text-gray-700 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-700'
         }`}
       >
         {Icon && <Icon className="w-5 h-5" />}

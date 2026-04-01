@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleScript } from "../../utils/loadGoogleScript";
+import { getGoogleClientId } from "../../services/auth/googleClientConfig";
 
 const CONSENT_KEY = "third_party_auth_consent_v1";
 
@@ -20,6 +21,7 @@ export default function GoogleLoginConsent({
   const [consentGranted, setConsentGranted] = useState(getInitialConsent);
   const [authError, setAuthError] = useState("");
   const [isLoadingScript, setIsLoadingScript] = useState(false);
+  const [clientId, setClientId] = useState("");
   const buttonContainerRef = useRef(null);
   const successHandlerRef = useRef(onSuccess);
   const errorHandlerRef = useRef(onError);
@@ -39,9 +41,43 @@ export default function GoogleLoginConsent({
       return;
     }
 
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    let isCancelled = false;
+
+    const loadClientId = async () => {
+      try {
+        const resolvedClientId = await getGoogleClientId();
+        if (isCancelled) {
+          return;
+        }
+
+        if (!resolvedClientId) {
+          setAuthError("Google login no esta configurado en este entorno.");
+          return;
+        }
+
+        setAuthError("");
+        setClientId(resolvedClientId);
+      } catch {
+        if (!isCancelled) {
+          setAuthError("No se pudo obtener la configuracion de Google.");
+          errorHandlerRef.current?.();
+        }
+      }
+    };
+
+    loadClientId();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [consentGranted]);
+
+  useEffect(() => {
+    if (!consentGranted) {
+      return;
+    }
+
     if (!clientId) {
-      setAuthError("Google login no esta configurado en este entorno.");
       return;
     }
 
@@ -105,7 +141,7 @@ export default function GoogleLoginConsent({
     return () => {
       isCancelled = true;
     };
-  }, [consentGranted]);
+  }, [clientId, consentGranted]);
 
   const enableGoogleAuth = async () => {
     try {

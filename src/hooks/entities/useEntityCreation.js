@@ -8,6 +8,25 @@ const INITIAL_ALERT_STATE = {
   message: '',
 };
 
+const getFileValidationMessage = (field, file) => {
+  if (!file || !field || (field.type !== 'file' && field.type !== 'image')) {
+    return '';
+  }
+
+  const maxSizeMB = Number(field.maxSizeMB ?? 0);
+  if (maxSizeMB <= 0) {
+    return '';
+  }
+
+  const maxBytes = maxSizeMB * 1024 * 1024;
+  if (file.size <= maxBytes) {
+    return '';
+  }
+
+  const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+  return `La imagen pesa ${fileSizeMB} MB y el maximo permitido es ${maxSizeMB} MB.`;
+};
+
 const buildInitialValues = (fields = []) =>
   fields.reduce((acc, field) => {
     acc[field.name] = field.defaultValue ?? '';
@@ -21,6 +40,7 @@ const buildInitialValues = (fields = []) =>
 export default function useEntityCreation(selectedEntity) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newEntityValues, setNewEntityValues] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
   const [alertState, setAlertState] = useState(INITIAL_ALERT_STATE);
 
   const definition = useMemo(() => getEntityDefinition(selectedEntity), [selectedEntity]);
@@ -28,11 +48,13 @@ export default function useEntityCreation(selectedEntity) {
 
   const openCreateModal = () => {
     setNewEntityValues(buildInitialValues(formFields));
+    setFieldErrors({});
     setIsCreateModalOpen(true);
   };
 
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
+    setFieldErrors({});
   };
 
   const closeAlert = () => {
@@ -41,7 +63,25 @@ export default function useEntityCreation(selectedEntity) {
 
   const handleNewEntityChange = (event) => {
     const { name, type, files, value } = event.target;
-    const newValue = type === 'file' || type === 'image' ? files[0] : value;
+    const field = formFields.find((item) => item.name === name);
+    const fileValue = type === 'file' || type === 'image' ? files?.[0] : null;
+    const validationMessage = getFileValidationMessage(field, fileValue);
+
+    if (validationMessage) {
+      event.target.value = '';
+      setFieldErrors((prev) => ({
+        ...prev,
+        [name]: validationMessage,
+      }));
+      return;
+    }
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: '',
+    }));
+
+    const newValue = fileValue || value;
     setNewEntityValues((prev) => ({
       ...prev,
       [name]: newValue,
@@ -93,6 +133,7 @@ export default function useEntityCreation(selectedEntity) {
     formFields,
     isCreateModalOpen,
     newEntityValues,
+    fieldErrors,
     alertState,
     openCreateModal,
     closeCreateModal,

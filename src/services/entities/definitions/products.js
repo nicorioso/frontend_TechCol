@@ -36,6 +36,8 @@ export const productsEntity = {
       accept: 'image/*',
       fullWidth: true,
       required: false,
+      maxSizeMB: 10,
+      helperText: 'PNG, JPG o WEBP. Tamano maximo: 10 MB.',
     },
   ],
   map: (products = []) =>

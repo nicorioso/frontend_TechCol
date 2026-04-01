@@ -47,10 +47,10 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="rounded-lg bg-cyan-50 p-1.5 transition hover:bg-cyan-100 focus:outline-none dark:bg-cyan-900/30 dark:hover:bg-cyan-900/50"
+          className="rounded-lg bg-slate-100 p-1.5 transition hover:bg-slate-200 focus:outline-none dark:bg-slate-800 dark:hover:bg-slate-700"
           aria-label="Contraer menu"
         >
-          <ChevronDoubleLeftIcon className="h-5 w-5 text-cyan-700 dark:text-cyan-300" />
+          <ChevronDoubleLeftIcon className="h-5 w-5 text-slate-700 dark:text-slate-200" />
         </button>
       </div>
 
@@ -102,21 +102,21 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
               <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 {displayName}
               </span>
-              <ChevronRightIcon className={`h-4 w-4 text-cyan-600 transition-transform dark:text-cyan-300 ${menuOpen ? "rotate-180" : "rotate-0"}`} />
+              <ChevronRightIcon className={`h-4 w-4 text-slate-600 transition-transform dark:text-slate-300 ${menuOpen ? "rotate-180" : "rotate-0"}`} />
             </button>
 
             {menuOpen && (
               <div className="absolute bottom-0 left-full z-[60] ml-2 min-w-max rounded-xl border border-slate-200 bg-white py-2 shadow-lg animate-fade-in dark:border-slate-700 dark:bg-slate-800" role="menu">
                 <button
                   type="button"
-                  className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
+                  className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                   onClick={handleGoHome}
                 >
                   Ir a inicio
                 </button>
                 <button
                   type="button"
-                  className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-slate-700"
+                  className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                   onClick={handleLogout}
                 >
                   Cerrar sesion
@@ -162,12 +162,12 @@ function SidebarItem({ icon: Icon, label, href, type = "link", options = [], onC
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-xl p-2 transition ${
           isActive
-            ? "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200"
+            ? "bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white"
             : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
         }`
       }
     >
-      {Icon && <Icon className="h-5 w-5 text-cyan-600 dark:text-cyan-300" />}
+      {Icon && <Icon className="h-5 w-5 text-slate-700 dark:text-slate-200" />}
       <span className="text-sm font-medium">
         {label}
       </span>
