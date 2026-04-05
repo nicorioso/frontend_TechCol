@@ -258,6 +258,25 @@ const clearCheckoutDraft = () => {
   localStorage.removeItem(getDraftKey(customerId));
 };
 
+const syncCartWithBackend = async () => {
+  const { isAuthenticated, customerId } = getSession();
+
+  if (!isAuthenticated || !customerId) {
+    return readLocalCart();
+  }
+
+  const localItems = readLocalCart(customerId);
+  const payload = localItems.map((item) => ({
+    product_id: item.product_id,
+    quantity: item.quantity,
+  }));
+
+  const response = await axiosInstance.put(`/cart/${customerId}/sync`, payload);
+  const normalized = normalizeCart(response?.data?.items ?? response?.data);
+  saveLocalCart(normalized, customerId);
+  return normalized;
+};
+
 export const cartService = {
   CART_UPDATED_EVENT,
   TAX_RATE,
@@ -274,6 +293,7 @@ export const cartService = {
   getCheckoutDraft,
   saveCheckoutDraft,
   clearCheckoutDraft,
+  syncCartWithBackend,
 };
 
 export default cartService;

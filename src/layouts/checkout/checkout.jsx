@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   CheckCircleIcon,
+  XCircleIcon,
   LockClosedIcon,
   MapPinIcon,
   TruckIcon,
@@ -50,6 +51,87 @@ const checkoutFieldClassName =
   "w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-cyan-400";
 const checkoutLabelClassName =
   "mb-1 block text-xs font-semibold text-slate-700 dark:text-gray-300";
+const paypalCaptureTasks = new Map();
+const paypalCaptureResults = new Map();
+const buildPaymentResult = (status, orderCode, message) => ({
+  status,
+  orderCode,
+  paymentMethod: "paypal",
+  message,
+});
+const hasInsufficientFundsError = (error) => {
+  const rawMessage =
+    error?.response?.data?.message ??
+    error?.response?.data ??
+    error?.message ??
+    "";
+
+  const normalizedMessage = String(rawMessage).toUpperCase();
+  return normalizedMessage.includes("INSTRUMENT_DECLINED");
+};
+const hasAlreadyCapturedError = (error) => {
+  const rawMessage =
+    error?.response?.data?.message ??
+    error?.response?.data ??
+    error?.message ??
+    "";
+
+  return String(rawMessage).toUpperCase().includes("ORDER_ALREADY_CAPTURED");
+};
+const getSuccessfulPaypalResult = (paypalOrderId, message = "Tu orden fue creada correctamente.") =>
+  buildPaymentResult("success", paypalOrderId, message);
+const getInsufficientFundsPaypalResult = (paypalOrderId) =>
+  buildPaymentResult(
+    "insufficient_funds",
+    paypalOrderId,
+    "En tu cuenta no hay fondos suficientes para completar este pago."
+  );
+const finalizePaypalCapture = async (paypalOrderId) => {
+  if (paypalCaptureResults.has(paypalOrderId)) {
+    return paypalCaptureResults.get(paypalOrderId);
+  }
+
+  if (paypalCaptureTasks.has(paypalOrderId)) {
+    return paypalCaptureTasks.get(paypalOrderId);
+  }
+
+  const task = (async () => {
+    try {
+      await paymentService.capturePaypalOrder(paypalOrderId);
+      await cartService.clearCart();
+      cartService.clearCheckoutDraft();
+
+      const result = getSuccessfulPaypalResult(paypalOrderId);
+      paypalCaptureResults.set(paypalOrderId, result);
+      return result;
+    } catch (error) {
+      if (hasAlreadyCapturedError(error)) {
+        await cartService.clearCart();
+        cartService.clearCheckoutDraft();
+
+        const result = getSuccessfulPaypalResult(
+          paypalOrderId,
+          "Tu pago ya habia sido confirmado y la orden fue procesada correctamente."
+        );
+        paypalCaptureResults.set(paypalOrderId, result);
+        return result;
+      }
+
+      if (hasInsufficientFundsError(error)) {
+        const result = getInsufficientFundsPaypalResult(paypalOrderId);
+        paypalCaptureResults.set(paypalOrderId, result);
+        return result;
+      }
+
+      throw error;
+    } finally {
+      paypalCaptureTasks.delete(paypalOrderId);
+    }
+  })();
+
+  paypalCaptureTasks.set(paypalOrderId, task);
+  return task;
+};
 
 export default function CheckoutPage() {
   const location = useLocation();
@@ -122,16 +204,11 @@ export default function CheckoutPage() {
       setStep(2);
 
       try {
-        await paymentService.capturePaypalOrder(paypalOrderId);
-        await cartService.clearCart();
-        cartService.clearCheckoutDraft();
+        const result = await finalizePaypalCapture(paypalOrderId);
 
         if (!isMounted) return;
 
-        setOrderData({
-          orderCode: paypalOrderId,
-          paymentMethod: "paypal",
-        });
+        setOrderData(result);
         setStep(3);
         navigate("/checkout", { replace: true });
       } catch (error) {
@@ -243,6 +320,13 @@ export default function CheckoutPage() {
         lastAttemptAt: new Date().toISOString(),
       });
 
+      const syncedItems = await cartService.syncCartWithBackend();
+      if (!Array.isArray(syncedItems) || syncedItems.length === 0) {
+        throw new Error("Tu carrito no tiene productos sincronizados para pagar.");
+      }
+
+      setCartItems(syncedItems);
+
       const response = await paymentService.createPaypalOrder();
       const approveUrl = response?.approveUrl;
 
@@ -346,10 +430,24 @@ export default function CheckoutPage() {
           )}
 
           {step === 3 ? (
-            <div className="rounded-lg border border-green-200 bg-white p-8 text-center dark:border-green-800 dark:bg-gray-800">
-              <CheckCircleIcon className="mx-auto mb-3 h-12 w-12 text-green-600" />
-              <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">Compra confirmada</h2>
-              <p className="mb-1 text-gray-600 dark:text-gray-400">Tu orden fue creada correctamente.</p>
+            <div
+              className={`rounded-lg bg-white p-8 text-center dark:bg-gray-800 ${
+                orderData?.status === "insufficient_funds"
+                  ? "border border-rose-200 dark:border-rose-800"
+                  : "border border-green-200 dark:border-green-800"
+              }`}
+            >
+              {orderData?.status === "insufficient_funds" ? (
+                <XCircleIcon className="mx-auto mb-3 h-12 w-12 text-rose-600" />
+              ) : (
+                <CheckCircleIcon className="mx-auto mb-3 h-12 w-12 text-green-600" />
+              )}
+              <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {orderData?.status === "insufficient_funds" ? "Fondos insuficientes" : "Compra confirmada"}
+              </h2>
+              <p className="mb-1 text-gray-600 dark:text-gray-400">
+                {orderData?.message ?? "Tu orden fue creada correctamente."}
+              </p>
               <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
                 Numero de orden: <span className="font-semibold">{orderData?.orderCode}</span>
               </p>
@@ -357,7 +455,7 @@ export default function CheckoutPage() {
                 to="/products"
                 className="inline-block rounded-lg bg-cyan-600 px-5 py-3 font-semibold text-white transition hover:bg-cyan-700"
               >
-                Seguir comprando
+                {orderData?.status === "insufficient_funds" ? "Volver al catalogo" : "Seguir comprando"}
               </Link>
             </div>
           ) : (

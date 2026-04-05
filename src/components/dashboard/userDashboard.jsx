@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import { useOrdersHook } from "../../hooks/useOrdersHook";
+import { images } from "../../assets/img/img_url";
 import UserService from "../../services/customer/UserService";
 import { normalizePhoneToE164 } from "../../utils/phone";
 import {
@@ -9,6 +12,8 @@ import {
   ClockIcon,
   ChevronRightIcon,
   UserCircleIcon,
+  ArrowDownTrayIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 const DATE_FORMAT_OPTIONS = {
@@ -74,6 +79,294 @@ const getOrderStatusMeta = (status) =>
   STATUS_META[String(status ?? "").toLowerCase()] || STATUS_META.default;
 
 const getSafeString = (value) => String(value ?? "").trim();
+const getProductName = (detail) =>
+  detail?.product?.productName ??
+  detail?.product?.name ??
+  detail?.product?.product_name ??
+  "Producto";
+const getProductImage = (detail) =>
+  detail?.product?.productImage ??
+  detail?.product?.imageUrl ??
+  detail?.product?.image ??
+  detail?.product?.product_image ??
+  "";
+const getDetailTotal = (detail) => {
+  const quantity = Number(detail?.quantity ?? 0);
+  const unitPrice = Number.parseFloat(detail?.unitPrice ?? 0);
+  return quantity * (Number.isNaN(unitPrice) ? 0 : unitPrice);
+};
+const formatPdfCurrency = (price) => {
+  const amount = Number.parseFloat(price ?? 0);
+  const safeAmount = Number.isNaN(amount) ? 0 : amount;
+  return `COP ${new Intl.NumberFormat("es-CO", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(safeAmount)}`;
+};
+const drawRoundedBlock = (doc, x, y, width, height, fillColor) => {
+  doc.setFillColor(...fillColor);
+  doc.roundedRect(x, y, width, height, 6, 6, "F");
+};
+const loadImageDataUrl = (src) =>
+  new Promise((resolve, reject) => {
+    if (!src) {
+      resolve(null);
+      return;
+    }
+
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          reject(new Error("No fue posible preparar el logo para la factura."));
+          return;
+        }
+
+        context.drawImage(image, 0, 0);
+        resolve({
+          dataUrl: canvas.toDataURL("image/png"),
+          width: canvas.width,
+          height: canvas.height,
+        });
+      } catch (error) {
+        reject(error);
+      }
+    };
+    image.onerror = () => reject(new Error("No fue posible cargar el logo de TechCol."));
+    image.src = src;
+  });
+const createInvoicePdf = async ({ order, customerName, customerEmail }) => {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const statusMeta = getOrderStatusMeta(order?.status);
+  const details = Array.isArray(order?.orderDetails) ? order.orderDetails : [];
+  const logoAsset = await loadImageDataUrl(images?.TechCol_logo?.url);
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 16;
+  const accent = [6, 182, 212];
+  const accentSoft = [236, 254, 255];
+  const accentDeep = [8, 145, 178];
+  const slate900 = [15, 23, 42];
+  const slate700 = [51, 65, 85];
+  const slate500 = [100, 116, 139];
+  const slate300 = [203, 213, 225];
+  const slate200 = [226, 232, 240];
+  const white = [255, 255, 255];
+  const cardBg = [248, 250, 252];
+
+  drawRoundedBlock(doc, 0, 0, pageWidth, 60, slate900);
+  doc.setFillColor(14, 116, 144);
+  doc.circle(pageWidth - 16, 11, 17, "F");
+  doc.setFillColor(...accent);
+  doc.circle(pageWidth - 1, 22, 23, "F");
+  const totalCardX = pageWidth - 77;
+  const contentRightEdge = totalCardX - 10;
+  const headerTextWidth = contentRightEdge - margin;
+
+  if (logoAsset?.dataUrl) {
+    const maxLogoWidth = 34;
+    const maxLogoHeight = 12;
+    const logoRatio = (logoAsset.width || 1) / (logoAsset.height || 1);
+    let logoWidth = maxLogoWidth;
+    let logoHeight = logoWidth / logoRatio;
+
+    if (logoHeight > maxLogoHeight) {
+      logoHeight = maxLogoHeight;
+      logoWidth = logoHeight * logoRatio;
+    }
+
+    doc.addImage(logoAsset.dataUrl, "PNG", margin, 8, logoWidth, logoHeight);
+  } else {
+    doc.setTextColor(...white);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("TechCol", margin, 16.5);
+  }
+
+  const titleText = `Factura del pedido #${order?.orderId ?? "-"}`;
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...white);
+  doc.setFontSize(22);
+  const titleLines = doc.splitTextToSize(titleText, headerTextWidth);
+  doc.text(titleLines, margin, 30.5);
+  const titleBottomY = 30.5 + (titleLines.length - 1) * 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(225, 232, 240);
+  const subtitleLines = doc.splitTextToSize(
+    "Documento generado para consulta, soporte y seguimiento de compra.",
+    headerTextWidth
+  );
+  const subtitleStartY = titleBottomY + 8;
+  doc.text(subtitleLines, margin, subtitleStartY);
+
+  const subtitleBottomY = subtitleStartY + (subtitleLines.length - 1) * 4.8;
+  doc.setDrawColor(71, 85, 105);
+  doc.setLineWidth(0.3);
+  const dividerY = subtitleBottomY + 4.5;
+  doc.line(margin, dividerY, contentRightEdge, dividerY);
+  doc.setTextColor(...white);
+  doc.setFontSize(8.5);
+  doc.text("Factura digital emitida por TechCol", margin, dividerY + 5.5);
+
+  drawRoundedBlock(doc, pageWidth - 77, 15, 61, 32, [255, 255, 255]);
+  doc.setDrawColor(220, 227, 235);
+  doc.roundedRect(pageWidth - 77, 15, 61, 32, 7, 7, "S");
+  doc.setTextColor(...slate500);
+  doc.setFontSize(7.8);
+  doc.text("TOTAL FACTURADO", pageWidth - 72, 23.5);
+  doc.setTextColor(...slate900);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text(formatPdfCurrency(order?.orderPrice), pageWidth - 72, 33.5);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...slate700);
+  doc.text("Metodo de pago: PayPal", pageWidth - 72, 40.5);
+  doc.setDrawColor(...accent);
+  doc.setLineWidth(0.8);
+  doc.line(pageWidth - 72, 27, pageWidth - 56, 27);
+
+  const cardTop = 68;
+  const cardWidth = (pageWidth - margin * 2 - 8) / 3;
+  const cardHeight = 34;
+  const cardXs = [margin, margin + cardWidth + 4, margin + (cardWidth + 4) * 2];
+  const cardData = [
+    {
+      title: "Cliente",
+      lines: [customerName || "Usuario TechCol", customerEmail || "Sin correo"],
+    },
+    {
+      title: "Fecha y referencia",
+      lines: [formatDate(order?.orderDate ?? order?.createdAt), order?.paypalOrderId ?? "No disponible"],
+    },
+    {
+      title: "Estado",
+      lines: [statusMeta.label, "Pedido registrado en TechCol"],
+    },
+  ];
+
+  cardData.forEach((card, index) => {
+    drawRoundedBlock(doc, cardXs[index], cardTop, cardWidth, cardHeight, cardBg);
+    doc.setDrawColor(...slate200);
+    doc.roundedRect(cardXs[index], cardTop, cardWidth, cardHeight, 5, 5, "S");
+    doc.setFillColor(...(index === 2 ? accentSoft : [241, 245, 249]));
+    doc.roundedRect(cardXs[index] + 4, cardTop + 4, 14, 5.5, 2.5, 2.5, "F");
+    const textWidth = cardWidth - 8;
+    const firstLineText = String(card.lines[0] ?? "");
+    const secondLineText = String(card.lines[1] ?? "");
+    const firstLines = doc.splitTextToSize(firstLineText, textWidth);
+    const secondLines = doc.splitTextToSize(secondLineText, textWidth);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.2);
+    doc.setTextColor(...(index === 2 ? accentDeep : slate500));
+    doc.text(card.title.toUpperCase(), cardXs[index] + 6, cardTop + 7.6);
+    doc.setFont("helvetica", index === 2 ? "bold" : "normal");
+    doc.setFontSize(index === 2 ? 12 : 10.2);
+    doc.setTextColor(...slate900);
+    doc.text(firstLines.slice(0, 2), cardXs[index] + 4, cardTop + 16);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(index === 2 ? 8.2 : 7.8);
+    doc.setTextColor(...(index === 2 ? slate700 : slate500));
+    doc.text(secondLines.slice(0, 2), cardXs[index] + 4, cardTop + 28);
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.setTextColor(...slate900);
+  doc.text("Productos del pedido", margin, 113);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.8);
+  doc.setTextColor(...slate500);
+  doc.text(
+    `${details.length} ${details.length === 1 ? "producto" : "productos"} en esta factura`,
+    margin,
+    119
+  );
+
+  autoTable(doc, {
+    startY: 125,
+    head: [["Producto", "Cantidad", "Unitario", "Subtotal"]],
+    body: details.length
+      ? details.map((detail) => [
+          getProductName(detail),
+          String(detail?.quantity ?? 0),
+          formatPdfCurrency(detail?.unitPrice),
+          formatPdfCurrency(getDetailTotal(detail)),
+        ])
+      : [["No hay productos detallados disponibles para este pedido.", "", "", ""]],
+    theme: "grid",
+    margin: { left: margin, right: margin },
+    styles: {
+      font: "helvetica",
+      fontSize: 9,
+      cellPadding: { top: 5, right: 4.5, bottom: 5, left: 4.5 },
+      lineColor: [229, 231, 235],
+      lineWidth: 0.2,
+      textColor: slate900,
+      overflow: "linebreak",
+    },
+    headStyles: {
+      fillColor: [239, 250, 252],
+      textColor: slate700,
+      fontStyle: "bold",
+      halign: "left",
+      lineColor: [214, 240, 245],
+    },
+    bodyStyles: {
+      fillColor: white,
+    },
+    alternateRowStyles: {
+      fillColor: [250, 252, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 90 },
+      1: { cellWidth: 24, halign: "center" },
+      2: { cellWidth: 30, halign: "right" },
+      3: { cellWidth: 30, halign: "right" },
+    },
+  });
+
+  const finalY = doc.lastAutoTable?.finalY ?? 150;
+  const footerTop = Math.min(finalY + 12, pageHeight - 44);
+  drawRoundedBlock(doc, margin, footerTop, pageWidth - margin * 2, 30, [246, 250, 255]);
+  doc.setDrawColor(...slate200);
+  doc.roundedRect(margin, footerTop, pageWidth - margin * 2, 30, 5, 5, "S");
+  drawRoundedBlock(doc, pageWidth - 52, footerTop + 3, 32, 24, [255, 255, 255]);
+  doc.setDrawColor(...slate300);
+  doc.roundedRect(pageWidth - 52, footerTop + 3, 32, 24, 4, 4, "S");
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...slate700);
+  doc.text(
+    doc.splitTextToSize(
+      "Conserva esta factura para solicitudes de soporte, garantia o seguimiento de tu compra.",
+      pageWidth - margin * 2 - 76
+    ),
+    margin + 4,
+    footerTop + 9
+  );
+  doc.setTextColor(...slate900);
+  doc.text("Gracias por comprar en TechCol.", margin + 4, footerTop + 20);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.8);
+  doc.setTextColor(...accentDeep);
+  doc.text("TOTAL", pageWidth - 46, footerTop + 10);
+  doc.setFontSize(15);
+  doc.setTextColor(...slate900);
+  doc.text(formatPdfCurrency(order?.orderPrice), pageWidth - 46, footerTop + 19);
+
+  doc.save(`factura-pedido-${order?.orderId ?? "techcol"}.pdf`);
+};
 
 function LoadingState() {
   return (
@@ -113,12 +406,16 @@ function StatCard({ icon: Icon, label, value, sublabel }) {
   );
 }
 
-function OrderCard({ order, index }) {
+function OrderCard({ order, index, onOpen }) {
   const statusMeta = getOrderStatusMeta(order?.status);
   const StatusIcon = statusMeta.icon;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800/50">
+    <button
+      type="button"
+      onClick={() => onOpen?.(order)}
+      className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800/50"
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="mb-1 flex items-center gap-2">
@@ -139,6 +436,139 @@ function OrderCard({ order, index }) {
           <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusMeta.className}`}>
             {statusMeta.label}
           </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function OrderDetailsModal({ order, onClose, customerName, customerEmail }) {
+  if (!order) return null;
+
+  const statusMeta = getOrderStatusMeta(order?.status);
+  const StatusIcon = statusMeta.icon;
+  const details = Array.isArray(order?.orderDetails) ? order.orderDetails : [];
+  const handleDownloadInvoice = async () => {
+    await createInvoicePdf({ order, customerName, customerEmail });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">
+              Detalle del pedido
+            </p>
+            <h2 className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Orden #{order?.orderId ?? "-"}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Realizada el {formatDate(order?.orderDate ?? order?.createdAt)}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDownloadInvoice}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              Descargar factura
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              aria-label="Cerrar detalle del pedido"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(90vh-88px)] overflow-y-auto px-6 py-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Estado</p>
+              <div className="mt-3 flex items-center gap-2">
+                <StatusIcon className="h-5 w-5 text-slate-500 dark:text-slate-300" />
+                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusMeta.className}`}>
+                  {statusMeta.label}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Total</p>
+              <p className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-100">{formatPrice(order?.orderPrice)}</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Rastreo</p>
+              <p className="mt-3 break-all text-sm font-medium text-slate-900 dark:text-slate-100">
+                {order?.paypalOrderId ?? "No disponible"}
+              </p>
+            </div>
+          </div>
+
+          <section className="mt-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Productos del pedido</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {details.length} {details.length === 1 ? "producto" : "productos"}
+              </p>
+            </div>
+
+            {details.length ? (
+              <div className="space-y-3">
+                {details.map((detail, index) => {
+                  const productImage = getProductImage(detail);
+                  return (
+                    <div
+                      key={detail?.orderDetailId ?? `${order?.orderId ?? "order"}-${index}`}
+                      className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/40"
+                    >
+                      <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
+                        {productImage ? (
+                          <img
+                            src={productImage}
+                            alt={getProductName(detail)}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <ShoppingBagIcon className="h-8 w-8 text-slate-400" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
+                          {getProductName(detail)}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                          Cantidad: {detail?.quantity ?? 0}
+                        </p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          Unitario: {formatPrice(detail?.unitPrice)}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Subtotal</p>
+                        <p className="text-base font-bold text-slate-900 dark:text-slate-100">
+                          {formatPrice(getDetailTotal(detail))}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/30 dark:text-slate-300">
+                Esta orden no tiene productos detallados disponibles en este momento.
+              </div>
+            )}
+          </section>
         </div>
       </div>
     </div>
@@ -164,6 +594,7 @@ export default function UserDashboard() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState({ type: "", text: "" });
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -346,7 +777,16 @@ export default function UserDashboard() {
             ) : error ? (
               <ErrorState message={error} />
             ) : recentOrders.length ? (
-              <div className="grid gap-3">{recentOrders.map((order, index) => <OrderCard key={order.orderId ?? index} order={order} index={index} />)}</div>
+              <div className="grid gap-3">
+                {recentOrders.map((order, index) => (
+                  <OrderCard
+                    key={order.orderId ?? index}
+                    order={order}
+                    index={index}
+                    onOpen={setSelectedOrder}
+                  />
+                ))}
+              </div>
             ) : (
               <EmptyOrdersState />
             )}
@@ -361,7 +801,14 @@ export default function UserDashboard() {
           ) : error ? (
             <ErrorState message={error} />
           ) : orders.length ? (
-            orders.map((order, index) => <OrderCard key={order.orderId ?? index} order={order} index={index} />)
+            orders.map((order, index) => (
+              <OrderCard
+                key={order.orderId ?? index}
+                order={order}
+                index={index}
+                onOpen={setSelectedOrder}
+              />
+            ))
           ) : (
             <EmptyOrdersState />
           )}
@@ -458,6 +905,13 @@ export default function UserDashboard() {
           )}
         </section>
       ) : null}
+
+      <OrderDetailsModal
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        customerName={customerName}
+        customerEmail={customerEmail}
+      />
     </div>
   );
 }
