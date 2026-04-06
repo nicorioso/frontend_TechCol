@@ -1,4 +1,4 @@
-import config from "../config/config";
+import { buildBackendAssetUrl } from "./backendAssetUrl";
 
 const CATEGORY_RULES = [
   { category: "Procesadores", keywords: ["intel", "ryzen", "cpu", "procesador"] },
@@ -22,11 +22,7 @@ export const inferCategory = (product) => {
 
 export const buildProductImageUrl = (imageName) => {
   if (!imageName) return "";
-  if (String(imageName).startsWith("http")) return imageName;
-
-  const host = config.api.baseURL.replace(/\/+$/, "");
-  const uploadsPath = config.uploadsPath.replace(/\/+$/, "");
-  return `${host}${uploadsPath}/${imageName}`;
+  return buildBackendAssetUrl(imageName);
 };
 
 export const normalizeProduct = (item = {}) => ({

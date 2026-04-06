@@ -1,4 +1,5 @@
 import { axiosInstance } from "../api";
+import { buildBackendAssetUrl } from "../../utils/backendAssetUrl";
 
 const GUEST_CART_KEY = "guest_cart_v1";
 const AUTH_CART_PREFIX = "auth_cart_v1_";
@@ -63,7 +64,7 @@ const normalizeCartItem = (item) => {
     unit_price: Number.isFinite(unitPrice) ? unitPrice : 0,
     product_name:
       item?.product_name ?? item?.productName ?? item?.name ?? `Producto ${productId}`,
-    imageUrl: item?.imageUrl ?? item?.image ?? "",
+    imageUrl: buildBackendAssetUrl(item?.imageUrl ?? item?.image ?? ""),
   };
 };
 

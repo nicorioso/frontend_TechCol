@@ -16,8 +16,8 @@ import { images } from "../../assets/img/img_url";
 import CustomerService from "../../services/customer/CustomerService";
 import productService from "../../services/product/productService";
 import cartService from "../../services/cart/cartService";
-import config from "../../config/config";
 import { getRolePathPrefix } from "../../utils/authSession";
+import { buildBackendAssetUrl } from "../../utils/backendAssetUrl";
 import { getUserDisplayName } from "../../utils/userIdentity";
 
 const formatDateLabel = (value) => {
@@ -53,18 +53,11 @@ function Home() {
     const fetchProducts = async () => {
       try {
         const products = await productService.getAllProducts();
-        const host = config.api.baseURL.replace(/\/+$/, "");
-        const uploadsPath = config.uploadsPath.replace(/\/+$/, "");
 
         const normalized = (products || []).map((product) => {
           const rawPrice = Number(product?.price ?? 0);
           const stockNumber = Number(product?.stock ?? 0);
-          const imageName = product?.imageUrl || "";
-          const productImage = imageName
-            ? imageName.startsWith("http")
-              ? imageName
-              : `${host}${uploadsPath}/${imageName}`
-            : "";
+          const productImage = buildBackendAssetUrl(product?.imageUrl ?? product?.image);
 
           return {
             id: Number(product?.product_id ?? product?.id),

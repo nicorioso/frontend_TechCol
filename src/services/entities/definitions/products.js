@@ -1,4 +1,4 @@
-﻿import config from '../../../config/config';
+﻿import { buildBackendAssetUrl } from "../../../utils/backendAssetUrl";
 
 const formatCurrency = (value) => {
   const amount = Number(value ?? 0);
@@ -44,14 +44,7 @@ export const productsEntity = {
     products.map((product) => {
       const id = product?.id ?? product?.product_id ?? '-';
       const stock = Number(product?.stock ?? 0);
-      // build full url for image if provided
-      let imageUrl = product?.imageUrl || product?.image || '';
-      if (imageUrl) {
-        // use configurable uploads path rather than hardcoded
-        const host = config.api.baseURL.replace(/\/+$/, '');
-        const path = config.uploadsPath.replace(/\/+$/, '');
-        imageUrl = `${host}${path}/${imageUrl}`;
-      }
+      const imageUrl = buildBackendAssetUrl(product?.imageUrl || product?.image || '');
 
       return {
         id,
