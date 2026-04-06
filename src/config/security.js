@@ -1,4 +1,7 @@
-const SITE_URL = globalThis?.process?.env?.VITE_SITE_URL || "https://techcol.com";
+const SITE_URL =
+  (typeof process !== "undefined" && process.env?.VITE_SITE_URL) ||
+  globalThis?.process?.env?.VITE_SITE_URL ||
+  "https://techcol.com";
 const SITE_ORIGIN = (() => {
   try {
     return new URL(SITE_URL).origin;
