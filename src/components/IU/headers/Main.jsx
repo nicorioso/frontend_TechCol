@@ -92,7 +92,7 @@ export default function MainHeader() {
             className="relative text-gray-200 transition hover:text-white"
             aria-label="Ir al carrito"
           >
-            <ShoppingCart color="#ffffffff" />
+            <ShoppingCart className="h-4 w-4" color="#ffffffff" />
             {cartCount > 0 && (
               <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-cyan-400 px-1.5 py-0.5 text-center text-xs font-bold text-slate-900">
                 {cartCount > 99 ? "99+" : cartCount}
@@ -106,7 +106,7 @@ export default function MainHeader() {
             aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
             onClick={() => setMobileOpen((v) => !v)}
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
 
           {isAuthenticated ? (

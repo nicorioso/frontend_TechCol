@@ -32,14 +32,14 @@ const UserService = {
     return res.data;
   },
 
-  requestPasswordRecovery: async (identifier, channel) => {
+  requestPasswordRecovery: async (identifier, channel, recaptchaToken) => {
     const normalizedIdentifier =
       String(channel || "").toUpperCase() === "SMS"
         ? normalizePhoneToE164(identifier, { defaultCountryCode: "+57" }) || identifier
         : identifier;
     const res = await axiosInstance.post(
-      "/auth/password-recovery/request",
-      { identifier: normalizedIdentifier, channel },
+      "/auth/forgot-password",
+      { identifier: normalizedIdentifier, channel, recaptchaToken },
       { skipAuth: true }
     );
     return res.data;
@@ -58,14 +58,14 @@ const UserService = {
     return res.data;
   },
 
-  resetPasswordByRecovery: async (identifier, channel, newPassword) => {
+  resetPasswordByRecovery: async (identifier, channel, newPassword, recaptchaToken) => {
     const normalizedIdentifier =
       String(channel || "").toUpperCase() === "SMS"
         ? normalizePhoneToE164(identifier, { defaultCountryCode: "+57" }) || identifier
         : identifier;
     const res = await axiosInstance.post(
-      "/auth/password-recovery/reset",
-      { identifier: normalizedIdentifier, channel, newPassword },
+      "/auth/reset-password",
+      { identifier: normalizedIdentifier, channel, newPassword, recaptchaToken },
       { skipAuth: true }
     );
     return res.data;

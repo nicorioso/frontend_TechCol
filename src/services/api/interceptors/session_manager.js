@@ -6,8 +6,10 @@ const PUBLIC_ENDPOINTS = [
   '/auth/refresh',
   '/auth/google',
   '/auth/account-exists',
+  '/auth/forgot-password',
   '/auth/password-recovery/request',
   '/auth/password-recovery/verify',
+  '/auth/reset-password',
   '/auth/password-recovery/reset',
 ];
 const REFRESH_THRESHOLD_SECONDS = 60;

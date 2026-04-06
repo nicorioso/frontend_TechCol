@@ -7,15 +7,14 @@ import { axiosInstance } from '../../services/api';
 import { getRolePathPrefix, parseJwtPayload } from '../../utils/authSession';
 
 import {
-  ChevronDoubleRightIcon,
-  ChevronRightIcon,
-  HomeIcon,
-  MoonIcon,
-  Square2StackIcon,
-  SunIcon,
-  MegaphoneIcon,
-  Cog6ToothIcon,
-} from '@heroicons/react/24/outline';
+  ChevronRight,
+  ChevronsRight,
+  House,
+  Layers3,
+  Moon,
+  Settings,
+  Sun,
+} from 'lucide-react';
 
 const getEmailFromToken = () => {
   const token = localStorage.getItem('access_token');
@@ -173,20 +172,19 @@ export default function Sidebar({ content, onEntitySelect }) {
 
   const items = isAdmin
     ? [
-        { label: 'Inicio', icon: HomeIcon, href: `/${pathPrefix}/profile` },
+        { label: 'Inicio', icon: House, href: `/${pathPrefix}/profile` },
         {
           label: 'Entidades',
-          icon: Square2StackIcon,
+          icon: Layers3,
           type: 'collapsible',
           options: entityOptions,
           onSelectOption: handleEntitySelect,
         },
-        { label: 'Difusiones', icon: MegaphoneIcon, href: '/broadcasts' },
-        { label: 'Configuración', icon: Cog6ToothIcon, href: `/${pathPrefix}/settings` },
+        { label: 'Configuración', icon: Settings, href: `/${pathPrefix}/settings` },
       ]
     : [
-        { label: 'Inicio', icon: HomeIcon, href: `/${pathPrefix}/profile` },
-        { label: 'Configuración', icon: Cog6ToothIcon, href: `/${pathPrefix}/settings` },
+        { label: 'Inicio', icon: House, href: `/${pathPrefix}/profile` },
+        { label: 'Configuración', icon: Settings, href: `/${pathPrefix}/settings` },
       ];
 
   return (
@@ -222,7 +220,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                     className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-700 transition hover:bg-slate-100 focus:outline-none dark:text-slate-200 dark:hover:bg-slate-800"
                     aria-label="Expandir menú"
                   >
-                    <ChevronDoubleRightIcon className="h-5 w-5 text-slate-700 dark:text-slate-200" />
+                    <ChevronsRight className="h-4 w-4 text-slate-700 dark:text-slate-200" />
                   </button>
                 </div>
               </div>
@@ -241,7 +239,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                           }}
                           className="w-9 h-9 rounded-lg text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 flex items-center justify-center"
                         >
-                          {Icon && <Icon className="w-5 h-5 text-slate-700 dark:text-slate-200" />}
+                          {Icon && <Icon className="h-4 w-4 text-slate-700 dark:text-slate-200" />}
                         </button>
 
                         {entityMenuOpen && item.options && item.options.length > 0 && (
@@ -278,7 +276,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                         }`
                       }
                     >
-                      {Icon && <Icon className="w-5 h-5 text-slate-700 dark:text-slate-200" />}
+                      {Icon && <Icon className="h-4 w-4 text-slate-700 dark:text-slate-200" />}
                     </NavLink>
                   );
                 })}
@@ -295,9 +293,9 @@ export default function Sidebar({ content, onEntitySelect }) {
                   title="Tema"
                 >
                   {dark ? (
-                    <SunIcon className="w-5 h-5 text-yellow-500" />
+                    <Sun className="h-4 w-4 text-yellow-500" />
                   ) : (
-                    <MoonIcon className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                    <Moon className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                   )}
                 </button>
               </div>
@@ -311,7 +309,7 @@ export default function Sidebar({ content, onEntitySelect }) {
                   className="w-9 h-9 rounded-lg transition cursor-pointer flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"
                   title="Menú de usuario"
                 >
-                  <ChevronRightIcon className={`w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform ${menuOpen ? 'rotate-180' : 'rotate-0'}`} />
+                  <ChevronRight className={`h-4 w-4 text-slate-600 dark:text-slate-300 transition-transform ${menuOpen ? 'rotate-180' : 'rotate-0'}`} />
                 </button>
 
                 {menuOpen && (

@@ -6,6 +6,7 @@ import { Input } from "../../IU/forms/input";
 import { LabelLinkTo } from "../../IU/forms/link";
 import CardForm from "../../IU/forms/card";
 import VerifyCodeModal from "../../IU/modal/VerifyCodeModal";
+import RecaptchaCheckbox from "../../IU/forms/RecaptchaCheckbox";
 import UserService from "../../../services/customer/UserService";
 import { normalizePhoneToE164 } from "../../../utils/phone";
 
@@ -53,12 +54,27 @@ export default function PasswordRecovery() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
+  const [requestRecaptchaToken, setRequestRecaptchaToken] = useState("");
+  const [requestRecaptchaResetKey, setRequestRecaptchaResetKey] = useState(0);
+  const [resetRecaptchaToken, setResetRecaptchaToken] = useState("");
+  const [resetRecaptchaResetKey, setResetRecaptchaResetKey] = useState(0);
   const selectedChannel = CHANNELS.find((item) => item.value === formData.channel) || CHANNELS[0];
   const canSendCode = formData.identifier.trim().length > 0 && !loading;
   const canUpdatePassword =
     !resetLoading &&
     passwordData.newPassword.length >= 8 &&
-    passwordData.confirmPassword.length >= 8;
+    passwordData.confirmPassword.length >= 8 &&
+    Boolean(resetRecaptchaToken);
+
+  const resetRequestRecaptcha = () => {
+    setRequestRecaptchaToken("");
+    setRequestRecaptchaResetKey((prev) => prev + 1);
+  };
+
+  const resetPasswordRecaptcha = () => {
+    setResetRecaptchaToken("");
+    setResetRecaptchaResetKey((prev) => prev + 1);
+  };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -73,6 +89,8 @@ export default function PasswordRecovery() {
       }));
       setErrorMessage("");
       setSuccessMessage("");
+      resetRequestRecaptcha();
+      resetPasswordRecaptcha();
       return;
     }
 
@@ -100,6 +118,11 @@ export default function PasswordRecovery() {
       return false;
     }
 
+    if (!requestRecaptchaToken) {
+      setErrorMessage("Completa el reCAPTCHA antes de solicitar el codigo.");
+      return false;
+    }
+
     if (formData.channel === "EMAIL" && !emailRegex.test(formData.identifier)) {
       setErrorMessage("Ingresa un correo valido.");
       return false;
@@ -116,6 +139,11 @@ export default function PasswordRecovery() {
   const validatePasswordChange = () => {
     if (!passwordData.newPassword || !passwordData.confirmPassword) {
       setResetError("Completa la nueva contrasena y su confirmacion.");
+      return false;
+    }
+
+    if (!resetRecaptchaToken) {
+      setResetError("Completa el reCAPTCHA antes de actualizar la contrasena.");
       return false;
     }
 
@@ -147,7 +175,8 @@ export default function PasswordRecovery() {
 
     setLoading(true);
     try {
-      await UserService.requestPasswordRecovery(normalizedIdentifier, formData.channel);
+      await UserService.requestPasswordRecovery(normalizedIdentifier, formData.channel, requestRecaptchaToken);
+      resetRequestRecaptcha();
       setVerifyOpen(true);
       setResetOpen(false);
       setSuccessMessage(
@@ -157,6 +186,7 @@ export default function PasswordRecovery() {
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error, "No se pudo iniciar la recuperacion de contrasena."));
+      resetRequestRecaptcha();
     } finally {
       setLoading(false);
     }
@@ -179,12 +209,12 @@ export default function PasswordRecovery() {
     setSuccessMessage("Codigo verificado correctamente.");
   };
 
-  const handleResendCode = async () => {
+  const handleResendCode = async (recaptchaToken = "") => {
     const normalizedIdentifier =
       formData.channel === "SMS"
         ? normalizePhoneToE164(formData.identifier, { defaultCountryCode: "+57" })
         : formData.identifier.trim();
-    await UserService.requestPasswordRecovery(normalizedIdentifier, formData.channel);
+    await UserService.requestPasswordRecovery(normalizedIdentifier, formData.channel, recaptchaToken);
   };
 
   const handlePasswordChange = async (event) => {
@@ -202,13 +232,20 @@ export default function PasswordRecovery() {
         formData.channel === "SMS"
           ? normalizePhoneToE164(formData.identifier, { defaultCountryCode: "+57" })
           : formData.identifier.trim();
-      await UserService.resetPasswordByRecovery(normalizedIdentifier, formData.channel, passwordData.newPassword);
+      await UserService.resetPasswordByRecovery(
+        normalizedIdentifier,
+        formData.channel,
+        passwordData.newPassword,
+        resetRecaptchaToken
+      );
+      resetPasswordRecaptcha();
       setResetSuccess("Contrasena actualizada correctamente. Redirigiendo al login...");
       setTimeout(() => {
         navigate("/auth/login");
       }, 1200);
     } catch (error) {
       setResetError(getErrorMessage(error, "No se pudo actualizar la contrasena."));
+      resetPasswordRecaptcha();
     } finally {
       setResetLoading(false);
     }
@@ -221,6 +258,7 @@ export default function PasswordRecovery() {
       setShowConfirmPassword(false);
       setResetError("");
       setResetSuccess("");
+      resetPasswordRecaptcha();
     }
   }, [resetOpen]);
 
@@ -302,6 +340,11 @@ export default function PasswordRecovery() {
                 required
               />
 
+              <RecaptchaCheckbox
+                onTokenChange={setRequestRecaptchaToken}
+                resetSignal={requestRecaptchaResetKey}
+              />
+
               <Button variant="secondary" size="md" type="submit" className="w-full" disabled={!canSendCode}>
                 {loading
                   ? "Enviando codigo..."
@@ -336,6 +379,7 @@ export default function PasswordRecovery() {
         descriptionPrefix={formData.channel === "EMAIL" ? "Enviamos un codigo de seguridad a" : "Enviamos un codigo de seguridad al numero"}
         submitLabel="Validar codigo"
         backLabel="Volver al formulario"
+        resendRequiresRecaptcha
       />
 
       {resetOpen && (
@@ -343,7 +387,7 @@ export default function PasswordRecovery() {
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
             <div className="mb-4 flex justify-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                <ShieldCheck className="h-6 w-6" />
+                <ShieldCheck className="h-4 w-4" />
               </div>
             </div>
             <h3 className="text-center text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -423,6 +467,11 @@ export default function PasswordRecovery() {
               <Button variant="primary" size="md" type="submit" className="w-full" disabled={!canUpdatePassword}>
                 {resetLoading ? "Actualizando..." : "Actualizar contrasena"}
               </Button>
+
+              <RecaptchaCheckbox
+                onTokenChange={setResetRecaptchaToken}
+                resetSignal={resetRecaptchaResetKey}
+              />
 
               <button
                 type="button"

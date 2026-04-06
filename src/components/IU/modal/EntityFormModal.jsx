@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EyeIcon, EyeSlashIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Eye, EyeOff, Image, X } from 'lucide-react';
 import PhoneInput from '../forms/phoneInput';
 
 export default function EntityFormModal({
@@ -53,7 +53,7 @@ export default function EntityFormModal({
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               aria-label="Cerrar"
             >
-              <XMarkIcon className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function EntityFormModal({
 
                     <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
                       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                        <PhotoIcon className="h-5 w-5" />
+                        <Image className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
@@ -160,9 +160,9 @@ export default function EntityFormModal({
                         aria-label={visiblePasswordFields[field.name] ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       >
                         {visiblePasswordFields[field.name] ? (
-                          <EyeSlashIcon className="h-5 w-5" />
+                          <EyeOff className="h-4 w-4" />
                         ) : (
-                          <EyeIcon className="h-5 w-5" />
+                          <Eye className="h-4 w-4" />
                         )}
                       </button>
                     )}

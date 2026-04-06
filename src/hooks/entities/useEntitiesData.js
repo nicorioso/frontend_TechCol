@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { axiosInstance } from '../../services/api';
 import { ENTITY_DEFINITIONS } from '../../services/entities/definitions';
+import { isAdminRole } from '../../utils/authSession';
 
 const EMPTY_TABLES = {
   customers: [],
@@ -18,24 +19,32 @@ export default function useEntitiesData() {
   const loadEntitiesData = useCallback(async () => {
     setIsLoading(true);
     setError('');
+    const loadOrders = isAdminRole();
+    const loadCarts = isAdminRole();
 
-    const [productsResult, customersResult] = await Promise.allSettled([
+    const [productsResult, customersResult, ordersResult, cartsResult] = await Promise.allSettled([
       axiosInstance.get('/products'),
       axiosInstance.get('/customers'),
+      loadOrders ? axiosInstance.get('/order') : Promise.resolve({ data: [] }),
+      loadCarts ? axiosInstance.get('/cart') : Promise.resolve({ data: [] }),
     ]);
 
     const products = productsResult.status === 'fulfilled' ? productsResult.value.data || [] : [];
     const customers = customersResult.status === 'fulfilled' ? customersResult.value.data || [] : [];
+    const orders = ordersResult.status === 'fulfilled' ? ordersResult.value.data || [] : [];
+    const carts = cartsResult.status === 'fulfilled' ? cartsResult.value.data || [] : [];
 
-    if (productsResult.status === 'rejected' && customersResult.status === 'rejected') {
-      setError('No se pudo cargar la informacion desde el backend.');
-    } else if (customersResult.status === 'rejected') {
-      setError('Productos cargados. Sin permisos o error al cargar clientes, admins, carts y orders.');
-    } else if (productsResult.status === 'rejected') {
-      setError('Clientes cargados. Error al cargar productos.');
+    const failedResources = [];
+    if (productsResult.status === 'rejected') failedResources.push('productos');
+    if (customersResult.status === 'rejected') failedResources.push('clientes');
+    if (loadOrders && ordersResult.status === 'rejected') failedResources.push('pedidos');
+    if (loadCarts && cartsResult.status === 'rejected') failedResources.push('carritos');
+
+    if (failedResources.length > 0) {
+      setError(`No se pudo cargar correctamente: ${failedResources.join(', ')}.`);
     }
 
-    const sourceMap = { customers, products };
+    const sourceMap = { customers, products, orders, carts };
 
     const mappedData = Object.values(ENTITY_DEFINITIONS).reduce((acc, definition) => {
       const sourceData = sourceMap[definition.sourceKey] || [];

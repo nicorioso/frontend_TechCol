@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ShoppingCartIcon,
-  XMarkIcon,
-  MinusIcon,
-  PlusIcon,
-  ArrowPathIcon,
-  TrashIcon,
-  ChevronRightIcon,
-  CubeIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
+  ChevronRight,
+  Lock,
+  Minus,
+  Package,
+  Plus,
+  RefreshCw,
+  ShoppingCart,
+  Trash2,
+  X,
+} from "lucide-react";
 import { cartService } from "../../services/cart/cartService";
 import MainHeader from "../../components/IU/headers/Main";
 import MainFooter from "../../components/IU/footers/MainFooter";
+import CheckoutProgress from "../../components/IU/section/CheckoutProgress";
 import SeoHead from "../../seo/SeoHead";
 import { formatCopCurrency } from "../../utils/currency";
 
@@ -87,28 +88,7 @@ export default function CartView() {
 
       <section className="flex-1 py-8">
         <div className="mx-auto w-full max-w-6xl px-4">
-          <div className="mb-8 flex items-center justify-center gap-4 text-sm">
-            <div className="flex items-center gap-2 text-cyan-600">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-cyan-400 bg-cyan-500/15 text-xs font-bold text-cyan-300">
-                1
-              </span>
-              <span className="font-semibold">Carrito</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4 text-slate-400" />
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-500 bg-slate-800 text-xs font-bold text-slate-200">
-                2
-              </span>
-              <span className="font-semibold">Envio</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4 text-slate-400" />
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-500 bg-slate-800 text-xs font-bold text-slate-200">
-                3
-              </span>
-              <span className="font-semibold">Pago</span>
-            </div>
-          </div>
+          <CheckoutProgress activeStep={1} />
 
           {notice && (
             <div className="mb-4 rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
@@ -122,7 +102,7 @@ export default function CartView() {
             </div>
           ) : cartItems.length === 0 ? (
             <div className="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
-              <ShoppingCartIcon className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+              <ShoppingCart className="mx-auto mb-4 h-4 w-4 text-gray-400" />
               <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">Tu carrito esta vacio</h2>
               <p className="mb-6 text-gray-600 dark:text-gray-400">Agrega productos para iniciar tu compra.</p>
               <Link
@@ -138,7 +118,7 @@ export default function CartView() {
                 <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                   <div className="mb-4 flex items-center justify-between gap-2">
                     <h2 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-                      <CubeIcon className="h-5 w-5" />
+                      <Package className="h-4 w-4" />
                       Productos en tu Carrito
                     </h2>
                     <div className="flex gap-2">
@@ -146,14 +126,14 @@ export default function CartView() {
                         onClick={loadCart}
                         className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                       >
-                        <ArrowPathIcon className="h-3.5 w-3.5" />
+                        <RefreshCw className="h-4 w-4" />
                         Recargar
                       </button>
                       <button
                         onClick={handleClearCart}
                         className="inline-flex items-center gap-1 rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20"
                       >
-                        <TrashIcon className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                         Vaciar
                       </button>
                     </div>
@@ -200,7 +180,7 @@ export default function CartView() {
                                   className="rounded p-0.5 transition hover:bg-gray-100 dark:hover:bg-gray-700"
                                   aria-label="Disminuir cantidad"
                                 >
-                                  <MinusIcon className="h-3.5 w-3.5 text-gray-600 dark:text-gray-300" />
+                                  <Minus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                                 </button>
                                 <span className="w-4 text-center text-sm font-semibold text-gray-900 dark:text-white">
                                   {item.quantity}
@@ -210,7 +190,7 @@ export default function CartView() {
                                   className="rounded p-0.5 transition hover:bg-gray-100 dark:hover:bg-gray-700"
                                   aria-label="Aumentar cantidad"
                                 >
-                                  <PlusIcon className="h-3.5 w-3.5 text-gray-600 dark:text-gray-300" />
+                                  <Plus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                                 </button>
                               </div>
                               <button
@@ -218,7 +198,7 @@ export default function CartView() {
                                 className="text-gray-400 transition hover:text-red-600"
                                 aria-label={`Eliminar ${item.product_name}`}
                               >
-                                <XMarkIcon className="h-4 w-4" />
+                                <X className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
@@ -260,11 +240,11 @@ export default function CartView() {
                     className="mb-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 py-3 font-semibold text-white shadow-md transition hover:bg-cyan-600"
                   >
                     Continuar a Envio
-                    <ChevronRightIcon className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4" />
                   </button>
 
                   <p className="mt-4 flex items-center justify-center gap-1 border-t border-gray-200 pt-4 text-center text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                    <LockClosedIcon className="h-3.5 w-3.5" />
+                    <Lock className="h-4 w-4" />
                     Pago 100% seguro y encriptado
                   </p>
                 </div>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDown } from 'lucide-react';
 
 export const SelectInput = ({ 
   label, 
@@ -35,8 +35,8 @@ export const SelectInput = ({
           <span className={selectedOption ? 'text-gray-900 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
             {selectedOption?.label || placeholder}
           </span>
-          <ChevronDownIcon 
-            className={`w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          <ChevronDown
+            className={`h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           />
         </div>
       </button>

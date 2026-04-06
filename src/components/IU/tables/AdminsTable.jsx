@@ -1,33 +1,68 @@
-﻿import { useMemo } from 'react';
 import Table from '../forms/table';
 
-export default function AdminsTable(props) {
-  const columns = useMemo(() => {
-    if (props.data && props.data.length > 0) {
-      // filter out any password field
-      return Object.keys(props.data[0])
-        .filter(k => !String(k).toLowerCase().includes('password'))
-        .map((key) => ({ key, label: key }));
-    }
-    return [
-      { key: 'id', label: 'ID' },
-      { key: 'name', label: 'Nombre' },
-      { key: 'email', label: 'Correo' },
-      { key: 'role', label: 'Rol' },
-      { key: 'permissions', label: 'Permisos' },
-      { key: 'status', label: 'Estado' },
-    ];
-  }, [props.data]);
+const ADMIN_COLUMNS = [
+  {
+    key: 'id',
+    label: 'ID',
+    type: 'id',
+    searchable: false,
+    defaultHidden: true,
+    mobile: false,
+  },
+  {
+    key: 'name',
+    label: 'Administrador',
+    isPrimary: true,
+    mobileOrder: 0,
+    searchValue: (row) => `${row?.name} ${row?.email} ${row?.role} ${row?.permissions}`,
+    renderCell: ({ row }) => (
+      <div className="min-w-0">
+        <p className="truncate font-semibold text-slate-900 dark:text-slate-100">{row?.name || 'Sin nombre'}</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Rol: {row?.role || 'Sin rol'}</p>
+      </div>
+    ),
+  },
+  {
+    key: 'email',
+    label: 'Correo',
+    type: 'email',
+    mobileOrder: 1,
+  },
+  {
+    key: 'permissions',
+    label: 'Permisos',
+    mobileOrder: 2,
+  },
+  {
+    key: 'status',
+    label: 'Estado',
+    type: 'status',
+    mobileOrder: 3,
+  },
+];
 
+export default function AdminsTable(props) {
   return (
     <Table
       title="Administradores"
-      columns={columns}
+      subtitle="Gestiona cuentas administrativas y consulta rápidamente su nivel de acceso dentro del sistema."
+      columns={ADMIN_COLUMNS}
       data={props.data || []}
-      onEditClick={props.onEditClick}
-      onDeleteClick={props.onDeleteClick}
-      itemsPerPage={props.itemsPerPage || 10}
-      {...props}
+      loading={props.loading}
+      error={props.error}
+      itemsPerPage={props.itemsPerPage || 8}
+      filters={{
+        searchPlaceholder: 'Buscar por administrador, correo, rol o permisos',
+        statusField: 'status',
+      }}
+      emptyState={{
+        title: 'No hay administradores disponibles',
+        description: 'Cuando existan cuentas con roles administrativos se listarán aquí para su gestión.',
+      }}
+      actions={{
+        edit: props.onEditClick ? { label: 'Editar administrador', onClick: props.onEditClick } : null,
+        delete: props.onDeleteClick ? { label: 'Eliminar administrador', onClick: props.onDeleteClick } : null,
+      }}
     />
   );
 }

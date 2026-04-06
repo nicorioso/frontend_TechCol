@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { loginWithGoogleCredential } from "../../../services/auth/googleAuth";
 import GoogleLoginConsent from "../GoogleLoginConsent";
 import GooglePasswordSetupModal from "../../IU/modal/GooglePasswordSetupModal";
+import RecaptchaCheckbox from "../../IU/forms/RecaptchaCheckbox";
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function LoginForm() {
     handleSubmit,
     goBackToEmailStep,
     verify,
+    recaptcha,
   } = useLoginForm();
 
   return (
@@ -94,6 +96,11 @@ export default function LoginForm() {
                     Cambiar correo
                   </button>
                 </div>
+
+                <RecaptchaCheckbox
+                  onTokenChange={recaptcha.setToken}
+                  resetSignal={recaptcha.resetKey}
+                />
               </>
             )}
 
@@ -136,6 +143,7 @@ export default function LoginForm() {
             originalPassword={verify.password}
             onClose={() => verify.setOpen(false)}
             onVerified={verify.onVerified}
+            resendRequiresRecaptcha
           />
 
           <LabelLinkTo

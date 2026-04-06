@@ -1,4 +1,4 @@
-import { ChevronRightIcon, ChevronDoubleLeftIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import { ChevronRight, ChevronsLeft, Moon, Sun } from "lucide-react";
 import { useState, useRef, useContext } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
@@ -50,7 +50,7 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
           className="rounded-lg bg-slate-100 p-1.5 transition hover:bg-slate-200 focus:outline-none dark:bg-slate-800 dark:hover:bg-slate-700"
           aria-label="Contraer menu"
         >
-          <ChevronDoubleLeftIcon className="h-5 w-5 text-slate-700 dark:text-slate-200" />
+          <ChevronsLeft className="h-4 w-4 text-slate-700 dark:text-slate-200" />
         </button>
       </div>
 
@@ -80,9 +80,9 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
               aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
             >
               {dark ? (
-                <SunIcon className="w-5 h-5 text-yellow-500" />
+                <Sun className="h-4 w-4 text-yellow-500" />
               ) : (
-                <MoonIcon className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                <Moon className="h-4 w-4 text-slate-600 dark:text-slate-300" />
               )}
               <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Tema
@@ -102,7 +102,7 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
               <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 {displayName}
               </span>
-              <ChevronRightIcon className={`h-4 w-4 text-slate-600 transition-transform dark:text-slate-300 ${menuOpen ? "rotate-180" : "rotate-0"}`} />
+              <ChevronRight className={`h-4 w-4 text-slate-600 transition-transform dark:text-slate-300 ${menuOpen ? "rotate-180" : "rotate-0"}`} />
             </button>
 
             {menuOpen && (
@@ -167,7 +167,7 @@ function SidebarItem({ icon: Icon, label, href, type = "link", options = [], onC
         }`
       }
     >
-      {Icon && <Icon className="h-5 w-5 text-slate-700 dark:text-slate-200" />}
+      {Icon && <Icon className="h-4 w-4 text-slate-700 dark:text-slate-200" />}
       <span className="text-sm font-medium">
         {label}
       </span>

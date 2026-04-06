@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Shield } from "lucide-react";
 import CustomerService from "../../../services/customer/CustomerService";
+import RecaptchaCheckbox from "../forms/RecaptchaCheckbox";
 
 const getVerifyErrorMessage = (err) => {
   const status = err?.response?.status;
@@ -15,6 +16,10 @@ const getVerifyErrorMessage = (err) => {
 
   if (status === 400) {
     return "Codigo invalido o expirado. Solicita uno nuevo.";
+  }
+
+  if (status === 429) {
+    return "Demasiados intentos. Espera un minuto para volver a intentarlo.";
   }
 
   const dataMessage = typeof err?.response?.data === "string" ? err.response.data : "";
@@ -35,13 +40,21 @@ export default function VerifyCodeModal({
   submitLabel = "Verificar Codigo",
   backLabel = "Volver al inicio de sesion",
   resendCooldownSeconds = 41,
+  resendRequiresRecaptcha = false,
 }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(resendCooldownSeconds);
   const [error, setError] = useState("");
+  const [resendRecaptchaToken, setResendRecaptchaToken] = useState("");
+  const [resendRecaptchaResetKey, setResendRecaptchaResetKey] = useState(0);
   const inputRefs = useRef([]);
+
+  const resetResendRecaptcha = () => {
+    setResendRecaptchaToken("");
+    setResendRecaptchaResetKey((prev) => prev + 1);
+  };
 
   const contactValue = useMemo(() => String(email || "").trim(), [email]);
   const inferredChannel = useMemo(() => {
@@ -85,6 +98,7 @@ export default function VerifyCodeModal({
     setSecondsLeft(resendCooldownSeconds);
     setLoading(false);
     setResending(false);
+    resetResendRecaptcha();
   }, [isOpen, resendCooldownSeconds]);
 
   useEffect(() => {
@@ -168,18 +182,26 @@ export default function VerifyCodeModal({
         return;
       }
 
+      if (resendRequiresRecaptcha && !resendRecaptchaToken) {
+        setError("Completa el reCAPTCHA para reenviar el codigo.");
+        return;
+      }
+
       setResending(true);
       setError("");
       if (onResendCode) {
-        await onResendCode();
+        await onResendCode(resendRecaptchaToken);
       } else {
-        await CustomerService.login(email, originalPassword);
+        await CustomerService.login(email, originalPassword, resendRecaptchaToken);
       }
       setSecondsLeft(resendCooldownSeconds);
     } catch (err) {
       console.error("Error reenviando codigo:", err);
-      setError("No se pudo reenviar el codigo");
+      setError(getVerifyErrorMessage(err));
     } finally {
+      if (resendRequiresRecaptcha) {
+        resetResendRecaptcha();
+      }
       setResending(false);
     }
   };
@@ -189,7 +211,7 @@ export default function VerifyCodeModal({
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-4 flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-100 text-slate-900 dark:bg-cyan-950/50 dark:text-cyan-200">
-            <Shield className="h-7 w-7" />
+            <Shield className="h-4 w-4" />
           </div>
         </div>
 
@@ -241,14 +263,23 @@ export default function VerifyCodeModal({
             {secondsLeft > 0 ? (
               <span className="font-semibold text-slate-700 dark:text-slate-200">Reenviar en {secondsLeft} s</span>
             ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resending}
-                className="font-semibold text-cyan-600 transition hover:text-cyan-700 disabled:cursor-not-allowed disabled:opacity-70 dark:text-cyan-400 dark:hover:text-cyan-300"
-              >
-                {resending ? "Reenviando..." : "Reenviar codigo"}
-              </button>
+              <div className="space-y-3 text-center">
+                {resendRequiresRecaptcha && (
+                  <RecaptchaCheckbox
+                    onTokenChange={setResendRecaptchaToken}
+                    resetSignal={resendRecaptchaResetKey}
+                    className="flex flex-col items-center"
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="font-semibold text-cyan-600 transition hover:text-cyan-700 disabled:cursor-not-allowed disabled:opacity-70 dark:text-cyan-400 dark:hover:text-cyan-300"
+                >
+                  {resending ? "Reenviando..." : "Reenviar codigo"}
+                </button>
+              </div>
             )}
           </div>
 

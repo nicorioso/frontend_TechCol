@@ -54,7 +54,7 @@ export default function GooglePasswordSetupModal({ isOpen, onClose, onSuccess })
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-4 flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-100 text-slate-900 dark:bg-cyan-950/50 dark:text-cyan-200">
-            <KeyRound className="h-7 w-7" />
+            <KeyRound className="h-4 w-4" />
           </div>
         </div>
 

@@ -1,21 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  CheckCircleIcon,
-  XCircleIcon,
-  LockClosedIcon,
-  MapPinIcon,
-  TruckIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/outline";
+  CheckCircle2,
+  ChevronRight,
+  Lock,
+  MapPin,
+  Truck,
+  XCircle,
+} from "lucide-react";
 import MainHeader from "../../components/IU/headers/Main";
 import MainFooter from "../../components/IU/footers/MainFooter";
+import CheckoutProgress from "../../components/IU/section/CheckoutProgress";
 import cartService from "../../services/cart/cartService";
 import exchangeRateService, { DEFAULT_USD_TO_COP_RATE } from "../../services/exchange/exchangeRateService";
 import paymentService from "../../services/payment/paymentService";
 import SeoHead from "../../seo/SeoHead";
 import { formatCopCurrency, formatUsdCurrency } from "../../utils/currency";
-import { getCurrentRole } from "../../utils/authSession";
+import { isAdminRole } from "../../utils/authSession";
 
 const SHIPPING_METHODS = [
   { id: "standard", label: "Estandar (5-7 dias)", cost: 29999 },
@@ -145,7 +146,7 @@ export default function CheckoutPage() {
   const [usdToCopRate, setUsdToCopRate] = useState(DEFAULT_USD_TO_COP_RATE);
   const [rateFetchedAt, setRateFetchedAt] = useState(null);
   const [exchangeRateError, setExchangeRateError] = useState("");
-  const isAdminUser = getCurrentRole().includes("ADMIN");
+  const isAdminUser = isAdminRole();
 
   const loadCart = async () => {
     const items = await cartService.getCartItems();
@@ -400,28 +401,7 @@ export default function CheckoutPage() {
 
       <section className="flex-1 py-8">
         <div className="mx-auto w-full max-w-6xl px-4">
-          <div className="mb-8 flex items-center justify-center gap-4 text-sm">
-            <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-bold dark:border-gray-600 dark:bg-gray-800">
-                1
-              </span>
-              <span className="font-semibold">Carrito</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4 text-slate-400 dark:text-gray-500" />
-            <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-cyan-500 bg-cyan-50 text-xs font-bold dark:bg-cyan-950/40">
-                2
-              </span>
-              <span className="font-semibold">Envio</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4 text-slate-400 dark:text-gray-500" />
-            <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-bold dark:border-gray-600 dark:bg-gray-800">
-                3
-              </span>
-              <span className="font-semibold">Pago</span>
-            </div>
-          </div>
+          <CheckoutProgress activeStep={2} />
 
           {notice && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
@@ -438,9 +418,9 @@ export default function CheckoutPage() {
               }`}
             >
               {orderData?.status === "insufficient_funds" ? (
-                <XCircleIcon className="mx-auto mb-3 h-12 w-12 text-rose-600" />
+                <XCircle className="mx-auto mb-3 h-4 w-4 text-rose-600" />
               ) : (
-                <CheckCircleIcon className="mx-auto mb-3 h-12 w-12 text-green-600" />
+                <CheckCircle2 className="mx-auto mb-3 h-4 w-4 text-green-600" />
               )}
               <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
                 {orderData?.status === "insufficient_funds" ? "Fondos insuficientes" : "Compra confirmada"}
@@ -463,7 +443,7 @@ export default function CheckoutPage() {
               <div className="space-y-4 lg:col-span-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                   <h2 className="mb-4 flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
-                    <MapPinIcon className="h-5 w-5" />
+                    <MapPin className="h-4 w-4" />
                     Informacion de Envio
                   </h2>
 
@@ -568,7 +548,7 @@ export default function CheckoutPage() {
 
                 <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                   <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-                    <TruckIcon className="h-5 w-5" />
+                    <Truck className="h-4 w-4" />
                     Metodo de Envio
                   </h2>
 
@@ -605,7 +585,7 @@ export default function CheckoutPage() {
                 {step === 2 && (
                   <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                     <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-                      <LockClosedIcon className="h-5 w-5 text-green-600" />
+                      <Lock className="h-4 w-4 text-green-600" />
                       Metodo de pago
                     </h2>
                     <div className="space-y-2">
@@ -699,11 +679,11 @@ export default function CheckoutPage() {
                     className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 py-3 font-semibold text-white shadow-md transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-cyan-300"
                   >
                     {step === 1 ? "Continuar a Pago" : isSubmitting ? "Procesando..." : "Confirmar y Pagar"}
-                    <ChevronRightIcon className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4" />
                   </button>
 
                   <p className="mt-4 flex items-center justify-center gap-1 text-center text-xs text-slate-500 dark:text-gray-400">
-                    <LockClosedIcon className="h-3.5 w-3.5" />
+                    <Lock className="h-4 w-4" />
                     Pago 100% seguro y encriptado
                   </p>
                 </div>

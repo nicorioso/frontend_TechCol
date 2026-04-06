@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDown } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 export const CollapsibleMenu = ({ 
@@ -34,10 +34,10 @@ export const CollapsibleMenu = ({
             : 'rounded-lg text-gray-700 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-700'
         }`}
       >
-        {Icon && <Icon className="w-5 h-5" />}
+        {Icon && <Icon className="h-4 w-4" />}
         <span className="text-sm font-medium flex-1 text-left">{label}</span>
-        <ChevronDownIcon 
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 

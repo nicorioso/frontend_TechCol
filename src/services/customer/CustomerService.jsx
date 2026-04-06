@@ -8,9 +8,16 @@ class CustomerService extends crudService {
     super("customers");
   }
 
-  async register(customerData) {
+  async register(customerData, recaptchaToken) {
     try {
-      const response = await this.api.post("/auth/registerRequest", customerData, { skipAuth: true });
+      const response = await this.api.post(
+        "/auth/register",
+        {
+          ...customerData,
+          "g-recaptcha-response": recaptchaToken,
+        },
+        { skipAuth: true }
+      );
       logInfo("Cliente registrado:", response.data);
       return response.data;
     } catch (error) {
@@ -19,18 +26,31 @@ class CustomerService extends crudService {
     }
   }
 
-  async login(email, password) {
+  async login(email, password, recaptchaToken) {
     const start = performance.now();
     try {
+      const payload = {
+        email,
+        password,
+        channel: "EMAIL",
+        recaptchaToken,
+        "g-recaptcha-response": recaptchaToken,
+      };
+
       logInfo("Intentando login con:", email);
+      logInfo("Payload login preparado:", {
+        email,
+        hasRecaptchaToken: Boolean(recaptchaToken),
+      });
       const response = await this.api.post(
         "/auth/login",
+        payload,
         {
-          email,
-          password,
-          channel: "EMAIL",
-        },
-        { skipAuth: true }
+          skipAuth: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       logInfo("Login inicial OK, server response:", response.data);
@@ -42,6 +62,11 @@ class CustomerService extends crudService {
         "status:",
         error.response?.status
       );
+      logWarn("Detalle login rechazado:", {
+        email,
+        hasRecaptchaToken: Boolean(recaptchaToken),
+        backendResponse: error.response?.data,
+      });
       throw error;
     } finally {
       const elapsed = Math.round(performance.now() - start);

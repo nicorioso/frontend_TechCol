@@ -1,20 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useSearchParams } from "react-router-dom";
 import { useOrdersHook } from "../../hooks/useOrdersHook";
 import { images } from "../../assets/img/img_url";
 import UserService from "../../services/customer/UserService";
 import { normalizePhoneToE164 } from "../../utils/phone";
 import {
-  SparklesIcon,
-  ShoppingBagIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ChevronRightIcon,
-  UserCircleIcon,
-  ArrowDownTrayIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+  CheckCircle2,
+  ChevronRight,
+  CircleUserRound,
+  Clock3,
+  Download,
+  ShoppingBag,
+  Sparkles,
+  X,
+} from "lucide-react";
 
 const DATE_FORMAT_OPTIONS = {
   year: "numeric",
@@ -26,22 +27,22 @@ const STATUS_META = {
   delivered: {
     label: "Entregado",
     className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-    icon: CheckCircleIcon,
+    icon: CheckCircle2,
   },
   paid: {
     label: "En proceso",
     className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-    icon: ClockIcon,
+    icon: Clock3,
   },
   pending: {
     label: "Pendiente",
     className: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
-    icon: ShoppingBagIcon,
+    icon: ShoppingBag,
   },
   default: {
     label: "Desconocido",
     className: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200",
-    icon: ShoppingBagIcon,
+    icon: ShoppingBag,
   },
 };
 
@@ -50,6 +51,11 @@ const TABS = [
   { id: "ordenes", label: "Mis ordenes" },
   { id: "cuenta", label: "Mi cuenta" },
 ];
+const TAB_IDS = new Set(TABS.map((tab) => tab.id));
+const getValidTab = (value) => {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return TAB_IDS.has(normalized) ? normalized : "resumen";
+};
 
 const getUserFromStorage = () => {
   try {
@@ -107,6 +113,11 @@ const drawRoundedBlock = (doc, x, y, width, height, fillColor) => {
   doc.setFillColor(...fillColor);
   doc.roundedRect(x, y, width, height, 6, 6, "F");
 };
+const drawInvoiceHeaderBlock = (doc, width, height, fillColor) => {
+  doc.setFillColor(...fillColor);
+  doc.rect(0, 0, width, 10, "F");
+  doc.roundedRect(0, 0, width, height, 6, 6, "F");
+};
 const loadImageDataUrl = (src) =>
   new Promise((resolve, reject) => {
     if (!src) {
@@ -141,7 +152,7 @@ const loadImageDataUrl = (src) =>
     image.onerror = () => reject(new Error("No fue posible cargar el logo de TechCol."));
     image.src = src;
   });
-const createInvoicePdf = async ({ order, customerName, customerEmail }) => {
+const createInvoicePdf = async ({ order, customerFirstName, customerLastName, customerEmail }) => {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const statusMeta = getOrderStatusMeta(order?.status);
   const details = Array.isArray(order?.orderDetails) ? order.orderDetails : [];
@@ -160,7 +171,7 @@ const createInvoicePdf = async ({ order, customerName, customerEmail }) => {
   const white = [255, 255, 255];
   const cardBg = [248, 250, 252];
 
-  drawRoundedBlock(doc, 0, 0, pageWidth, 60, slate900);
+  drawInvoiceHeaderBlock(doc, pageWidth, 60, slate900);
   doc.setFillColor(14, 116, 144);
   doc.circle(pageWidth - 16, 11, 17, "F");
   doc.setFillColor(...accent);
@@ -241,7 +252,10 @@ const createInvoicePdf = async ({ order, customerName, customerEmail }) => {
   const cardData = [
     {
       title: "Cliente",
-      lines: [customerName || "Usuario TechCol", customerEmail || "Sin correo"],
+      lines: [
+        customerFirstName || "Usuario TechCol",
+        customerLastName || customerEmail || "Sin apellidos",
+      ],
     },
     {
       title: "Fecha y referencia",
@@ -268,6 +282,26 @@ const createInvoicePdf = async ({ order, customerName, customerEmail }) => {
     doc.setFontSize(7.2);
     doc.setTextColor(...(index === 2 ? accentDeep : slate500));
     doc.text(card.title.toUpperCase(), cardXs[index] + 6, cardTop + 7.6);
+
+    if (card.title === "Cliente") {
+      const primaryNameLines = firstLines.slice(0, 2);
+      const lastNameLines = secondLines.slice(0, 2);
+      const firstBlockY = cardTop + 16;
+      const firstBlockHeight = Math.max(primaryNameLines.length - 1, 0) * 4.2;
+      const secondBlockY = firstBlockY + firstBlockHeight + 5.2;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.2);
+      doc.setTextColor(...slate900);
+      doc.text(primaryNameLines, cardXs[index] + 4, firstBlockY);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.6);
+      doc.setTextColor(...slate900);
+      doc.text(lastNameLines, cardXs[index] + 4, secondBlockY);
+      return;
+    }
+
     doc.setFont("helvetica", index === 2 ? "bold" : "normal");
     doc.setFontSize(index === 2 ? 12 : 10.2);
     doc.setTextColor(...slate900);
@@ -387,7 +421,7 @@ function ErrorState({ message }) {
 function EmptyOrdersState() {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-800/40">
-      <ShoppingBagIcon className="mx-auto mb-3 h-12 w-12 text-slate-400" />
+      <ShoppingBag className="mx-auto mb-3 h-4 w-4 text-slate-400" />
       <p className="text-slate-600 dark:text-slate-300">Aun no tienes ordenes registradas.</p>
     </div>
   );
@@ -397,7 +431,7 @@ function StatCard({ icon: Icon, label, value, sublabel }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800/50">
       <div className="mb-3 flex items-center gap-2 text-slate-500 dark:text-slate-300">
-        <Icon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+        <Icon className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
         <span className="text-sm font-medium">{label}</span>
       </div>
       <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
@@ -419,7 +453,7 @@ function OrderCard({ order, index, onOpen }) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="mb-1 flex items-center gap-2">
-            <StatusIcon className="h-5 w-5 text-slate-400" />
+            <StatusIcon className="h-4 w-4 text-slate-400" />
             <h3 className="truncate font-semibold text-slate-900 dark:text-slate-100">
               Orden #{order?.orderId ?? index + 1}
             </h3>
@@ -442,14 +476,14 @@ function OrderCard({ order, index, onOpen }) {
   );
 }
 
-function OrderDetailsModal({ order, onClose, customerName, customerEmail }) {
+function OrderDetailsModal({ order, onClose, customerFirstName, customerLastName, customerEmail }) {
   if (!order) return null;
 
   const statusMeta = getOrderStatusMeta(order?.status);
   const StatusIcon = statusMeta.icon;
   const details = Array.isArray(order?.orderDetails) ? order.orderDetails : [];
   const handleDownloadInvoice = async () => {
-    await createInvoicePdf({ order, customerName, customerEmail });
+    await createInvoicePdf({ order, customerFirstName, customerLastName, customerEmail });
   };
 
   return (
@@ -473,7 +507,7 @@ function OrderDetailsModal({ order, onClose, customerName, customerEmail }) {
               onClick={handleDownloadInvoice}
               className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
             >
-              <ArrowDownTrayIcon className="h-4 w-4" />
+              <Download className="h-4 w-4" />
               Descargar factura
             </button>
             <button
@@ -482,7 +516,7 @@ function OrderDetailsModal({ order, onClose, customerName, customerEmail }) {
               className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
               aria-label="Cerrar detalle del pedido"
             >
-              <XMarkIcon className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -492,7 +526,7 @@ function OrderDetailsModal({ order, onClose, customerName, customerEmail }) {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Estado</p>
               <div className="mt-3 flex items-center gap-2">
-                <StatusIcon className="h-5 w-5 text-slate-500 dark:text-slate-300" />
+                <StatusIcon className="h-4 w-4 text-slate-500 dark:text-slate-300" />
                 <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusMeta.className}`}>
                   {statusMeta.label}
                 </span>
@@ -537,7 +571,7 @@ function OrderDetailsModal({ order, onClose, customerName, customerEmail }) {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <ShoppingBagIcon className="h-8 w-8 text-slate-400" />
+                          <ShoppingBag className="h-4 w-4 text-slate-400" />
                         )}
                       </div>
 
@@ -576,14 +610,18 @@ function OrderDetailsModal({ order, onClose, customerName, customerEmail }) {
 }
 
 export default function UserDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const user = getUserFromStorage();
   const customerId = user?.customerId ?? user?.customer_id ?? null;
+  const customerFirstName = getSafeString(user?.customerName) || getSafeString(user?.name) || "Usuario";
+  const customerLastName = getSafeString(user?.customerLastName);
   const customerName = [user?.customerName, user?.customerLastName].filter(Boolean).join(" ").trim() || user?.name || "Usuario";
   const customerEmail = user?.customerEmail ?? user?.email ?? "";
   const joinDate = user?.createdAt ? formatDate(user.createdAt) : "Reciente";
+  const requestedTab = getValidTab(searchParams.get("tab"));
 
   const { orders, summary, loading, error } = useOrdersHook(customerId);
-  const [activeTab, setActiveTab] = useState("resumen");
+  const [activeTab, setActiveTab] = useState(requestedTab);
   const [profileForm, setProfileForm] = useState({
     customerName: getSafeString(user?.customerName),
     customerLastName: getSafeString(user?.customerLastName),
@@ -595,6 +633,10 @@ export default function UserDashboard() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState({ type: "", text: "" });
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  useEffect(() => {
+    setActiveTab(requestedTab);
+  }, [requestedTab]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -642,6 +684,19 @@ export default function UserDashboard() {
     const { name, value } = event.target;
     setProfileForm((prev) => ({ ...prev, [name]: value }));
     setProfileMessage({ type: "", text: "" });
+  };
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (tabId === "resumen") {
+      nextParams.delete("tab");
+    } else {
+      nextParams.set("tab", tabId);
+    }
+
+    setSearchParams(nextParams, { replace: true });
   };
 
   const handleProfileSubmit = async (event) => {
@@ -715,7 +770,7 @@ export default function UserDashboard() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-300">
-              <SparklesIcon className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               Panel cliente
             </p>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Hola, {customerName}</h1>
@@ -735,7 +790,7 @@ export default function UserDashboard() {
           <button
             key={tab.id}
             type="button"
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${
               activeTab === tab.id
                 ? "bg-slate-900 text-white dark:bg-cyan-500 dark:text-slate-950"
@@ -751,10 +806,10 @@ export default function UserDashboard() {
       {activeTab === "resumen" ? (
         <div className="space-y-8">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Total gastado" value={formatPrice(summary.totalSpent)} sublabel="Historial completo" icon={SparklesIcon} />
-            <StatCard label="Ordenes" value={summary.totalOrders} sublabel="Pedidos realizados" icon={ShoppingBagIcon} />
-            <StatCard label="Entregadas" value={summary.delivered} sublabel="Completadas" icon={CheckCircleIcon} />
-            <StatCard label="Pendientes" value={summary.pending} sublabel="Aun en curso" icon={ClockIcon} />
+            <StatCard label="Total gastado" value={formatPrice(summary.totalSpent)} sublabel="Historial completo" icon={Sparkles} />
+            <StatCard label="Ordenes" value={summary.totalOrders} sublabel="Pedidos realizados" icon={ShoppingBag} />
+            <StatCard label="Entregadas" value={summary.delivered} sublabel="Completadas" icon={CheckCircle2} />
+            <StatCard label="Pendientes" value={summary.pending} sublabel="Aun en curso" icon={Clock3} />
           </div>
 
           <section>
@@ -763,11 +818,11 @@ export default function UserDashboard() {
               {summary.totalOrders > 3 ? (
                 <button
                   type="button"
-                  onClick={() => setActiveTab("ordenes")}
+                  onClick={() => handleTabChange("ordenes")}
                   className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"
                 >
                   Ver todas
-                  <ChevronRightIcon className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               ) : null}
             </div>
@@ -819,7 +874,7 @@ export default function UserDashboard() {
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/60 lg:p-8">
           <div className="mb-6 flex items-center gap-3">
             <div className="rounded-xl bg-cyan-100 p-2 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
-              <UserCircleIcon className="h-6 w-6" />
+              <CircleUserRound className="h-4 w-4" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Informacion personal</h2>
@@ -909,7 +964,8 @@ export default function UserDashboard() {
       <OrderDetailsModal
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
-        customerName={customerName}
+        customerFirstName={profileForm.customerName || customerFirstName}
+        customerLastName={profileForm.customerLastName || customerLastName}
         customerEmail={customerEmail}
       />
     </div>

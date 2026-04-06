@@ -11,10 +11,18 @@ const useLoginForm = () => {
     const responseMessage =
       typeof err?.response?.data === 'string'
         ? err.response.data
-        : err?.response?.data?.message;
+        : err?.response?.data?.message || err?.response?.data?.error;
 
-    if (status === 401 || status === 403) {
-      return 'Correo incorrecto.';
+    if (status === 429) {
+      return responseMessage || 'Demasiados intentos. Intenta de nuevo en un minuto.';
+    }
+
+    if (status === 403) {
+      return responseMessage || "Captcha invalido o expirado. Marca de nuevo 'No soy un robot'.";
+    }
+
+    if (status === 401) {
+      return responseMessage || 'Correo o contrasena incorrectos.';
     }
 
     if (responseMessage) {
@@ -36,6 +44,13 @@ const useLoginForm = () => {
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState('');
   const [verifyPassword, setVerifyPassword] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const [recaptchaResetKey, setRecaptchaResetKey] = useState(0);
+
+  const resetRecaptcha = () => {
+    setRecaptchaToken('');
+    setRecaptchaResetKey((prev) => prev + 1);
+  };
 
   /**
    * Maneja cambios en inputs
@@ -82,6 +97,11 @@ const useLoginForm = () => {
       return false;
     }
 
+    if (!recaptchaToken) {
+      setError('Completa el reCAPTCHA para continuar.');
+      return false;
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.customerEmail)) {
       setError('El correo electronico no es valido');
@@ -99,6 +119,7 @@ const useLoginForm = () => {
     setLoading(true);
     setError('');
     setSuccessMessage('');
+    let shouldResetRecaptcha = false;
 
     try {
       if (step === 1) {
@@ -125,10 +146,17 @@ const useLoginForm = () => {
         return;
       }
 
+      console.debug("Login submit:", {
+        email: formData.customerEmail,
+        hasRecaptchaToken: Boolean(recaptchaToken),
+      });
+
       const response = await CustomerService.login(
         formData.customerEmail,
-        formData.customerPassword
+        formData.customerPassword,
+        recaptchaToken
       );
+      shouldResetRecaptcha = true;
 
       setVerifyEmail(formData.customerEmail);
       setVerifyPassword(formData.customerPassword);
@@ -142,6 +170,9 @@ const useLoginForm = () => {
       console.error('Error en login:', err);
       return { success: false, error: err };
     } finally {
+      if (shouldResetRecaptcha) {
+        resetRecaptcha();
+      }
       setLoading(false);
     }
   };
@@ -157,6 +188,7 @@ const useLoginForm = () => {
     setStep(1);
     setError('');
     setSuccessMessage('');
+    resetRecaptcha();
   };
 
   const goBackToEmailStep = () => {
@@ -164,6 +196,7 @@ const useLoginForm = () => {
     setFormData(prev => ({ ...prev, customerPassword: '' }));
     setError('');
     setSuccessMessage('');
+    resetRecaptcha();
   };
 
   return {
@@ -183,6 +216,11 @@ const useLoginForm = () => {
       password: verifyPassword,
       setOpen: setVerifyOpen,
       onVerified: handleVerified
+    },
+    recaptcha: {
+      token: recaptchaToken,
+      setToken: setRecaptchaToken,
+      resetKey: recaptchaResetKey
     }
   };
 };

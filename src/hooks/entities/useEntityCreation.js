@@ -119,11 +119,12 @@ export default function useEntityCreation(selectedEntity) {
         normalizedError.includes('duplicate') ||
         normalizedError.includes('already exists') ||
         normalizedError.includes('email');
+      const singularLabel = definition?.singularLabel || 'entidad';
 
       setAlertState({
         visible: true,
         type: 'error',
-        message: isDuplicatedEmail ? 'Este correo ya está registrado' : 'No se pudo crear el usuario.',
+        message: isDuplicatedEmail ? 'Este correo ya está registrado' : `No se pudo crear ${singularLabel.toLowerCase()}.`,
       });
       return null;
     }

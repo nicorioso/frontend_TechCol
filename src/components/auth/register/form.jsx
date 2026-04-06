@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { loginWithGoogleCredential } from "../../../services/auth/googleAuth";
 import GoogleLoginConsent from "../GoogleLoginConsent";
 import GooglePasswordSetupModal from "../../IU/modal/GooglePasswordSetupModal";
+import RecaptchaCheckbox from "../../IU/forms/RecaptchaCheckbox";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function RegisterForm() {
     errorMessage,
     successMessage,
     registerCustomer,
+    recaptcha,
   } = useRegister();
 
   const [passwordMismatch, setPasswordMismatch] = useState(false);
@@ -126,6 +128,11 @@ export default function RegisterForm() {
                 </button>
               </div>
             </div>
+
+            <RecaptchaCheckbox
+              onTokenChange={recaptcha.setToken}
+              resetSignal={recaptcha.resetKey}
+            />
 
             <Button variant="primary" size="md" type="submit" className="w-full" disabled={loading}>
               {loading ? "Registrando..." : "Registrarse"}

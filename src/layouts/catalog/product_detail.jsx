@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
-  CheckBadgeIcon,
-  CubeIcon,
-  ShieldCheckIcon,
-  ShoppingCartIcon,
-  TruckIcon,
-} from "@heroicons/react/24/outline";
+  BadgeCheck,
+  Package,
+  ShieldCheck,
+  ShoppingCart,
+  Truck,
+} from "lucide-react";
 import MainHeader from "../../components/IU/headers/Main";
 import MainFooter from "../../components/IU/footers/MainFooter";
 import SeoHead from "../../seo/SeoHead";
@@ -273,7 +273,7 @@ export default function ProductDetailLayout() {
                       <ul className="mt-5 space-y-3">
                         {highlights.map((item) => (
                           <li key={item} className="flex items-start gap-3 text-sm text-slate-700 dark:text-gray-300">
-                            <CheckBadgeIcon className="mt-0.5 h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400" />
+                            <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
                             <span>{item}</span>
                           </li>
                         ))}
@@ -310,21 +310,21 @@ export default function ProductDetailLayout() {
 
                     <div className="mt-6 space-y-4 rounded-xl bg-slate-50 p-4 dark:bg-gray-900">
                       <div className="flex items-start gap-3">
-                        <TruckIcon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                        <Truck className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                         <div className="text-sm">
                           <p className="font-semibold text-slate-900 dark:text-gray-100">Envio nacional</p>
                           <p className="text-slate-500 dark:text-gray-400">Despacho estimado entre 24 y 72 horas.</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <ShieldCheckIcon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                        <ShieldCheck className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                         <div className="text-sm">
                           <p className="font-semibold text-slate-900 dark:text-gray-100">Garantia TechCol</p>
                           <p className="text-slate-500 dark:text-gray-400">Cobertura por defectos de fabrica y soporte postventa.</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <CubeIcon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                        <Package className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                         <div className="text-sm">
                           <p className="font-semibold text-slate-900 dark:text-gray-100">Estado de stock</p>
                           <p className="text-slate-500 dark:text-gray-400">
@@ -340,7 +340,7 @@ export default function ProductDetailLayout() {
                         disabled={product.stockAmount <= 0}
                         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
                       >
-                        <ShoppingCartIcon className="h-5 w-5" />
+                        <ShoppingCart className="h-4 w-4" />
                         {product.stockAmount > 0 ? "Agregar al carrito" : "No disponible"}
                       </button>
                       <Link
