@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { useOrdersHook } from "../../hooks/useOrdersHook";
 import { images } from "../../assets/img/img_url";
 import UserService from "../../services/customer/UserService";
+import { buildBackendAssetUrl } from "../../utils/backendAssetUrl";
 import { normalizePhoneToE164 } from "../../utils/phone";
 import {
   CheckCircle2,
@@ -91,11 +92,13 @@ const getProductName = (detail) =>
   detail?.product?.product_name ??
   "Producto";
 const getProductImage = (detail) =>
-  detail?.product?.productImage ??
-  detail?.product?.imageUrl ??
-  detail?.product?.image ??
-  detail?.product?.product_image ??
-  "";
+  buildBackendAssetUrl(
+    detail?.product?.productImage ??
+      detail?.product?.imageUrl ??
+      detail?.product?.image ??
+      detail?.product?.product_image ??
+      ""
+  );
 const getDetailTotal = (detail) => {
   const quantity = Number(detail?.quantity ?? 0);
   const unitPrice = Number.parseFloat(detail?.unitPrice ?? 0);
