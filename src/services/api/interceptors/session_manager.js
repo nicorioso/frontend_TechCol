@@ -1,4 +1,17 @@
-const PUBLIC_ENDPOINTS = ['/auth/register', '/auth/login', '/auth/verify', '/auth/refresh'];
+const PUBLIC_ENDPOINTS = [
+  '/auth/register',
+  '/auth/registerRequest',
+  '/auth/login',
+  '/auth/verify',
+  '/auth/refresh',
+  '/auth/google',
+  '/auth/account-exists',
+  '/auth/forgot-password',
+  '/auth/password-recovery/request',
+  '/auth/password-recovery/verify',
+  '/auth/reset-password',
+  '/auth/password-recovery/reset',
+];
 const REFRESH_THRESHOLD_SECONDS = 60;
 
 let refreshPromise = null;
@@ -22,8 +35,25 @@ const getTokenExpirationMs = (token) => {
   return typeof exp === 'number' ? exp * 1000 : null;
 };
 
-export const isPublicEndpoint = (url = '') =>
-  PUBLIC_ENDPOINTS.some((endpoint) => String(url).includes(endpoint));
+const normalizeUrlPath = (url = "") => {
+  const value = String(url).trim();
+  if (!value) return "";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    try {
+      return new URL(value).pathname;
+    } catch {
+      return value;
+    }
+  }
+
+  return value.split("?")[0];
+};
+
+export const isPublicEndpoint = (url = "") => {
+  const path = normalizeUrlPath(url);
+  return PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint);
+};
 
 export const isTokenExpiringSoon = (token, thresholdSeconds = REFRESH_THRESHOLD_SECONDS) => {
   const expMs = getTokenExpirationMs(token);
@@ -52,6 +82,9 @@ export const refreshAccessToken = async (api) => {
       }
 
       localStorage.setItem('access_token', token);
+      if (response?.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
       return token;
     })
     .finally(() => {

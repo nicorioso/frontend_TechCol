@@ -5,9 +5,9 @@ const FeatureCard = ({ icon: Icon, title, description }) => {
     <div className="flex flex-col items-center space-y-3 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-100 dark:bg-cyan-900/40">
         {Icon ? (
-          <Icon className="h-6 w-6 text-slate-800 dark:text-cyan-200" />
+          <Icon className="h-4 w-4 text-slate-800 dark:text-cyan-200" />
         ) : (
-          <div className="h-6 w-6 rounded bg-cyan-400"></div>
+          <div className="h-4 w-4 rounded bg-cyan-400"></div>
         )}
       </div>
 

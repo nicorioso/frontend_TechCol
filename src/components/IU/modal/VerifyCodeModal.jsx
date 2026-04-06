@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Shield } from "lucide-react";
 import CustomerService from "../../../services/customer/CustomerService";
+import RecaptchaCheckbox from "../forms/RecaptchaCheckbox";
 
 const getVerifyErrorMessage = (err) => {
   const status = err?.response?.status;
@@ -17,44 +18,88 @@ const getVerifyErrorMessage = (err) => {
     return "Codigo invalido o expirado. Solicita uno nuevo.";
   }
 
+  if (status === 429) {
+    return "Demasiados intentos. Espera un minuto para volver a intentarlo.";
+  }
+
   const dataMessage = typeof err?.response?.data === "string" ? err.response.data : "";
   return dataMessage || err?.message || "Codigo invalido";
 };
 
-export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, originalPassword }) {
+export default function VerifyCodeModal({
+  isOpen,
+  email,
+  channel,
+  onClose,
+  onVerified,
+  originalPassword,
+  onSubmitCode,
+  onResendCode,
+  title = "Verificacion",
+  descriptionPrefix = "Hemos enviado un codigo de seguridad a",
+  submitLabel = "Verificar Codigo",
+  backLabel = "Volver al inicio de sesion",
+  resendCooldownSeconds = 41,
+  resendRequiresRecaptcha = false,
+}) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(41);
+  const [secondsLeft, setSecondsLeft] = useState(resendCooldownSeconds);
   const [error, setError] = useState("");
+  const [resendRecaptchaToken, setResendRecaptchaToken] = useState("");
+  const [resendRecaptchaResetKey, setResendRecaptchaResetKey] = useState(0);
   const inputRefs = useRef([]);
 
-  const maskedEmail = useMemo(() => {
-    const safeEmail = String(email || "");
-    if (!safeEmail) return "****";
-    const atIndex = safeEmail.indexOf("@");
-    if (atIndex === -1) {
-      if (safeEmail.length <= 4) return `${safeEmail}${"*".repeat(4)}`;
-      return `${safeEmail.slice(0, 4)}${"*".repeat(safeEmail.length - 4)}`;
+  const resetResendRecaptcha = () => {
+    setResendRecaptchaToken("");
+    setResendRecaptchaResetKey((prev) => prev + 1);
+  };
+
+  const contactValue = useMemo(() => String(email || "").trim(), [email]);
+  const inferredChannel = useMemo(() => {
+    if (channel) return channel;
+    return contactValue.includes("@") ? "EMAIL" : "SMS";
+  }, [channel, contactValue]);
+
+  const maskedContact = useMemo(() => {
+    if (!contactValue) return "****";
+
+    if (inferredChannel === "EMAIL") {
+      const atIndex = contactValue.indexOf("@");
+      if (atIndex === -1) {
+        if (contactValue.length <= 4) return `${contactValue}${"*".repeat(4)}`;
+        return `${contactValue.slice(0, 4)}${"*".repeat(contactValue.length - 4)}`;
+      }
+
+      const localPart = contactValue.slice(0, atIndex);
+      const domainPart = contactValue.slice(atIndex);
+      if (localPart.length <= 4) {
+        return `${localPart}${"*".repeat(4)}${domainPart}`;
+      }
+
+      return `${localPart.slice(0, 4)}****${localPart.slice(-1)}${domainPart}`;
     }
 
-    const localPart = safeEmail.slice(0, atIndex);
-    const domainPart = safeEmail.slice(atIndex);
-    if (localPart.length <= 4) {
-      return `${localPart}${"*".repeat(4)}${domainPart}`;
-    }
+    const hasPlusPrefix = contactValue.startsWith("+");
+    const digits = contactValue.replace(/\D/g, "");
+    if (!digits) return "****";
+    if (digits.length <= 4) return `${hasPlusPrefix ? "+" : ""}${digits}${"*".repeat(4)}`;
 
-    return `${localPart.slice(0, 4)}****${localPart.slice(-1)}${domainPart}`;
-  }, [email]);
+    const prefix = digits.slice(0, Math.min(3, Math.max(digits.length - 2, 1)));
+    const suffix = digits.slice(-2);
+    return `${hasPlusPrefix ? "+" : ""}${prefix}****${suffix}`;
+  }, [contactValue, inferredChannel]);
 
   useEffect(() => {
     if (!isOpen) return;
     setCode("");
     setError("");
-    setSecondsLeft(41);
+    setSecondsLeft(resendCooldownSeconds);
     setLoading(false);
     setResending(false);
-  }, [isOpen]);
+    resetResendRecaptcha();
+  }, [isOpen, resendCooldownSeconds]);
 
   useEffect(() => {
     if (!isOpen || secondsLeft <= 0) return;
@@ -115,7 +160,9 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
         return;
       }
 
-      const res = await CustomerService.verify(email, code);
+      const res = onSubmitCode
+        ? await onSubmitCode(code)
+        : await CustomerService.verify(email, code);
       onVerified && onVerified(res);
       onClose && onClose();
     } catch (err) {
@@ -130,19 +177,31 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
     if (secondsLeft > 0 || resending) return;
 
     try {
-      if (!originalPassword) {
+      if (!onResendCode && !originalPassword) {
         setError("No se puede reenviar sin la contrasena original");
+        return;
+      }
+
+      if (resendRequiresRecaptcha && !resendRecaptchaToken) {
+        setError("Completa el reCAPTCHA para reenviar el codigo.");
         return;
       }
 
       setResending(true);
       setError("");
-      await CustomerService.login(email, originalPassword);
-      setSecondsLeft(41);
+      if (onResendCode) {
+        await onResendCode(resendRecaptchaToken);
+      } else {
+        await CustomerService.login(email, originalPassword, resendRecaptchaToken);
+      }
+      setSecondsLeft(resendCooldownSeconds);
     } catch (err) {
       console.error("Error reenviando codigo:", err);
-      setError("No se pudo reenviar el codigo");
+      setError(getVerifyErrorMessage(err));
     } finally {
+      if (resendRequiresRecaptcha) {
+        resetResendRecaptcha();
+      }
       setResending(false);
     }
   };
@@ -152,16 +211,16 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-4 flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-100 text-slate-900 dark:bg-cyan-950/50 dark:text-cyan-200">
-            <Shield className="h-7 w-7" />
+            <Shield className="h-4 w-4" />
           </div>
         </div>
 
         <h3 className="text-center text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          Verificacion
+          {title}
         </h3>
         <p className="mx-auto mt-3 max-w-sm text-center text-lg text-slate-600 dark:text-slate-300">
-          Hemos enviado un codigo de seguridad a
-          <span className="block font-semibold text-slate-900 dark:text-slate-100">{maskedEmail}</span>
+          {descriptionPrefix}
+          <span className="block font-semibold text-slate-900 dark:text-slate-100">{maskedContact}</span>
         </p>
 
         {error && (
@@ -196,7 +255,7 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
             disabled={loading}
             className="w-full rounded-xl bg-cyan-500 px-6 py-3 text-xl font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? "Verificando..." : "Verificar Codigo"}
+            {loading ? "Verificando..." : submitLabel}
           </button>
 
           <div className="flex items-center justify-center gap-3 text-base text-slate-500 dark:text-slate-400">
@@ -204,14 +263,23 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
             {secondsLeft > 0 ? (
               <span className="font-semibold text-slate-700 dark:text-slate-200">Reenviar en {secondsLeft} s</span>
             ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resending}
-                className="font-semibold text-cyan-600 transition hover:text-cyan-700 disabled:cursor-not-allowed disabled:opacity-70 dark:text-cyan-400 dark:hover:text-cyan-300"
-              >
-                {resending ? "Reenviando..." : "Reenviar codigo"}
-              </button>
+              <div className="space-y-3 text-center">
+                {resendRequiresRecaptcha && (
+                  <RecaptchaCheckbox
+                    onTokenChange={setResendRecaptchaToken}
+                    resetSignal={resendRecaptchaResetKey}
+                    className="flex flex-col items-center"
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="font-semibold text-cyan-600 transition hover:text-cyan-700 disabled:cursor-not-allowed disabled:opacity-70 dark:text-cyan-400 dark:hover:text-cyan-300"
+                >
+                  {resending ? "Reenviando..." : "Reenviar codigo"}
+                </button>
+              </div>
             )}
           </div>
 
@@ -222,12 +290,12 @@ export default function VerifyCodeModal({ isOpen, email, onClose, onVerified, or
               className="mx-auto flex items-center gap-2 text-base text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver al inicio de sesion
+              {backLabel}
             </button>
           </div>
 
           <div className="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-center text-xs text-cyan-900 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-100">
-            El codigo se valida con informacion real enviada a tu correo.
+            El codigo se valida con informacion real enviada a tu {inferredChannel === "EMAIL" ? "correo" : "telefono"}.
           </div>
 
           {secondsLeft <= 0 && error && (

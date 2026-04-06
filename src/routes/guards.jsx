@@ -1,7 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { getCurrentRole, getToken } from "../utils/authSession";
-
-const isAdminRole = () => getCurrentRole().includes("ADMIN");
+import { getToken, isAdminRole } from "../utils/authSession";
 
 export function RequireAuth({ children }) {
   if (!getToken()) return <Navigate to="/auth/login" replace />;

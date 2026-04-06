@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { loadGoogleScript } from "../../utils/loadGoogleScript";
+import { getGoogleClientId } from "../../services/auth/googleClientConfig";
 
 const CONSENT_KEY = "third_party_auth_consent_v1";
 
@@ -20,55 +21,127 @@ export default function GoogleLoginConsent({
   const [consentGranted, setConsentGranted] = useState(getInitialConsent);
   const [authError, setAuthError] = useState("");
   const [isLoadingScript, setIsLoadingScript] = useState(false);
+  const [clientId, setClientId] = useState("");
   const buttonContainerRef = useRef(null);
+  const successHandlerRef = useRef(onSuccess);
+  const errorHandlerRef = useRef(onError);
+  const isInitializedRef = useRef(false);
+  const renderedClientIdRef = useRef(null);
 
-  const initializeGoogleButton = useCallback(async () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      setAuthError("Google login no esta configurado en este entorno.");
+  useEffect(() => {
+    successHandlerRef.current = onSuccess;
+  }, [onSuccess]);
+
+  useEffect(() => {
+    errorHandlerRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
+    if (!consentGranted) {
       return;
     }
 
-    if (!buttonContainerRef.current) return;
+    let isCancelled = false;
 
-    setIsLoadingScript(true);
-    setAuthError("");
+    const loadClientId = async () => {
+      try {
+        const resolvedClientId = await getGoogleClientId();
+        if (isCancelled) {
+          return;
+        }
 
-    try {
-      await loadGoogleScript();
+        if (!resolvedClientId) {
+          setAuthError("Google login no esta configurado en este entorno.");
+          return;
+        }
 
-      const googleId = window.google?.accounts?.id;
-      if (!googleId) {
-        throw new Error("Google Identity no esta disponible.");
+        setAuthError("");
+        setClientId(resolvedClientId);
+      } catch {
+        if (!isCancelled) {
+          setAuthError("No se pudo obtener la configuracion de Google.");
+          errorHandlerRef.current?.();
+        }
       }
+    };
 
-      googleId.initialize({
-        client_id: clientId,
-        callback: onSuccess,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
+    loadClientId();
 
-      buttonContainerRef.current.innerHTML = "";
-      googleId.renderButton(buttonContainerRef.current, {
-        theme: "outline",
-        size: "large",
-        width: 320,
-        text: "continue_with",
-        shape: "rectangular",
-      });
-    } catch {
-      setAuthError("No se pudo completar la autenticacion con Google.");
-      onError?.();
-    } finally {
-      setIsLoadingScript(false);
-    }
-  }, [onError, onSuccess]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [consentGranted]);
 
   useEffect(() => {
-    if (!consentGranted) return;
+    if (!consentGranted) {
+      return;
+    }
+
+    if (!clientId) {
+      return;
+    }
+
+    if (!buttonContainerRef.current) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const initializeGoogleButton = async () => {
+      setIsLoadingScript(true);
+      setAuthError("");
+
+      try {
+        await loadGoogleScript();
+
+        if (isCancelled) {
+          return;
+        }
+
+        const googleId = window.google?.accounts?.id;
+        if (!googleId) {
+          throw new Error("Google Identity no esta disponible.");
+        }
+
+        if (!isInitializedRef.current) {
+          googleId.initialize({
+            client_id: clientId,
+            callback: (response) => successHandlerRef.current?.(response),
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+          isInitializedRef.current = true;
+        }
+
+        if (renderedClientIdRef.current !== clientId) {
+          buttonContainerRef.current.innerHTML = "";
+          googleId.renderButton(buttonContainerRef.current, {
+            theme: "outline",
+            size: "large",
+            width: 320,
+            text: "continue_with",
+            shape: "rectangular",
+          });
+          renderedClientIdRef.current = clientId;
+        }
+      } catch {
+        if (!isCancelled) {
+          setAuthError("No se pudo completar la autenticacion con Google.");
+          errorHandlerRef.current?.();
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingScript(false);
+        }
+      }
+    };
+
     initializeGoogleButton();
-  }, [consentGranted, initializeGoogleButton]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [clientId, consentGranted]);
 
   const enableGoogleAuth = async () => {
     try {

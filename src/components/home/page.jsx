@@ -53,7 +53,7 @@ function Home() {
     const fetchProducts = async () => {
       try {
         const products = await productService.getAllProducts();
-        const host = config.api.baseURL.replace(/\/api\/?$/, "");
+        const host = config.api.baseURL.replace(/\/+$/, "");
         const uploadsPath = config.uploadsPath.replace(/\/+$/, "");
 
         const normalized = (products || []).map((product) => {
@@ -204,60 +204,66 @@ function Home() {
   }, [allProducts, cartItems]);
 
   const accessPathPrefix = getRolePathPrefix();
+  const ordersPath = accessPathPrefix === "admin" ? "/admin/entities/orders" : "/user/profile?tab=ordenes";
 
   const authenticatedHome = (
-    <section className="w-full bg-white py-8 dark:bg-gray-900">
+    <section className="w-full py-10">
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
-        <header className="mb-6">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-gray-100">
-            Bienvenido de vuelta, {displayName} !
+        <header className="mb-8 rounded-2xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/90">
+          <p className="mb-2 inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:border-cyan-900/60 dark:bg-cyan-900/30 dark:text-cyan-300">
+            Panel de cuenta
+          </p>
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-gray-100">
+            Bienvenido de vuelta, {displayName}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-gray-400">
-            Aqui esta lo que necesitas saber sobre tu cuenta.
+          <p className="mt-2 text-sm text-slate-500 dark:text-gray-400">
+            Aqui tienes el resumen de tu cuenta y accesos clave.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-          <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]">
+          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-gray-100">Estado del Pedido Actual</h2>
-              <Package className="h-5 w-5 text-slate-600 dark:text-gray-300" />
+              <h2 className="text-xl font-bold text-slate-900 dark:text-gray-100">Estado del Pedido Actual</h2>
+              <div className="rounded-full bg-slate-100 p-2 dark:bg-gray-700">
+                <Package className="h-4 w-4 text-slate-600 dark:text-gray-200" />
+              </div>
             </div>
 
-            <div className="rounded-md bg-slate-100 p-4 dark:bg-gray-900">
-              <div className="mb-3 flex items-start justify-between gap-2">
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-900">
+              <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs text-slate-500 dark:text-gray-400">Compra actual</p>
-                  <p className="text-2xl font-bold leading-tight text-slate-900 dark:text-gray-100">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500 dark:text-gray-400">Compra actual</p>
+                  <p className="mt-1 text-2xl font-bold leading-tight text-slate-900 dark:text-gray-100">
                     {orderProduct?.name ?? "Aun no tienes compras en curso"}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-gray-400">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-gray-400">
                     Pedido actualizado el {formatDateLabel(currentOrderItem?.updatedAt ?? currentOrderItem?.createdAt)}
                   </p>
                 </div>
-                <span className="rounded bg-amber-200 px-2 py-1 text-xs font-semibold text-amber-800">
+                <span className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
                   {orderStatusBadge}
                 </span>
               </div>
 
-              <div className="mb-3 grid grid-cols-3 gap-2 text-xs text-slate-600 dark:text-gray-300">
-                <div className="rounded border border-cyan-300 bg-cyan-50 p-2 dark:border-cyan-800 dark:bg-cyan-900/30">
-                  <p className="mb-1 flex items-center gap-1 font-semibold text-cyan-800">
-                    <CircleDashed className="h-3.5 w-3.5" />
+              <div className="mb-4 grid grid-cols-1 gap-2 text-xs text-slate-600 sm:grid-cols-3 dark:text-gray-300">
+                <div className="rounded-xl border border-cyan-300 bg-cyan-50 p-3 shadow-sm dark:border-cyan-800 dark:bg-cyan-900/30">
+                  <p className="mb-1 flex items-center gap-1 font-semibold text-cyan-800 dark:text-cyan-300">
+                    <CircleDashed className="h-4 w-4" />
                     {orderStateLabel}
                   </p>
                   <p>Estado actual</p>
                 </div>
-                <div className="rounded border border-slate-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800">
+                <div className="rounded-xl border border-slate-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
                   <p className="mb-1 flex items-center gap-1 font-semibold">
-                    <Truck className="h-3.5 w-3.5" />
+                    <Truck className="h-4 w-4" />
                     En camino
                   </p>
                   <p>Proximo</p>
                 </div>
-                <div className="rounded border border-slate-200 bg-white p-2 opacity-70 dark:border-gray-700 dark:bg-gray-800">
+                <div className="rounded-xl border border-slate-200 bg-white p-3 opacity-70 dark:border-gray-700 dark:bg-gray-800">
                   <p className="mb-1 flex items-center gap-1 font-semibold">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <CheckCircle2 className="h-4 w-4" />
                     Entregado
                   </p>
                   <p>Final</p>
@@ -270,49 +276,49 @@ function Home() {
             </div>
 
             <Link
-              to={`/${accessPathPrefix}/entities/orders`}
-              className="mt-4 inline-flex w-full items-center justify-center rounded bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
+              to={ordersPath}
+              className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:from-cyan-400 hover:to-teal-400"
             >
               Ver todos los pedidos
             </Link>
           </article>
 
-          <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-gray-100">Accesos Rapidos</h2>
+          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-gray-100">Accesos Rapidos</h2>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <Link
                 to="/products"
-                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
+                className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-cyan-800 dark:hover:bg-cyan-900/30"
               >
-                <Package className="h-4 w-4" />
+                <Package className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                 Continuar comprando
               </Link>
               <Link
-                to={`/${accessPathPrefix}/entities/orders`}
-                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
+                to={ordersPath}
+                className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-cyan-800 dark:hover:bg-cyan-900/30"
               >
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                 Mis Pedidos
               </Link>
               <Link
                 to={`/${accessPathPrefix}/profile`}
-                className="flex items-center gap-2 rounded bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
+                className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-cyan-800 dark:hover:bg-cyan-900/30"
               >
-                <UserCircle2 className="h-4 w-4" />
+                <UserCircle2 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                 Mi Perfil
               </Link>
             </div>
           </article>
         </div>
 
-        <article className="mt-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-gray-100">
+        <article className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-gray-100">
             <Bell className="h-4 w-4" />
             Notificaciones
           </h2>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {notifications.map((notification, index) => {
               const toneClass =
                 notification.tone === "green"
@@ -329,10 +335,10 @@ function Home() {
                     : "text-blue-600";
 
               return (
-                <div key={`${notification.title}-${index}`} className={`rounded border px-3 py-2 ${toneClass}`}>
+                <div key={`${notification.title}-${index}`} className={`rounded-xl border px-4 py-3 ${toneClass}`}>
                   <p className="text-sm font-semibold text-slate-800 dark:text-gray-100">{notification.title}</p>
                   <p className="text-xs text-slate-600 dark:text-gray-300">{notification.body}</p>
-                  <p className={`text-xs ${timeClass}`}>{notification.time}</p>
+                  <p className={`mt-1 text-xs font-medium ${timeClass}`}>{notification.time}</p>
                 </div>
               );
             })}
@@ -359,7 +365,7 @@ function Home() {
       />
 
       <FeaturesGrid />
-      <section className="w-full bg-white py-6 dark:bg-gray-900">
+      <section className="w-full py-6">
         <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
           <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
             <h2 className="mb-2 text-lg font-semibold text-slate-900 dark:text-gray-100">

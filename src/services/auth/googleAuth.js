@@ -1,28 +1,35 @@
-import { parseJwtPayload, resolveRoleFromPayload } from "../../utils/authSession";
 import { upsertIdentityProfile } from "../../utils/identityProfile";
+import { axiosInstance } from "../api";
 import { storageGateway } from "../../utils/storageGateway";
 
-export const loginWithGoogleCredential = (credentialResponse, navigate) => {
+export const loginWithGoogleCredential = async (credentialResponse, navigate) => {
   const credential = credentialResponse?.credential;
   if (!credential) {
     throw new Error("Google no devolvio credenciales.");
   }
 
-  const payload = parseJwtPayload(credential);
-  if (!payload) {
-    throw new Error("No se pudo leer el token de Google.");
+  const response = await axiosInstance.post("/auth/google", { credential }, { skipAuth: true });
+  const accessToken = response?.data?.accessToken;
+  const backendUser = response?.data?.user;
+
+  if (!accessToken || !backendUser) {
+    throw new Error("No se pudo completar la autenticacion con el backend.");
   }
 
-  const user = upsertIdentityProfile({
-    customerName: payload?.given_name ?? payload?.name ?? "",
-    customerLastName: payload?.family_name ?? "",
-    customerEmail: payload?.email ?? "",
-    name: payload?.name ?? "",
-    photoUrl: payload?.picture ?? "",
-    role: resolveRoleFromPayload(payload) || "CLIENTE",
-  });
+  const user = upsertIdentityProfile(backendUser, backendUser?.customerEmail ?? backendUser?.email ?? "");
 
-  storageGateway.set("access_token", credential);
+  storageGateway.set("access_token", accessToken);
   storageGateway.setJson("user", user);
-  navigate("/");
+
+  const requiresPasswordSetup = Boolean(response?.data?.requiresPasswordSetup);
+
+  if (!requiresPasswordSetup) {
+    navigate("/");
+  }
+
+  return {
+    requiresPasswordSetup,
+    user,
+    accessToken,
+  };
 };

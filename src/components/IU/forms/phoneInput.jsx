@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDown } from 'lucide-react';
 
 const COUNTRY_OPTIONS = [
   { value: 'US', label: 'USA', dialCode: '+1', flag: '🇺🇸' },
@@ -64,7 +64,7 @@ export default function PhoneInput({
           title={selectedCountry.label}
         >
           <span className="text-lg leading-none">{selectedCountry.flag}</span>
-          <ChevronDownIcon className="h-4 w-4 text-gray-500 dark:text-gray-300" />
+          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-300" />
         </button>
 
         {isOpen && (

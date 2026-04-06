@@ -40,7 +40,7 @@ const Alert = ({
   };
 
   return (
-    <div className="fixed right-4 top-4 z-50 animate-slide-in-right">
+    <div className="fixed right-4 top-4 z-[10000] animate-slide-in-right">
       <div
         role={alertType === "error" ? "alert" : "status"}
         aria-live={alertType === "error" ? "assertive" : "polite"}

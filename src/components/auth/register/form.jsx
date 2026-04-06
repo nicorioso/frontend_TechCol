@@ -9,6 +9,8 @@ import Alert from "../../IU/alerts/Alerts";
 import { useNavigate } from "react-router-dom";
 import { loginWithGoogleCredential } from "../../../services/auth/googleAuth";
 import GoogleLoginConsent from "../GoogleLoginConsent";
+import GooglePasswordSetupModal from "../../IU/modal/GooglePasswordSetupModal";
+import RecaptchaCheckbox from "../../IU/forms/RecaptchaCheckbox";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -19,12 +21,14 @@ export default function RegisterForm() {
     errorMessage,
     successMessage,
     registerCustomer,
+    recaptcha,
   } = useRegister();
 
   const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showGooglePasswordModal, setShowGooglePasswordModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,6 +129,11 @@ export default function RegisterForm() {
               </div>
             </div>
 
+            <RecaptchaCheckbox
+              onTokenChange={recaptcha.setToken}
+              resetSignal={recaptcha.resetKey}
+            />
+
             <Button variant="primary" size="md" type="submit" className="w-full" disabled={loading}>
               {loading ? "Registrando..." : "Registrarse"}
             </Button>
@@ -134,8 +143,11 @@ export default function RegisterForm() {
             <div className="flex justify-center">
               <GoogleLoginConsent
                 buttonLabel="Habilitar registro con Google"
-                onSuccess={(credentialResponse) => {
-                  loginWithGoogleCredential(credentialResponse, navigate);
+                onSuccess={async (credentialResponse) => {
+                  const result = await loginWithGoogleCredential(credentialResponse, navigate);
+                  if (result?.requiresPasswordSetup) {
+                    setShowGooglePasswordModal(true);
+                  }
                 }}
               />
             </div>
@@ -145,6 +157,12 @@ export default function RegisterForm() {
             label="¿Ya tienes cuenta?"
             linkPlaceholder="Inicia sesion aqui"
             pathname="/auth/login"
+          />
+
+          <GooglePasswordSetupModal
+            isOpen={showGooglePasswordModal}
+            onClose={() => setShowGooglePasswordModal(false)}
+            onSuccess={() => navigate("/")}
           />
         </>
       }

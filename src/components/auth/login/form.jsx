@@ -9,18 +9,24 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginWithGoogleCredential } from "../../../services/auth/googleAuth";
 import GoogleLoginConsent from "../GoogleLoginConsent";
+import GooglePasswordSetupModal from "../../IU/modal/GooglePasswordSetupModal";
+import RecaptchaCheckbox from "../../IU/forms/RecaptchaCheckbox";
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [showGooglePasswordModal, setShowGooglePasswordModal] = useState(false);
   const {
     formData,
+    step,
     loading,
     error,
     successMessage,
     handleInputChange,
     handleSubmit,
+    goBackToEmailStep,
     verify,
+    recaptcha,
   } = useLoginForm();
 
   return (
@@ -50,50 +56,86 @@ export default function LoginForm() {
               placeholder="tu@email.com"
               value={formData.customerEmail}
               onChange={handleInputChange}
-              disabled={loading}
+              disabled={loading || step === 2}
               required
             />
 
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                Contrasena
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="customerPassword"
-                  placeholder="********"
-                  value={formData.customerPassword}
-                  onChange={handleInputChange}
-                  disabled={loading}
-                  required
-                  className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+            {step === 2 && (
+              <>
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Contrasena
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="customerPassword"
+                      placeholder="********"
+                      value={formData.customerPassword}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                      required
+                      className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={goBackToEmailStep}
+                    className="text-sm font-medium text-cyan-700 transition hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"
+                  >
+                    Cambiar correo
+                  </button>
+                </div>
+
+                <RecaptchaCheckbox
+                  onTokenChange={recaptcha.setToken}
+                  resetSignal={recaptcha.resetKey}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+              </>
+            )}
 
             <Button variant="primary" size="md" type="submit" className="w-full" disabled={loading}>
-              {loading ? "Iniciando sesion..." : "Iniciar sesion"}
+              {loading ? "Validando..." : step === 1 ? "Continuar" : "Iniciar sesion"}
             </Button>
 
-            <p className="text-center text-sm text-gray-400">O continua con</p>
+            {step === 1 && (
+              <>
+                <p className="text-center text-sm text-gray-400">O continua con</p>
 
-            <div className="flex justify-center">
-              <GoogleLoginConsent
-                buttonLabel="Habilitar login con Google"
-                onSuccess={(credentialResponse) => {
-                  loginWithGoogleCredential(credentialResponse, navigate);
-                }}
+                <div className="flex justify-center">
+                  <GoogleLoginConsent
+                    buttonLabel="Habilitar login con Google"
+                    onSuccess={async (credentialResponse) => {
+                      const result = await loginWithGoogleCredential(credentialResponse, navigate);
+                      if (result?.requiresPasswordSetup) {
+                        setShowGooglePasswordModal(true);
+                      }
+                    }}
+                  />
+                </div>
+              </>
+            )}
+          </form>
+
+          {step === 2 && (
+            <div className="mt-4">
+              <LabelLinkTo
+                label="Olvidaste tu contrasena?"
+                linkPlaceholder="Recuperala aqui"
+                pathname="/auth/password-recovery"
               />
             </div>
-          </form>
+          )}
 
           <VerifyCodeModal
             isOpen={verify.open}
@@ -101,12 +143,19 @@ export default function LoginForm() {
             originalPassword={verify.password}
             onClose={() => verify.setOpen(false)}
             onVerified={verify.onVerified}
+            resendRequiresRecaptcha
           />
 
           <LabelLinkTo
             label="No tienes cuenta?"
             linkPlaceholder="Registrate aqui"
             pathname="/auth/register"
+          />
+
+          <GooglePasswordSetupModal
+            isOpen={showGooglePasswordModal}
+            onClose={() => setShowGooglePasswordModal(false)}
+            onSuccess={() => navigate("/")}
           />
         </>
       }

@@ -1,4 +1,4 @@
-import { ChevronRightIcon, ChevronDoubleLeftIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import { ChevronRight, ChevronsLeft, Moon, Sun } from "lucide-react";
 import { useState, useRef, useContext } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
@@ -39,18 +39,18 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
   };
 
   return (
-    <aside className={`h-[100dvh] w-64 shrink-0 border-r bg-gray-100 dark:border-gray-700 dark:bg-gray-900 flex flex-col ${className}`}>
-      <div className="h-14 flex items-center justify-between px-2 border-b border-gray-200 dark:border-gray-700">
-        <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 px-2">
+    <aside className={`h-[100dvh] w-64 shrink-0 border-r border-slate-200 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 flex flex-col ${className}`}>
+      <div className="h-14 flex items-center justify-between border-b border-slate-200 px-2 dark:border-slate-700">
+        <span className="px-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
           TechCol
         </span>
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="rounded-lg bg-gray-200 dark:bg-gray-700 p-1.5 hover:bg-gray-300 dark:hover:bg-gray-600 transition focus:outline-none"
+          className="rounded-lg bg-slate-100 p-1.5 transition hover:bg-slate-200 focus:outline-none dark:bg-slate-800 dark:hover:bg-slate-700"
           aria-label="Contraer menu"
         >
-          <ChevronDoubleLeftIcon className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+          <ChevronsLeft className="h-4 w-4 text-slate-700 dark:text-slate-200" />
         </button>
       </div>
 
@@ -72,51 +72,51 @@ export default function UserSidebar({ items = [], user, onToggleCollapse, dark, 
 
       {user && (
         <div className="mt-auto">
-          <div className="h-14 border-t border-gray-200 dark:border-gray-700 px-2 flex items-center">
+          <div className="h-14 border-t border-slate-200 dark:border-slate-700 px-2 flex items-center">
             <button
               type="button"
               onClick={onToggleTheme}
-              className="w-full flex items-center gap-3 hover:bg-gray-200 dark:hover:bg-gray-800 p-2 rounded-lg transition"
+              className="w-full rounded-lg p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-3"
               aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
             >
               {dark ? (
-                <SunIcon className="w-5 h-5 text-yellow-500" />
+                <Sun className="h-4 w-4 text-yellow-500" />
               ) : (
-                <MoonIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                <Moon className="h-4 w-4 text-slate-600 dark:text-slate-300" />
               )}
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Tema
               </span>
             </button>
           </div>
 
-          <div className="h-16 border-t border-gray-200 dark:border-gray-700 px-2 relative flex items-center" ref={menuRef}>
+          <div className="relative flex h-16 items-center border-t border-slate-200 px-2 dark:border-slate-700" ref={menuRef}>
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="w-full flex items-center justify-between hover:bg-gray-200 dark:hover:bg-gray-800 p-2 rounded-lg transition cursor-pointer"
+              className="flex w-full cursor-pointer items-center justify-between rounded-lg p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               aria-label="Abrir menu de usuario"
             >
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 {displayName}
               </span>
-              <ChevronRightIcon className={`w-4 h-4 text-gray-500 transition-transform ${menuOpen ? "rotate-180" : "rotate-0"}`} />
+              <ChevronRight className={`h-4 w-4 text-slate-600 transition-transform dark:text-slate-300 ${menuOpen ? "rotate-180" : "rotate-0"}`} />
             </button>
 
             {menuOpen && (
-              <div className="absolute left-full bottom-0 ml-2 bg-white dark:bg-gray-800 rounded shadow-lg py-2 z-[60] animate-fade-in min-w-max" role="menu">
+              <div className="absolute bottom-0 left-full z-[60] ml-2 min-w-max rounded-xl border border-slate-200 bg-white py-2 shadow-lg animate-fade-in dark:border-slate-700 dark:bg-slate-800" role="menu">
                 <button
                   type="button"
-                  className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-cyan-100 dark:hover:bg-gray-700 transition whitespace-nowrap"
+                  className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                   onClick={handleGoHome}
                 >
                   Ir a inicio
                 </button>
                 <button
                   type="button"
-                  className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-cyan-100 dark:hover:bg-gray-700 transition whitespace-nowrap"
+                  className="block w-full whitespace-nowrap px-4 py-2 text-left text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                   onClick={handleLogout}
                 >
                   Cerrar sesion
@@ -160,10 +160,14 @@ function SidebarItem({ icon: Icon, label, href, type = "link", options = [], onC
     <NavLink
       to={href || "#"}
       className={({ isActive }) =>
-        `flex items-center gap-3 p-2 rounded-lg transition ${isActive ? "bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"}`
+        `flex items-center gap-3 rounded-xl p-2 transition ${
+          isActive
+            ? "bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white"
+            : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+        }`
       }
     >
-      {Icon && <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />}
+      {Icon && <Icon className="h-4 w-4 text-slate-700 dark:text-slate-200" />}
       <span className="text-sm font-medium">
         {label}
       </span>

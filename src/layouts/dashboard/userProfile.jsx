@@ -8,7 +8,7 @@ export default function UserProfile() {
         <>
             <SeoHead routeKey="private" override={{ path: "/user/profile", title: "Perfil de Usuario | TechCol" }} />
             <MainHeader />
-            <main className="min-h-screen bg-white dark:bg-gray-900">
+            <main className="min-h-screen bg-slate-100 dark:bg-gray-900">
                 <Profile />
             </main>
             <MainFooter />

@@ -36,6 +36,8 @@ export const productsEntity = {
       accept: 'image/*',
       fullWidth: true,
       required: false,
+      maxSizeMB: 10,
+      helperText: 'PNG, JPG o WEBP. Tamano maximo: 10 MB.',
     },
   ],
   map: (products = []) =>
@@ -46,7 +48,7 @@ export const productsEntity = {
       let imageUrl = product?.imageUrl || product?.image || '';
       if (imageUrl) {
         // use configurable uploads path rather than hardcoded
-        const host = config.api.baseURL.replace(/\/api\/?$/, '');
+        const host = config.api.baseURL.replace(/\/+$/, '');
         const path = config.uploadsPath.replace(/\/+$/, '');
         imageUrl = `${host}${path}/${imageUrl}`;
       }
