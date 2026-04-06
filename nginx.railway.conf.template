@@ -4,7 +4,7 @@ server {
 
   root /usr/share/nginx/html;
   index index.html;
-  resolver ${NGINX_LOCAL_RESOLVERS} valid=30s ipv6=off;
+  resolver 127.0.0.11 valid=30s ipv6=off;
 
   add_header X-Frame-Options "DENY" always;
   add_header X-Content-Type-Options "nosniff" always;
