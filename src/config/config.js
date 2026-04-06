@@ -6,7 +6,7 @@ export const API_URL = import.meta.env.VITE_API_URL || defaultApiBaseURL;
 const config = Object.freeze({
   api: {
     baseURL: API_URL,
-    // 0 means no timeout in Axios.
+    // In production Railway serves the SPA and proxies /api to the backend service.
     timeout: apiTimeout,
   },
   // Path where uploaded files are served from, relative to baseURL host.
