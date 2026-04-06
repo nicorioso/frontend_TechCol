@@ -1,6 +1,8 @@
 server {
   listen ${PORT};
   server_name _;
+  absolute_redirect off;
+  port_in_redirect off;
 
   root /usr/share/nginx/html;
   index index.html;
@@ -39,6 +41,6 @@ server {
   }
 
   location / {
-    try_files $uri $uri/ /index.html;
+    try_files $uri $uri/index.html $uri/ /index.html;
   }
 }
