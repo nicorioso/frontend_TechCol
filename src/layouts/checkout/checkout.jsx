@@ -49,7 +49,7 @@ const requiredFields = ["fullName", "email", "phone", "street", "state", "city"]
 const getShippingCost = (methodId) => SHIPPING_METHODS.find((item) => item.id === methodId)?.cost ?? 0;
 const EXCHANGE_RATE_REFRESH_MS = 60 * 1000;
 const checkoutFieldClassName =
-  "w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-cyan-400";
+  "checkout-field w-full rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-cyan-400";
 const checkoutLabelClassName =
   "mb-1 block text-xs font-semibold text-slate-700 dark:text-gray-300";
 const paypalCaptureTasks = new Map();
@@ -144,8 +144,6 @@ export default function CheckoutPage() {
   const [formData, setFormData] = useState(buildInitialFormData);
   const [cartItems, setCartItems] = useState(() => cartService.getGuestCart());
   const [usdToCopRate, setUsdToCopRate] = useState(DEFAULT_USD_TO_COP_RATE);
-  const [rateFetchedAt, setRateFetchedAt] = useState(null);
-  const [exchangeRateError, setExchangeRateError] = useState("");
   const isAdminUser = isAdminRole();
 
   const loadCart = async () => {
@@ -166,12 +164,8 @@ export default function CheckoutPage() {
         if (!isMounted) return;
 
         setUsdToCopRate(result.usdToCopRate);
-        setRateFetchedAt(result.fetchedAt);
-        setExchangeRateError("");
       } catch {
-        if (!isMounted) return;
-
-        setExchangeRateError("No fue posible actualizar la tasa en tiempo real. Se muestra una referencia aproximada.");
+        // Si falla la actualizacion, conservamos la tasa de referencia.
       }
     };
 
@@ -246,21 +240,9 @@ export default function CheckoutPage() {
     }),
     [summaryBase, shippingCost]
   );
-  const convertCopToUsd = (copAmount) => copAmount / usdToCopRate;
-  const exchangeRateLabel = useMemo(() => formatCopCurrency(usdToCopRate), [usdToCopRate]);
-  const exchangeRateTimestamp = useMemo(() => {
-    if (!rateFetchedAt) return "actualizando...";
-
-    const date = new Date(rateFetchedAt);
-    if (Number.isNaN(date.getTime())) {
-      return "actualizacion reciente";
-    }
-
-    return date.toLocaleString("es-CO", {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
-  }, [rateFetchedAt]);
+  const convertCopToUsd = (copAmount) =>
+    Number(copAmount ?? 0) / (usdToCopRate > 0 ? usdToCopRate : DEFAULT_USD_TO_COP_RATE);
+  const summaryStep = step === 3 && orderData?.status !== "insufficient_funds" ? 3 : 2;
 
   const missingRequired = requiredFields.filter((field) => !String(formData[field] ?? "").trim());
 
@@ -401,7 +383,7 @@ export default function CheckoutPage() {
 
       <section className="flex-1 py-8">
         <div className="mx-auto w-full max-w-6xl px-4">
-          <CheckoutProgress activeStep={2} />
+          <CheckoutProgress activeStep={summaryStep} />
 
           {notice && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
@@ -573,9 +555,14 @@ export default function CheckoutPage() {
                             className="sr-only"
                           />
                           <p className="text-sm font-semibold text-slate-800 dark:text-gray-100">{method.label}</p>
-                          <p className="text-xs text-slate-500 dark:text-gray-400">
-                            Costo: {formatCopCurrency(method.cost)} / {formatUsdCurrency(convertCopToUsd(method.cost))}
-                          </p>
+                          <div className="mt-1 text-xs">
+                            <p className="font-semibold text-cyan-600 dark:text-cyan-400">
+                              {formatUsdCurrency(convertCopToUsd(method.cost))}
+                            </p>
+                            <p className="text-slate-500 dark:text-gray-400">
+                              Aprox. {formatCopCurrency(method.cost)}
+                            </p>
+                          </div>
                         </label>
                       );
                     })}
@@ -627,48 +614,50 @@ export default function CheckoutPage() {
                 <div className="sticky top-20 rounded-lg border border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                   <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Resumen del Pedido</h3>
 
-                  <div className="mb-4 rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-900 dark:border-cyan-900/50 dark:bg-cyan-950/30 dark:text-cyan-100">
-                    <p>1 USD = {exchangeRateLabel}</p>
-                    <p>Actualizado: {exchangeRateTimestamp}</p>
-                    {exchangeRateError ? <p className="mt-1 text-amber-700 dark:text-amber-300">{exchangeRateError}</p> : null}
-                  </div>
-
                   <div className="space-y-2 border-b border-slate-200 pb-4 text-sm dark:border-gray-700">
-                    <div className="flex justify-between text-slate-600 dark:text-gray-300">
+                    <div className="flex items-start justify-between gap-4 text-slate-600 dark:text-gray-300">
                       <span>Subtotal</span>
                       <span className="text-right">
-                        {formatCopCurrency(summary.subtotal)}
-                        <span className="block text-xs text-slate-400 dark:text-gray-500">
+                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
                           {formatUsdCurrency(convertCopToUsd(summary.subtotal))}
                         </span>
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-slate-600 dark:text-gray-300">
-                      <span>IVA (19%)</span>
-                      <span className="text-right">
-                        {formatCopCurrency(summary.tax)}
                         <span className="block text-xs text-slate-400 dark:text-gray-500">
-                          {formatUsdCurrency(convertCopToUsd(summary.tax))}
+                          Aprox. {formatCopCurrency(summary.subtotal)}
                         </span>
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-600 dark:text-gray-300">
+                    <div className="flex items-start justify-between gap-4 text-slate-600 dark:text-gray-300">
+                      <span>IVA (19%)</span>
+                      <span className="text-right">
+                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
+                          {formatUsdCurrency(convertCopToUsd(summary.tax))}
+                        </span>
+                        <span className="block text-xs text-slate-400 dark:text-gray-500">
+                          Aprox. {formatCopCurrency(summary.tax)}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="flex items-start justify-between gap-4 text-slate-600 dark:text-gray-300">
                       <span>Envio</span>
                       <span className="text-right">
-                        {formatCopCurrency(summary.shipping)}
-                        <span className="block text-xs text-slate-400 dark:text-gray-500">
+                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
                           {formatUsdCurrency(convertCopToUsd(summary.shipping))}
+                        </span>
+                        <span className="block text-xs text-slate-400 dark:text-gray-500">
+                          Aprox. {formatCopCurrency(summary.shipping)}
                         </span>
                       </span>
                     </div>
                   </div>
 
-                  <div className="my-4 flex justify-between">
+                  <div className="my-4 flex items-start justify-between gap-4">
                     <span className="text-lg font-bold text-slate-900 dark:text-white">Total</span>
                     <span className="text-right">
-                      <span className="block text-3xl font-bold text-cyan-500">{formatCopCurrency(summary.total)}</span>
-                      <span className="block text-sm font-semibold text-slate-500 dark:text-gray-400">
+                      <span className="block text-3xl font-bold text-cyan-500">
                         {formatUsdCurrency(convertCopToUsd(summary.total))}
+                      </span>
+                      <span className="block text-sm font-semibold text-slate-500 dark:text-gray-400">
+                        Aprox. {formatCopCurrency(summary.total)}
                       </span>
                     </span>
                   </div>

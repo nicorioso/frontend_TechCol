@@ -109,3 +109,21 @@ body {
 .btn:hover {
   background: #16a34a;
 }
+
+input.checkout-field:-webkit-autofill,
+textarea.checkout-field:-webkit-autofill,
+select.checkout-field:-webkit-autofill {
+  -webkit-text-fill-color: #0f172a;
+  -webkit-box-shadow: 0 0 0 1000px #f8fafc inset;
+  box-shadow: 0 0 0 1000px #f8fafc inset;
+  caret-color: #0f172a;
+}
+
+.dark input.checkout-field:-webkit-autofill,
+.dark textarea.checkout-field:-webkit-autofill,
+.dark select.checkout-field:-webkit-autofill {
+  -webkit-text-fill-color: #e5e7eb;
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+  box-shadow: 0 0 0 1000px #0f172a inset;
+  caret-color: #e5e7eb;
+}

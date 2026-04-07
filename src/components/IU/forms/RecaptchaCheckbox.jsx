@@ -11,7 +11,9 @@ const getRecaptchaTheme = () =>
 const loadRecaptchaScript = () => {
   if (!RECAPTCHA_SITE_KEY) {
     return Promise.reject(
-      new Error("reCAPTCHA no esta configurado. Define VITE_RECAPTCHA_SITE_KEY en el frontend.")
+      new Error(
+        "reCAPTCHA no esta configurado. Define VITE_RECAPTCHA_SITE_KEY o RECAPTCHA_SITE_KEY en el frontend."
+      )
     );
   }
 

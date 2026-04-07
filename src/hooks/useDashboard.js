@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { ANALYTICS_API_URL } from "../config/config";
-import { getToken } from "../utils/authSession";
+import analyticsService, {
+  getDashboardErrorMessage,
+} from "../services/analytics/analyticsService";
 
 export const useDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
+  const [source, setSource] = useState("analytics");
+  const [capabilities, setCapabilities] = useState({ exports: false });
 
   useEffect(() => {
     let active = true;
@@ -14,29 +17,24 @@ export const useDashboard = () => {
     const loadDashboard = async () => {
       setLoading(true);
       setError("");
+      setWarning("");
 
       try {
-        const response = await axios.get(`${ANALYTICS_API_URL}/reports/dashboard`, {
-          headers: {
-            Authorization: `Bearer ${getToken()}`,
-          },
-        });
+        const result = await analyticsService.getDashboardData();
 
-        if (active) {
-          setData(response.data || null);
-        }
+        if (!active) return;
+
+        setData(result?.data ?? null);
+        setSource(result?.source ?? "analytics");
+        setWarning(result?.warning ?? "");
+        setCapabilities(result?.capabilities ?? { exports: false });
       } catch (err) {
-        if (active) {
-          const backendMessage =
-            typeof err?.response?.data === "string"
-              ? err.response.data
-              : err?.response?.data?.detail ||
-                err?.response?.data?.message ||
-                "No se pudo cargar el dashboard administrativo.";
+        if (!active) return;
 
-          setError(backendMessage);
-          setData(null);
-        }
+        setError(getDashboardErrorMessage(err));
+        setData(null);
+        setSource("analytics");
+        setCapabilities({ exports: false });
       } finally {
         if (active) {
           setLoading(false);
@@ -51,5 +49,5 @@ export const useDashboard = () => {
     };
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error, warning, source, capabilities };
 };

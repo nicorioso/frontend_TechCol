@@ -32,6 +32,9 @@ import auditService from "../../services/audit/auditService";
 
 const CHART_COLORS = ["#0f766e", "#14b8a6", "#0f172a", "#f59e0b", "#22c55e"];
 
+const cardClass =
+  "rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900/90";
+
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("es-CO", {
     style: "currency",
@@ -72,11 +75,14 @@ const getAuditTone = (value) => {
   return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300";
 };
 
-const cardClass =
-  "rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900/90";
+const Placeholder = ({ text }) => (
+  <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+    {text}
+  </div>
+);
 
 export default function AdminProfile() {
-  const { data, loading, error } = useDashboard();
+  const { data, loading, error, warning, source, capabilities } = useDashboard();
   const [exporting, setExporting] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
   const [auditLogs, setAuditLogs] = useState([]);
@@ -92,19 +98,19 @@ export default function AdminProfile() {
 
       try {
         const logs = await auditService.getRecentLogs();
-        if (active) {
-          setAuditLogs(logs.slice(0, 6));
-        }
+        if (!active) return;
+        setAuditLogs(logs.slice(0, 6));
       } catch (err) {
-        if (active) {
-          const backendMessage =
-            typeof err?.response?.data === "string"
-              ? err.response.data
-              : err?.response?.data?.detail ||
-                err?.response?.data?.message ||
-                "No se pudo cargar la bitacora reciente.";
-          setAuditError(backendMessage);
-        }
+        if (!active) return;
+
+        const backendMessage =
+          typeof err?.response?.data === "string"
+            ? err.response.data
+            : err?.response?.data?.detail ||
+              err?.response?.data?.message ||
+              "No se pudo cargar la bitacora reciente.";
+
+        setAuditError(backendMessage);
       } finally {
         if (active) {
           setAuditLoading(false);
@@ -151,6 +157,9 @@ export default function AdminProfile() {
   const topProducts = data?.top_products || [];
   const topProduct = topProducts[0] || null;
   const salesChart = data?.sales_chart || [];
+  const summaryMetrics = data?.summary || {};
+  const showExports = Boolean(capabilities?.exports);
+  const showAuditPanel = !auditError && (auditLoading || auditLogs.length > 0);
 
   const totalTopUnits = useMemo(
     () =>
@@ -197,12 +206,58 @@ export default function AdminProfile() {
     {
       title: "Producto lider",
       value: topProduct?.product_name || "Sin datos",
-      note: topProduct
-        ? `${topProduct.total_sold} unidades vendidas`
-        : "Aun sin registros",
+      note: topProduct ? `${topProduct.total_sold} unidades vendidas` : "Aun sin registros",
       icon: PackageSearch,
       accent: "bg-amber-300 text-slate-950",
     },
+  ];
+
+  const quickCards = [
+    {
+      title: "Tendencia de ventas",
+      value: salesTrend || "Sin variacion clara",
+      icon: ArrowUpRight,
+      accent: "bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300",
+    },
+    {
+      title: "Unidades en top productos",
+      value: totalTopUnits,
+      icon: Boxes,
+      accent: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+    },
+    source === "analytics"
+      ? {
+          title: "Eventos en bitacora",
+          value: auditLogs.length,
+          icon: Activity,
+          accent: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+        }
+      : {
+          title: "Productos activos",
+          value: summaryMetrics.active_products ?? 0,
+          icon: Boxes,
+          accent: "bg-cyan-100 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300",
+        },
+  ];
+
+  const insights = [
+    {
+      title: "Mejor producto actual",
+      value: topProduct?.product_name || "Sin registros",
+    },
+    {
+      title: "Ticket promedio",
+      value: formatCurrency(data?.kpis?.average_order_value),
+    },
+    source === "analytics"
+      ? {
+          title: "Participacion de top productos",
+          value: `${totalTopUnits} unidades registradas`,
+        }
+      : {
+          title: "Productos agotados",
+          value: `${summaryMetrics.out_of_stock_products ?? 0} sin stock`,
+        },
   ];
 
   return (
@@ -219,41 +274,48 @@ export default function AdminProfile() {
                 <section className={`${cardClass} overflow-hidden`}>
                   <div className="grid lg:grid-cols-[1.45fr_0.95fr]">
                     <div className="border-b border-slate-200 p-7 dark:border-slate-800 lg:border-b-0 lg:border-r lg:p-9">
-                      <p className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-700 dark:border-teal-900/40 dark:bg-teal-950/30 dark:text-teal-300">
-                        <ShieldCheck className="h-4 w-4" />
-                        Centro administrativo
-                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-700 dark:border-teal-900/40 dark:bg-teal-950/30 dark:text-teal-300">
+                          <ShieldCheck className="h-4 w-4" />
+                          Centro administrativo
+                        </p>
+                        <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                          {source === "analytics" ? "Analytics" : "Fuente de respaldo"}
+                        </span>
+                      </div>
                       <h1 className="mt-5 max-w-3xl text-3xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                        Gestiona reportes, rendimiento comercial y actividad
-                        operativa desde un solo lugar.
+                        Gestiona reportes, rendimiento comercial y actividad operativa desde un solo lugar.
                       </h1>
                       <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-                        Priorizamos una lectura clara: descargas arriba, metricas
-                        limpias al centro y supervision real abajo.
+                        Priorizamos una lectura clara: metricas arriba, comparativos al centro y seguimiento operativo abajo.
                       </p>
                       <div className="mt-6 flex flex-wrap gap-3">
-                        <button
-                          type="button"
-                          onClick={() => handleExport("excel")}
-                          disabled={exporting === "excel"}
-                          className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400"
-                        >
-                          <FileSpreadsheet className="h-4 w-4" />
-                          {exporting === "excel"
-                            ? "Descargando Excel..."
-                            : "Descargar Excel"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleExport("csv")}
-                          disabled={exporting === "csv"}
-                          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                        >
-                          <Download className="h-4 w-4" />
-                          {exporting === "csv"
-                            ? "Descargando CSV..."
-                            : "Descargar CSV"}
-                        </button>
+                        {showExports ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleExport("excel")}
+                              disabled={exporting === "excel"}
+                              className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400"
+                            >
+                              <FileSpreadsheet className="h-4 w-4" />
+                              {exporting === "excel" ? "Descargando Excel..." : "Descargar Excel"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleExport("csv")}
+                              disabled={exporting === "csv"}
+                              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                            >
+                              <Download className="h-4 w-4" />
+                              {exporting === "csv" ? "Descargando CSV..." : "Descargar CSV"}
+                            </button>
+                          </>
+                        ) : (
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Las exportaciones se ocultan mientras el panel usa metricas calculadas desde el backend principal.
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -262,51 +324,27 @@ export default function AdminProfile() {
                         Resumen rapido
                       </p>
                       <div className="mt-5 grid gap-3">
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Tendencia de ventas
-                              </p>
-                              <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
-                                {salesTrend || "Sin variacion clara"}
-                              </p>
+                        {quickCards.map((card) => {
+                          const Icon = card.icon;
+                          return (
+                            <div
+                              key={card.title}
+                              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-sm text-slate-500 dark:text-slate-400">{card.title}</p>
+                                  <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
+                                    {card.value}
+                                  </p>
+                                </div>
+                                <div className={`rounded-2xl p-3 ${card.accent}`}>
+                                  <Icon className="h-5 w-5" />
+                                </div>
+                              </div>
                             </div>
-                            <div className="rounded-2xl bg-teal-100 p-3 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
-                              <ArrowUpRight className="h-5 w-5" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Unidades en top productos
-                              </p>
-                              <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
-                                {totalTopUnits}
-                              </p>
-                            </div>
-                            <div className="rounded-2xl bg-amber-100 p-3 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                              <Boxes className="h-5 w-5" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Eventos en bitacora
-                              </p>
-                              <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
-                                {auditLogs.length}
-                              </p>
-                            </div>
-                            <div className="rounded-2xl bg-slate-200 p-3 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                              <Activity className="h-5 w-5" />
-                            </div>
-                          </div>
-                        </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -321,6 +359,12 @@ export default function AdminProfile() {
                     }`}
                   >
                     {message.text}
+                  </div>
+                ) : null}
+
+                {warning ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+                    {warning}
                   </div>
                 ) : null}
 
@@ -370,9 +414,7 @@ export default function AdminProfile() {
 
                     <div className="mt-6 h-[340px] w-full">
                       {loading ? (
-                        <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                          Cargando grafica...
-                        </div>
+                        <Placeholder text="Cargando grafica..." />
                       ) : salesChart.length ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={salesChart}>
@@ -391,9 +433,7 @@ export default function AdminProfile() {
                           </LineChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                          No hay ventas para visualizar.
-                        </div>
+                        <Placeholder text="No hay ventas para visualizar." />
                       )}
                     </div>
                   </article>
@@ -413,9 +453,7 @@ export default function AdminProfile() {
 
                     <div className="mt-6 h-[340px] w-full">
                       {loading ? (
-                        <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                          Cargando productos.....
-                        </div>
+                        <Placeholder text="Cargando productos..." />
                       ) : topProducts.length ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
@@ -425,12 +463,7 @@ export default function AdminProfile() {
                           >
                             <CartesianGrid strokeDasharray="4 4" stroke="#dbe4ea" />
                             <XAxis type="number" stroke="#64748b" />
-                            <YAxis
-                              type="category"
-                              dataKey="product_name"
-                              width={110}
-                              stroke="#64748b"
-                            />
+                            <YAxis type="category" dataKey="product_name" width={110} stroke="#64748b" />
                             <Tooltip />
                             <Bar dataKey="total_sold" radius={[0, 12, 12, 0]}>
                               {topProducts.map((product, index) => (
@@ -443,9 +476,7 @@ export default function AdminProfile() {
                           </BarChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                          No hay productos con ventas aun.
-                        </div>
+                        <Placeholder text="No hay productos con ventas aun." />
                       )}
                     </div>
                   </article>
@@ -512,64 +543,62 @@ export default function AdminProfile() {
                   </article>
 
                   <div className="grid gap-4">
-                    <article className={`${cardClass} p-6`}>
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-amber-100 p-3 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                          <Clock3 className="h-5 w-5" />
+                    {showAuditPanel ? (
+                      <article className={`${cardClass} p-6`}>
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-2xl bg-amber-100 p-3 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                            <Clock3 className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                              Bitacora
+                            </p>
+                            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                              Actividad reciente
+                            </h2>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                            Bitacora
-                          </p>
-                          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                            Actividad reciente
-                          </h2>
-                        </div>
-                      </div>
 
-                      {auditLoading ? (
-                        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
-                          Cargando bitacora...
-                        </p>
-                      ) : auditError ? (
-                        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
-                          {auditError}
-                        </div>
-                      ) : auditLogs.length ? (
-                        <div className="mt-6 space-y-3">
-                          {auditLogs.map((log) => (
-                            <article
-                              key={log.id}
-                              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50"
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-3">
-                                <span
-                                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${getAuditTone(
-                                    log.action
-                                  )}`}
-                                >
-                                  {formatAuditAction(log.action)}
-                                </span>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">
-                                  {formatAuditTimestamp(log.timestamp)}
-                                </span>
-                              </div>
-                              <p className="mt-3 text-sm font-medium text-slate-900 dark:text-white">
-                                {log.user || "system"} · {log.entity || "ENTITY"}{" "}
-                                {log.entityId ? `#${log.entityId}` : ""}
-                              </p>
-                              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                                {log.details || "Sin detalle adicional."}
-                              </p>
-                            </article>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
-                          No hay eventos recientes disponibles.
-                        </p>
-                      )}
-                    </article>
+                        {auditLoading ? (
+                          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+                            Cargando bitacora...
+                          </p>
+                        ) : auditLogs.length ? (
+                          <div className="mt-6 space-y-3">
+                            {auditLogs.map((log) => (
+                              <article
+                                key={log.id}
+                                className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <span
+                                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${getAuditTone(
+                                      log.action
+                                    )}`}
+                                  >
+                                    {formatAuditAction(log.action)}
+                                  </span>
+                                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                                    {formatAuditTimestamp(log.timestamp)}
+                                  </span>
+                                </div>
+                                <p className="mt-3 text-sm font-medium text-slate-900 dark:text-white">
+                                  {log.user || "system"} - {log.entity || "ENTITY"}{" "}
+                                  {log.entityId ? `#${log.entityId}` : ""}
+                                </p>
+                                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                                  {log.details || "Sin detalle adicional."}
+                                </p>
+                              </article>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+                            No hay eventos recientes disponibles.
+                          </p>
+                        )}
+                      </article>
+                    ) : null}
 
                     <article className={`${cardClass} p-6`}>
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
@@ -580,30 +609,17 @@ export default function AdminProfile() {
                       </h2>
 
                       <div className="mt-6 space-y-3">
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Mejor producto actual
-                          </p>
-                          <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
-                            {topProduct?.product_name || "Sin registros"}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Ticket promedio
-                          </p>
-                          <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
-                            {formatCurrency(data?.kpis?.average_order_value)}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Participacion de top productos
-                          </p>
-                          <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
-                            {totalTopUnits} unidades registradas
-                          </p>
-                        </div>
+                        {insights.map((item) => (
+                          <div
+                            key={item.title}
+                            className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50"
+                          >
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{item.title}</p>
+                            <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+                              {item.value}
+                            </p>
+                          </div>
+                        ))}
                       </div>
                     </article>
                   </div>
