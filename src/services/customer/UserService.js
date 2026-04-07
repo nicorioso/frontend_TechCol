@@ -39,7 +39,11 @@ const UserService = {
         : identifier;
     const res = await axiosInstance.post(
       "/auth/forgot-password",
-      { identifier: normalizedIdentifier, channel, recaptchaToken },
+      {
+        identifier: normalizedIdentifier,
+        channel,
+        "g-recaptcha-response": recaptchaToken,
+      },
       { skipAuth: true }
     );
     return res.data;
@@ -65,7 +69,12 @@ const UserService = {
         : identifier;
     const res = await axiosInstance.post(
       "/auth/reset-password",
-      { identifier: normalizedIdentifier, channel, newPassword, recaptchaToken },
+      {
+        identifier: normalizedIdentifier,
+        channel,
+        newPassword,
+        "g-recaptcha-response": recaptchaToken,
+      },
       { skipAuth: true }
     );
     return res.data;
