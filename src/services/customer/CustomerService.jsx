@@ -14,6 +14,7 @@ class CustomerService extends crudService {
         "/auth/register",
         {
           ...customerData,
+          recaptchaToken,
           "g-recaptcha-response": recaptchaToken,
         },
         { skipAuth: true }
@@ -33,7 +34,6 @@ class CustomerService extends crudService {
         email,
         password,
         channel: "EMAIL",
-        recaptchaToken,
         "g-recaptcha-response": recaptchaToken,
       };
 
