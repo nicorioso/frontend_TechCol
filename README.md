@@ -11,7 +11,7 @@ npm run dev
 
 ## Variables de entorno
 
-Revisa [frontend_TechCol/.env.example](/c:/Users/alexe/Documents/techcop/frontend_TechCol/.env.example).
+Copia `.env.example` a `.env` y ajusta sus valores antes de ejecutar el frontend.
 
 ## Build
 
