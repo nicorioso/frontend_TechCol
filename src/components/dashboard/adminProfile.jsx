@@ -392,7 +392,7 @@ export default function AdminProfile() {
                         </ResponsiveContainer>
                       ) : (
                         <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                          No hay ventas para visualizar.
+                          No hay ventas para visualizar
                         </div>
                       )}
                     </div>
