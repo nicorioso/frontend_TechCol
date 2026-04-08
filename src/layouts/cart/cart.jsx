@@ -15,14 +15,18 @@ import { cartService } from "../../services/cart/cartService";
 import MainHeader from "../../components/IU/headers/Main";
 import MainFooter from "../../components/IU/footers/MainFooter";
 import CheckoutProgress from "../../components/IU/section/CheckoutProgress";
+import exchangeRateService, { DEFAULT_USD_TO_COP_RATE } from "../../services/exchange/exchangeRateService";
 import SeoHead from "../../seo/SeoHead";
-import { formatCopCurrency } from "../../utils/currency";
+import { formatCopCurrency, formatUsdCurrency } from "../../utils/currency";
+
+const EXCHANGE_RATE_REFRESH_MS = 60 * 1000;
 
 export default function CartView() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
+  const [usdToCopRate, setUsdToCopRate] = useState(DEFAULT_USD_TO_COP_RATE);
 
   const loadCart = async () => {
     setIsLoading(true);
@@ -42,7 +46,32 @@ export default function CartView() {
     return () => window.removeEventListener(cartService.CART_UPDATED_EVENT, handleUpdated);
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadExchangeRate = async () => {
+      try {
+        const result = await exchangeRateService.getUsdToCopRate();
+        if (!isMounted) return;
+        setUsdToCopRate(result.usdToCopRate);
+      } catch {
+        // Si falla, mantenemos la referencia por defecto para los aproximados.
+      }
+    };
+
+    loadExchangeRate();
+    const intervalId = window.setInterval(loadExchangeRate, EXCHANGE_RATE_REFRESH_MS);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   const summary = useMemo(() => cartService.getCartSummary(cartItems), [cartItems]);
+  const totalBeforeShipping = useMemo(() => summary.subtotal + summary.tax, [summary.subtotal, summary.tax]);
+  const convertCopToUsd = (copAmount) =>
+    Number(copAmount ?? 0) / (usdToCopRate > 0 ? usdToCopRate : DEFAULT_USD_TO_COP_RATE);
 
   const showNotice = (message) => {
     setNotice(message);
@@ -166,10 +195,21 @@ export default function CartView() {
                             <div className="mb-2 flex items-start justify-between gap-2">
                               <div>
                                 <h3 className="font-semibold text-slate-900 dark:text-white">{item.product_name}</h3>
-                                <p className="text-xs text-slate-500">{formatCopCurrency(item.unit_price)} por unidad</p>
+                                <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                                  {formatUsdCurrency(convertCopToUsd(item.unit_price))}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  Aprox. {formatCopCurrency(item.unit_price)}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Precio por unidad</p>
                               </div>
-                              <span className="font-bold text-cyan-600 dark:text-cyan-400">
-                                {formatCopCurrency(item.unit_price * item.quantity)}
+                              <span className="text-right">
+                                <span className="block font-bold text-cyan-600 dark:text-cyan-400">
+                                  {formatUsdCurrency(convertCopToUsd(item.unit_price * item.quantity))}
+                                </span>
+                                <span className="block text-xs text-slate-500 dark:text-slate-400">
+                                  Aprox. {formatCopCurrency(item.unit_price * item.quantity)}
+                                </span>
                               </span>
                             </div>
 
@@ -214,25 +254,40 @@ export default function CartView() {
                   <h2 className="mb-5 text-xl font-bold text-slate-900 dark:text-white">Resumen del Pedido</h2>
 
                   <div className="space-y-3 border-b border-gray-200 pb-4 text-sm dark:border-gray-700">
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                    <div className="flex items-start justify-between gap-4 text-gray-600 dark:text-gray-400">
                       <span>Subtotal</span>
-                      <span>{formatCopCurrency(summary.subtotal)}</span>
+                      <span className="text-right">
+                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
+                          {formatUsdCurrency(convertCopToUsd(summary.subtotal))}
+                        </span>
+                        <span className="block text-xs text-slate-500 dark:text-slate-400">
+                          Aprox. {formatCopCurrency(summary.subtotal)}
+                        </span>
+                      </span>
                     </div>
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                    <div className="flex items-start justify-between gap-4 text-gray-600 dark:text-gray-400">
                       <span>IVA (19%)</span>
-                      <span>{formatCopCurrency(summary.tax)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Envio</span>
-                      <span className={summary.shipping === 0 ? "text-green-600 dark:text-green-400" : ""}>
-                        {summary.shipping === 0 ? "Gratis" : formatCopCurrency(summary.shipping)}
+                      <span className="text-right">
+                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
+                          {formatUsdCurrency(convertCopToUsd(summary.tax))}
+                        </span>
+                        <span className="block text-xs text-slate-500 dark:text-slate-400">
+                          Aprox. {formatCopCurrency(summary.tax)}
+                        </span>
                       </span>
                     </div>
                   </div>
 
-                  <div className="my-4 flex justify-between">
+                  <div className="my-4 flex items-start justify-between gap-4">
                     <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
-                    <span className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{formatCopCurrency(summary.total)}</span>
+                    <span className="text-right">
+                      <span className="block text-3xl font-bold text-cyan-600 dark:text-cyan-400">
+                        {formatUsdCurrency(convertCopToUsd(totalBeforeShipping))}
+                      </span>
+                      <span className="block text-sm font-semibold text-slate-500 dark:text-slate-400">
+                        Aprox. {formatCopCurrency(totalBeforeShipping)}
+                      </span>
+                    </span>
                   </div>
 
                   <button

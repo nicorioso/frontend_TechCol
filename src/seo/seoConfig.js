@@ -1,4 +1,4 @@
-const SITE_URL = import.meta.env.VITE_SITE_URL || "https://techcol.com";
+const SITE_URL = import.meta.env.VITE_SITE_URL || import.meta.env.SITE_URL || "https://techcol.com";
 const SITE_NAME = "TechCol";
 const DEFAULT_IMAGE =
   "https://res.cloudinary.com/dmi0txtoy/image/upload/v1762973077/techcop_vhfqlx.png";

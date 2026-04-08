@@ -1,6 +1,7 @@
 import crudService from "../generic/crud_services";
 import { upsertIdentityProfile } from "../../utils/identityProfile";
 import { storageGateway } from "../../utils/storageGateway";
+import { normalizePhoneToE164 } from "../../utils/phone";
 import { logError, logInfo, logWarn } from "../../utils/logger";
 
 class CustomerService extends crudService {
@@ -8,18 +9,34 @@ class CustomerService extends crudService {
     super("customers");
   }
 
+  normalizeIdentifier(identifier, channel = "EMAIL") {
+    const normalizedChannel = String(channel || "EMAIL").toUpperCase();
+    if (normalizedChannel === "SMS") {
+      return normalizePhoneToE164(identifier, { defaultCountryCode: "+57" }) || String(identifier || "").trim();
+    }
+
+    return String(identifier || "").trim().toLowerCase();
+  }
+
   async register(customerData, recaptchaToken) {
+    const channel = String(customerData?.channel || "EMAIL").toUpperCase();
+
     try {
-      const response = await this.api.post(
-        "/auth/register",
-        {
-          ...customerData,
-          recaptchaToken,
-          "g-recaptcha-response": recaptchaToken,
-        },
-        { skipAuth: true }
-      );
-      logInfo("Cliente registrado:", response.data);
+      const payload = {
+        ...customerData,
+        channel,
+        recaptchaToken,
+        "g-recaptcha-response": recaptchaToken,
+      };
+
+      if (payload.customerPhoneNumber) {
+        payload.customerPhoneNumber =
+          normalizePhoneToE164(payload.customerPhoneNumber, { defaultCountryCode: "+57" }) ||
+          payload.customerPhoneNumber;
+      }
+
+      const response = await this.api.post("/auth/register", payload, { skipAuth: true });
+      logInfo("Cliente registrado:", { channel, response: response.data });
       return response.data;
     } catch (error) {
       logError("Error registrando cliente:", error);
@@ -27,31 +44,52 @@ class CustomerService extends crudService {
     }
   }
 
-  async login(email, password, recaptchaToken) {
+  async resendRegisterCode(identifier, channel, recaptchaToken) {
+    const normalizedIdentifier = this.normalizeIdentifier(identifier, channel);
+    const normalizedChannel = String(channel || "EMAIL").toUpperCase();
+
+    const response = await this.api.post(
+      "/auth/register/resend-code",
+      {
+        identifier: normalizedIdentifier,
+        channel: normalizedChannel,
+        "g-recaptcha-response": recaptchaToken,
+      },
+      { skipAuth: true }
+    );
+
+    return response.data;
+  }
+
+  async login(identifier, password, recaptchaToken, channel = "EMAIL") {
     const start = performance.now();
+    const normalizedChannel = String(channel || "EMAIL").toUpperCase();
+    const normalizedIdentifier = this.normalizeIdentifier(identifier, normalizedChannel);
+
     try {
       const payload = {
-        email,
+        identifier: normalizedIdentifier,
         password,
-        channel: "EMAIL",
+        channel: normalizedChannel,
         "g-recaptcha-response": recaptchaToken,
       };
 
-      logInfo("Intentando login con:", email);
+      logInfo("Intentando login con:", {
+        identifier: normalizedIdentifier,
+        channel: normalizedChannel,
+      });
       logInfo("Payload login preparado:", {
-        email,
+        identifier: normalizedIdentifier,
+        channel: normalizedChannel,
         hasRecaptchaToken: Boolean(recaptchaToken),
       });
-      const response = await this.api.post(
-        "/auth/login",
-        payload,
-        {
-          skipAuth: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+
+      const response = await this.api.post("/auth/login", payload, {
+        skipAuth: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       logInfo("Login inicial OK, server response:", response.data);
       return response.data;
@@ -63,7 +101,8 @@ class CustomerService extends crudService {
         error.response?.status
       );
       logWarn("Detalle login rechazado:", {
-        email,
+        identifier: normalizedIdentifier,
+        channel: normalizedChannel,
         hasRecaptchaToken: Boolean(recaptchaToken),
         backendResponse: error.response?.data,
       });
@@ -74,16 +113,39 @@ class CustomerService extends crudService {
     }
   }
 
-  async checkAccountExists(email) {
-    const response = await this.api.post("/auth/account-exists", { email }, { skipAuth: true });
+  async checkAccountExists(identifier, channel = "EMAIL") {
+    const normalizedChannel = String(channel || "EMAIL").toUpperCase();
+    const normalizedIdentifier = this.normalizeIdentifier(identifier, normalizedChannel);
+    const response = await this.api.post(
+      "/auth/account-exists",
+      { identifier: normalizedIdentifier, channel: normalizedChannel },
+      { skipAuth: true }
+    );
     return response.data;
   }
 
-  async verify(email, code) {
+  async verify(identifier, channelOrCode, maybeCode) {
     const start = performance.now();
+    const code = maybeCode ?? channelOrCode;
+    const channel =
+      maybeCode === undefined
+        ? String(identifier || "").includes("@")
+          ? "EMAIL"
+          : "SMS"
+        : channelOrCode;
+    const normalizedChannel = String(channel || "EMAIL").toUpperCase();
+    const normalizedIdentifier = this.normalizeIdentifier(identifier, normalizedChannel);
+
     try {
-      logInfo("Verificando codigo para:", email);
-      const response = await this.api.post("/auth/verify", { email, code }, { skipAuth: true });
+      logInfo("Verificando codigo para:", {
+        identifier: normalizedIdentifier,
+        channel: normalizedChannel,
+      });
+      const response = await this.api.post(
+        "/auth/verify",
+        { identifier: normalizedIdentifier, channel: normalizedChannel, code },
+        { skipAuth: true }
+      );
 
       const { accessToken } = response.data;
 
@@ -95,10 +157,10 @@ class CustomerService extends crudService {
       storageGateway.set("access_token", accessToken);
       const normalizedUser = upsertIdentityProfile(
         response.data.user || {
-          customerEmail: email,
-          email,
+          customerEmail: normalizedIdentifier,
+          email: normalizedIdentifier,
         },
-        email
+        normalizedIdentifier
       );
       storageGateway.setJson("user", normalizedUser);
 
@@ -116,6 +178,17 @@ class CustomerService extends crudService {
       const elapsed = Math.round(performance.now() - start);
       logInfo(`Tiempo /auth/verify: ${elapsed}ms`);
     }
+  }
+
+  async verifyRegister(identifier, channel, code) {
+    const normalizedChannel = String(channel || "EMAIL").toUpperCase();
+    const normalizedIdentifier = this.normalizeIdentifier(identifier, normalizedChannel);
+    const response = await this.api.post(
+      "/auth/verifyRegister",
+      { identifier: normalizedIdentifier, channel: normalizedChannel, code },
+      { skipAuth: true }
+    );
+    return response.data;
   }
 
   logout() {

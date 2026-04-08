@@ -128,17 +128,20 @@ export default function MainHeader() {
                 </div>
               </button>
               {menuOpen && (
-                <div className="animate-fade-in absolute right-0 z-50 mt-2 w-44 rounded bg-white py-2 text-slate-900 shadow-lg" role="menu">
+                <div
+                  className="animate-fade-in absolute right-0 z-50 mt-2 w-44 rounded-lg border border-slate-200 bg-white/95 py-2 text-slate-900 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100"
+                  role="menu"
+                >
                   <button
                     type="button"
-                    className="block w-full px-4 py-2 text-left hover:bg-cyan-100"
+                    className="block w-full px-4 py-2 text-left transition hover:bg-slate-100 dark:hover:bg-slate-800"
                     onClick={handleProfile}
                   >
                     Perfil
                   </button>
                   <button
                     type="button"
-                    className="block w-full px-4 py-2 text-left hover:bg-cyan-100"
+                    className="block w-full px-4 py-2 text-left transition hover:bg-slate-100 dark:hover:bg-slate-800"
                     onClick={handleLogout}
                   >
                     Cerrar sesion

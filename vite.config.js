@@ -14,6 +14,16 @@ export default defineConfig(({ mode }) => {
   const securityHeaders = isDev ? {} : SECURITY_HEADERS;
 
   return {
+    envPrefix: [
+      "VITE_",
+      "API_",
+      "ANALYTICS_",
+      "UPLOADS_",
+      "SITE_",
+      "RECAPTCHA_",
+      "BACKEND_",
+      "DEBUG",
+    ],
     plugins: [
       react(),
       vitePrerenderPlugin({

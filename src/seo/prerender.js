@@ -2,7 +2,9 @@ const DEFAULT_IMAGE =
   "https://res.cloudinary.com/dmi0txtoy/image/upload/v1762973077/techcop_vhfqlx.png";
 const BASE_URL =
   (typeof process !== "undefined" && process.env?.VITE_SITE_URL) ||
+  (typeof process !== "undefined" && process.env?.SITE_URL) ||
   globalThis?.process?.env?.VITE_SITE_URL ||
+  globalThis?.process?.env?.SITE_URL ||
   "https://techcol.com";
 
 const PAGE_META = {

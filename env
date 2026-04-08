@@ -1,0 +1,9 @@
+# TechCol frontend local environment
+# These values are resolved from environment variables already defined in Windows.
+# Restart the dev server after changing your system environment variables.
+VITE_API_URL=/api
+VITE_RECAPTCHA_SITE_KEY=6LeLYqgsAAAAAKSGVaGMDVzt7QxOUholGuplmEwW
+VITE_SITE_URL=https://frontend-techcol.up.railway.app
+VITE_UPLOADS_PATH=/uploads/products
+VITE_DEBUG=false
+BACKEND_UPSTREAM=http://backendtechcol.railway.internal
