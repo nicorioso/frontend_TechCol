@@ -3,7 +3,7 @@ import { Input } from "../IU/forms/input";
 import PhoneInput from "../IU/forms/phoneInput";
 import Button from "../IU/forms/button";
 import Alert from "../IU/alerts/Alerts";
-import VerifyCodeModal from "../IU/modal/VerifyCodeModal";
+import PasswordChangeFlow from "./PasswordChangeFlow";
 import UserService from "../../services/customer/UserService";
 import CustomerService from "../../services/customer/CustomerService";
 import { useState, useEffect, useRef } from "react";
@@ -40,11 +40,6 @@ export default function Settings() {
 
   const [formValues, setFormValues] = useState({});
   const initialProfileRef = useRef({});
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isVerifyPasswordModalOpen, setIsVerifyPasswordModalOpen] = useState(false);
-  const [logoutPassword, setLogoutPassword] = useState("");
   const [alertState, setAlertState] = useState({ visible: false, type: "info", message: "" });
 
   const buildInitialValues = (fields = []) =>
@@ -88,7 +83,6 @@ export default function Settings() {
   }
 
   const [isSaving, setIsSaving] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function persistProfile() {
@@ -140,51 +134,6 @@ export default function Settings() {
       });
     } finally {
       setIsSaving(false);
-    }
-  }
-
-  async function handlePasswordSubmit(e) {
-    e.preventDefault();
-    const email =
-      formValues.customer_email ||
-      CustomerService.getCurrentUser()?.customerEmail ||
-      CustomerService.getCurrentUser()?.email;
-
-    if (!email) {
-      setAlertState({
-        visible: true,
-        type: "error",
-        message: "No se pudo identificar el correo del usuario",
-      });
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setAlertState({
-        visible: true,
-        type: "warning",
-        message: "La nueva contrasena y la confirmacion no coinciden",
-      });
-      return;
-    }
-    setIsChangingPassword(true);
-    try {
-      await UserService.startPasswordChange(email, currentPassword);
-      setIsVerifyPasswordModalOpen(true);
-      setAlertState({
-        visible: true,
-        type: "success",
-        message: "Te enviamos un codigo de verificacion para continuar con el cambio de contrasena",
-      });
-    } catch (err) {
-      console.error(err);
-      setAlertState({
-        visible: true,
-        type: "error",
-        message: "Error cambiando la contrasena",
-      });
-    } finally {
-      setIsChangingPassword(false);
     }
   }
 
@@ -308,81 +257,18 @@ export default function Settings() {
               </div>
 
               <div className="col-span-9 mt-12">
-                <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                  <Input
-                    type="password"
-                    name="currentPassword"
-                    label="Contrasena actual"
-                    placeholder="Contrasena actual"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                  />
-
-                  <Input
-                    type="password"
-                    name="newPassword"
-                    label="Nueva contrasena"
-                    placeholder="Nueva contrasena"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-
-                  <Input
-                    type="password"
-                    name="confirmPassword"
-                    label="Confirmar contrasena"
-                    placeholder="Confirmar contrasena"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-
-                  <div>
-                    <Button type="submit" disabled={isChangingPassword}>
-                      {isChangingPassword ? "Guardando..." : "Enviar codigo"}
-                    </Button>
-                  </div>
-                </form>
-
-                <VerifyCodeModal
-                  isOpen={isVerifyPasswordModalOpen}
+                <PasswordChangeFlow
                   email={
                     formValues.customer_email ||
                     CustomerService.getCurrentUser()?.customerEmail ||
                     CustomerService.getCurrentUser()?.email
                   }
-                  originalPassword={currentPassword}
-                  title="Verificar cambio"
-                  descriptionPrefix="Hemos enviado un codigo para autorizar el cambio de contrasena a"
-                  submitLabel="Verificar y guardar"
-                  backLabel="Cancelar cambio"
-                  onClose={() => setIsVerifyPasswordModalOpen(false)}
-                  onResendCode={() =>
-                    UserService.startPasswordChange(
-                      formValues.customer_email ||
-                        CustomerService.getCurrentUser()?.customerEmail ||
-                        CustomerService.getCurrentUser()?.email,
-                      currentPassword
-                    )
+                  phone={
+                    formValues.customer_phone_number
+                      ? `${formValues.customer_country_code || "+57"}${formValues.customer_phone_number}`
+                      : ""
                   }
-                  onSubmitCode={async (code) => {
-                    const email =
-                      formValues.customer_email ||
-                      CustomerService.getCurrentUser()?.customerEmail ||
-                      CustomerService.getCurrentUser()?.email;
-                    await UserService.verifyPasswordChangeCode(email, code);
-                    return UserService.changePassword(email, newPassword);
-                  }}
-                  onVerified={() => {
-                    setCurrentPassword("");
-                    setNewPassword("");
-                    setConfirmPassword("");
-                    setIsVerifyPasswordModalOpen(false);
-                    setAlertState({
-                      visible: true,
-                      type: "success",
-                      message: "Contrasena actualizada",
-                    });
-                  }}
+                  compact
                 />
               </div>
 

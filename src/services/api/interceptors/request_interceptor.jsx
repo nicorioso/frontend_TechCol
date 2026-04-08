@@ -13,8 +13,10 @@ const requestInterceptor = (api) => {
         try {
           token = await refreshAccessToken(api);
         } catch (error) {
-          clearSession();
-          window.location.href = '/auth/login';
+          if (!config.preserveSessionOnAuthError) {
+            clearSession();
+            window.location.href = '/auth/login';
+          }
           return Promise.reject(error);
         }
       }

@@ -8,6 +8,7 @@ const responseInterceptor = (api) => {
       const status = error?.response?.status;
       const originalRequest = error?.config || {};
       const isPublicRequest = isPublicEndpoint(originalRequest.url);
+      const preserveSessionOnAuthError = Boolean(originalRequest.preserveSessionOnAuthError);
 
       if (
         (status === 401 || status === 403) &&
@@ -23,13 +24,15 @@ const responseInterceptor = (api) => {
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
         } catch (refreshError) {
-          clearSession();
-          window.location.href = '/auth/login';
+          if (!preserveSessionOnAuthError) {
+            clearSession();
+            window.location.href = '/auth/login';
+          }
           return Promise.reject(refreshError);
         }
       }
 
-      if (status === 401) {
+      if (status === 401 && !originalRequest.skipAuth && !isPublicRequest && !preserveSessionOnAuthError) {
         clearSession();
         window.location.href = '/auth/login';
       }

@@ -27,6 +27,33 @@ const UserService = {
     return res.data;
   },
 
+  requestAuthenticatedPasswordChange: async (channel) => {
+    const res = await axiosInstance.post(
+      "/auth/password-change/request",
+      { channel },
+      { preserveSessionOnAuthError: true }
+    );
+    return res.data;
+  },
+
+  verifyAuthenticatedPasswordChange: async (channel, code) => {
+    const res = await axiosInstance.post(
+      "/auth/password-change/verify",
+      { channel, code },
+      { preserveSessionOnAuthError: true }
+    );
+    return res.data;
+  },
+
+  confirmAuthenticatedPasswordChange: async (newPassword) => {
+    const res = await axiosInstance.post(
+      "/auth/password-change/confirm",
+      { newPassword },
+      { preserveSessionOnAuthError: true }
+    );
+    return res.data;
+  },
+
   startPasswordChange: async (email, password) => {
     const res = await axiosInstance.post("/auth/changePasswordAuthen", { email, password });
     return res.data;

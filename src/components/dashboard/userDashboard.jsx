@@ -7,6 +7,7 @@ import { images } from "../../assets/img/img_url";
 import UserService from "../../services/customer/UserService";
 import { buildBackendAssetUrl } from "../../utils/backendAssetUrl";
 import { normalizePhoneToE164 } from "../../utils/phone";
+import PasswordChangeFlow from "./PasswordChangeFlow";
 import {
   CheckCircle2,
   ChevronRight,
@@ -874,7 +875,8 @@ export default function UserDashboard() {
       ) : null}
 
       {activeTab === "cuenta" ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/60 lg:p-8">
+        <div className="space-y-8">
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/60 lg:p-8">
           <div className="mb-6 flex items-center gap-3">
             <div className="rounded-xl bg-cyan-100 p-2 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
               <CircleUserRound className="h-4 w-4" />
@@ -961,7 +963,12 @@ export default function UserDashboard() {
               </div>
             </form>
           )}
-        </section>
+          </section>
+          <PasswordChangeFlow
+            email={profileForm.customerEmail}
+            phone={profileForm.customerPhoneNumber}
+          />
+        </div>
       ) : null}
 
       <OrderDetailsModal
