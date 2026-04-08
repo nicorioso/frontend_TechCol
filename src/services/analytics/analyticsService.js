@@ -1,19 +1,12 @@
-import axios from "axios";
-import { ANALYTICS_API_URL } from "../../config/config";
 import orderService from "../order/orderService";
 import productService from "../product/productService";
-import { getToken } from "../../utils/authSession";
+import { analyticsRequest } from "./analyticsClient";
 
 const normalizeArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
 
 const toNumber = (value) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const getAuthHeaders = () => {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 const getDashboardErrorMessage = (error) =>
@@ -153,8 +146,9 @@ const buildFallbackDashboard = async () => {
 const analyticsService = {
   getDashboardData: async () => {
     try {
-      const response = await axios.get(`${ANALYTICS_API_URL}/reports/dashboard`, {
-        headers: getAuthHeaders(),
+      const response = await analyticsRequest({
+        url: "/reports/dashboard",
+        method: "get",
       });
 
       return {
@@ -163,6 +157,7 @@ const analyticsService = {
         warning: "",
         capabilities: {
           exports: true,
+          exportFormats: ["csv", "excel"],
         },
       };
     } catch (analyticsError) {
@@ -176,6 +171,7 @@ const analyticsService = {
         )} Se muestran metricas calculadas desde pedidos y productos.`,
         capabilities: {
           exports: false,
+          exportFormats: ["csv", "excel"],
         },
       };
     }

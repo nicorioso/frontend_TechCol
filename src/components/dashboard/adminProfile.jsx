@@ -17,7 +17,7 @@ import {
   BadgeDollarSign,
   Boxes,
   Clock3,
-  Download,
+  FileText,
   FileSpreadsheet,
   PackageSearch,
   ShieldCheck,
@@ -80,6 +80,21 @@ const Placeholder = ({ text }) => (
     {text}
   </div>
 );
+
+const EXPORT_ACTIONS = [
+  {
+    key: "csv",
+    label: "Descargar CSV",
+    loadingLabel: "Descargando CSV...",
+    icon: FileText,
+  },
+  {
+    key: "excel",
+    label: "Descargar Excel",
+    loadingLabel: "Descargando Excel...",
+    icon: FileSpreadsheet,
+  },
+];
 
 export default function AdminProfile() {
   const { data, loading, error, warning, source, capabilities } = useDashboard();
@@ -159,6 +174,7 @@ export default function AdminProfile() {
   const salesChart = data?.sales_chart || [];
   const summaryMetrics = data?.summary || {};
   const showExports = Boolean(capabilities?.exports);
+  const exportFormats = capabilities?.exportFormats || [];
   const showAuditPanel = !auditError && (auditLoading || auditLogs.length > 0);
 
   const totalTopUnits = useMemo(
@@ -269,53 +285,69 @@ export default function AdminProfile() {
       <div className="flex bg-slate-100 dark:bg-slate-950">
         <Sidebar
           content={
-            <div className="min-h-screen flex-1 bg-[linear-gradient(180deg,_#f8fafc_0%,_#eef6f5_40%,_#f8fafc_100%)] p-6 dark:bg-[linear-gradient(180deg,_#020617_0%,_#0f172a_55%,_#020617_100%)] md:p-8 xl:p-10">
+            <div className="w-full p-6 md:p-8 xl:p-10">
               <div className="mx-auto max-w-7xl space-y-6">
                 <section className={`${cardClass} overflow-hidden`}>
                   <div className="grid lg:grid-cols-[1.45fr_0.95fr]">
                     <div className="border-b border-slate-200 p-7 dark:border-slate-800 lg:border-b-0 lg:border-r lg:p-9">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-700 dark:border-teal-900/40 dark:bg-teal-950/30 dark:text-teal-300">
-                          <ShieldCheck className="h-4 w-4" />
-                          Centro administrativo
-                        </p>
-                        <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                          {source === "analytics" ? "Analytics" : "Fuente de respaldo"}
-                        </span>
-                      </div>
-                      <h1 className="mt-5 max-w-3xl text-3xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                        Gestiona reportes, rendimiento comercial y actividad operativa desde un solo lugar.
-                      </h1>
-                      <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-                        Priorizamos una lectura clara: metricas arriba, comparativos al centro y seguimiento operativo abajo.
-                      </p>
-                      <div className="mt-6 flex flex-wrap gap-3">
-                        {showExports ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleExport("excel")}
-                              disabled={exporting === "excel"}
-                              className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400"
-                            >
-                              <FileSpreadsheet className="h-4 w-4" />
-                              {exporting === "excel" ? "Descargando Excel..." : "Descargar Excel"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleExport("csv")}
-                              disabled={exporting === "csv"}
-                              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                            >
-                              <Download className="h-4 w-4" />
-                              {exporting === "csv" ? "Descargando CSV..." : "Descargar CSV"}
-                            </button>
-                          </>
-                        ) : (
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Las exportaciones se ocultan mientras el panel usa metricas calculadas desde el backend principal.
+                      <div className="flex h-full flex-col">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-700 dark:border-teal-900/40 dark:bg-teal-950/30 dark:text-teal-300">
+                              <ShieldCheck className="h-4 w-4" />
+                              Centro administrativo
+                            </p>
+                            <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                              {source === "analytics" ? "Analytics Python" : "Fuente de respaldo"}
+                            </span>
+                          </div>
+                          <h1 className="mt-5 max-w-3xl text-3xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+                            Gestiona reportes, rendimiento comercial y actividad operativa desde un solo lugar.
+                          </h1>
+                          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+                            Priorizamos una lectura clara: metricas arriba, comparativos al centro y seguimiento operativo abajo.
                           </p>
-                        )}
+                        </div>
+
+                        <div className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-800 lg:mt-auto">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                            Reportes exportables
+                          </p>
+                          <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+                            Exporta ventas desde la API de analytics en formato CSV o Excel sin salir del panel.
+                          </p>
+
+                          <div className="mt-4 flex flex-wrap gap-3">
+                            {EXPORT_ACTIONS.map((action) => {
+                              const Icon = action.icon;
+                              const isActive = exportFormats.includes(action.key);
+                              const isDisabled = !showExports || !isActive || exporting === action.key;
+
+                              return (
+                                <button
+                                  key={action.key}
+                                  type="button"
+                                  onClick={() => handleExport(action.key)}
+                                  disabled={isDisabled}
+                                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                                    action.key === "excel"
+                                      ? "bg-slate-950 text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400"
+                                      : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                                >
+                                  <Icon className="h-4 w-4" />
+                                  {exporting === action.key ? action.loadingLabel : action.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                            {showExports
+                              ? "Los archivos se generan desde la fuente de analytics activa."
+                              : "Analytics no esta disponible ahora mismo. Las metricas siguen usando respaldo, pero las exportaciones quedan deshabilitadas."}
+                          </p>
+                        </div>
                       </div>
                     </div>
 

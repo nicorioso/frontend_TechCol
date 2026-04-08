@@ -21,6 +21,7 @@ export default function PhoneInput({
   onChange,
   disabled = false,
   placeholder = '3001234567',
+  inputClassName = '',
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -104,7 +105,7 @@ export default function PhoneInput({
         value={value ?? ''}
         onChange={onChange}
         placeholder={placeholder}
-        className="min-w-0 flex-1 rounded-r-md px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-400"
+        className={`min-w-0 flex-1 rounded-r-md px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-400 ${inputClassName}`}
         disabled={disabled}
       />
     </div>

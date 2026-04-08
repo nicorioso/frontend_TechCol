@@ -127,3 +127,34 @@ select.checkout-field:-webkit-autofill {
   box-shadow: 0 0 0 1000px #0f172a inset;
   caret-color: #e5e7eb;
 }
+
+input.entity-form-field:-webkit-autofill,
+input.entity-form-field:-webkit-autofill:hover,
+input.entity-form-field:-webkit-autofill:focus,
+textarea.entity-form-field:-webkit-autofill,
+textarea.entity-form-field:-webkit-autofill:hover,
+textarea.entity-form-field:-webkit-autofill:focus,
+select.entity-form-field:-webkit-autofill,
+select.entity-form-field:-webkit-autofill:hover,
+select.entity-form-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #334155;
+  -webkit-box-shadow: 0 0 0 1000px rgba(248, 250, 252, 0.95) inset;
+  box-shadow: 0 0 0 1000px rgba(248, 250, 252, 0.95) inset;
+  caret-color: #334155;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.dark input.entity-form-field:-webkit-autofill,
+.dark input.entity-form-field:-webkit-autofill:hover,
+.dark input.entity-form-field:-webkit-autofill:focus,
+.dark textarea.entity-form-field:-webkit-autofill,
+.dark textarea.entity-form-field:-webkit-autofill:hover,
+.dark textarea.entity-form-field:-webkit-autofill:focus,
+.dark select.entity-form-field:-webkit-autofill,
+.dark select.entity-form-field:-webkit-autofill:hover,
+.dark select.entity-form-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #e2e8f0;
+  -webkit-box-shadow: 0 0 0 1000px #1e293b inset;
+  box-shadow: 0 0 0 1000px #1e293b inset;
+  caret-color: #e2e8f0;
+}

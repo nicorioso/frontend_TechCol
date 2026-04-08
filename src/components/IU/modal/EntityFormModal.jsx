@@ -71,7 +71,7 @@ export default function EntityFormModal({
                     name={field.name}
                     value={values[field.name] ?? ''}
                     onChange={onChange}
-                    className="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-slate-500 dark:focus:bg-slate-900 dark:focus:ring-slate-800"
+                    className="entity-form-field block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-slate-500 dark:focus:bg-slate-900 dark:focus:ring-slate-800"
                     required={field.required !== false}
                     disabled={field.disabled}
                   >
@@ -94,6 +94,7 @@ export default function EntityFormModal({
                       onChange={onChange}
                       disabled={field.disabled}
                       placeholder={field.placeholder}
+                      inputClassName="entity-form-field"
                     />
                   </div>
                 ) : field.type === 'file' || field.type === 'image' ? (
@@ -147,7 +148,7 @@ export default function EntityFormModal({
                       value={values[field.name] ?? ''}
                       onChange={onChange}
                       placeholder={field.placeholder || ''}
-                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 pr-11 text-sm text-slate-700 shadow-sm outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-slate-500 dark:focus:bg-slate-900 dark:focus:ring-slate-800"
+                      className="entity-form-field block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 pr-11 text-sm text-slate-700 shadow-sm outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-slate-500 dark:focus:bg-slate-900 dark:focus:ring-slate-800"
                       required={field.required !== false}
                       disabled={field.disabled}
                       readOnly={field.readOnly}
