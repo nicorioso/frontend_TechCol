@@ -28,6 +28,7 @@ const getVerifyErrorMessage = (err) => {
 
 export default function VerifyCodeModal({
   isOpen,
+  identifier,
   email,
   channel,
   onClose,
@@ -56,9 +57,13 @@ export default function VerifyCodeModal({
     setResendRecaptchaResetKey((prev) => prev + 1);
   };
 
-  const contactValue = useMemo(() => String(email || "").trim(), [email]);
+  const contactValue = useMemo(
+    () => String(identifier ?? email ?? "").trim(),
+    [identifier, email]
+  );
+
   const inferredChannel = useMemo(() => {
-    if (channel) return channel;
+    if (channel) return String(channel).toUpperCase();
     return contactValue.includes("@") ? "EMAIL" : "SMS";
   }, [channel, contactValue]);
 
@@ -148,8 +153,8 @@ export default function VerifyCodeModal({
     inputRefs.current[focusIndex]?.focus();
   };
 
-  const handleSubmit = async (e) => {
-    e?.preventDefault();
+  const handleSubmit = async (event) => {
+    event?.preventDefault();
     setLoading(true);
     setError("");
 
@@ -160,11 +165,12 @@ export default function VerifyCodeModal({
         return;
       }
 
-      const res = onSubmitCode
+      const response = onSubmitCode
         ? await onSubmitCode(code)
-        : await CustomerService.verify(email, code);
-      onVerified && onVerified(res);
-      onClose && onClose();
+        : await CustomerService.verify(contactValue, inferredChannel, code);
+
+      onVerified?.(response);
+      onClose?.();
     } catch (err) {
       console.error("Error verificando codigo:", err);
       setError(getVerifyErrorMessage(err));
@@ -189,11 +195,13 @@ export default function VerifyCodeModal({
 
       setResending(true);
       setError("");
+
       if (onResendCode) {
         await onResendCode(resendRecaptchaToken);
       } else {
-        await CustomerService.login(email, originalPassword, resendRecaptchaToken);
+        await CustomerService.login(contactValue, originalPassword, resendRecaptchaToken, inferredChannel);
       }
+
       setSecondsLeft(resendCooldownSeconds);
     } catch (err) {
       console.error("Error reenviando codigo:", err);
@@ -234,16 +242,16 @@ export default function VerifyCodeModal({
             {Array.from({ length: 6 }).map((_, index) => (
               <input
                 key={index}
-                ref={(el) => {
-                  inputRefs.current[index] = el;
+                ref={(element) => {
+                  inputRefs.current[index] = element;
                 }}
                 type="text"
                 inputMode="numeric"
                 pattern="\d*"
                 maxLength={1}
                 value={code[index] || ""}
-                onChange={(e) => updateCodeAt(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
+                onChange={(event) => updateCodeAt(event.target.value)}
+                onKeyDown={(event) => handleKeyDown(event, index)}
                 autoFocus={index === 0}
                 className="h-12 w-10 rounded-lg border border-slate-300 bg-white text-center text-lg font-semibold text-slate-900 outline-none transition-colors focus:border-cyan-500 focus:ring-2 focus:ring-cyan-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-700"
               />
@@ -300,7 +308,7 @@ export default function VerifyCodeModal({
 
           {secondsLeft <= 0 && error && (
             <div className="text-center text-sm text-slate-500 dark:text-slate-400">
-              Si el problema persiste, verifica tu correo y vuelve a solicitar el codigo.
+              Si el problema persiste, verifica tu {inferredChannel === "EMAIL" ? "correo" : "telefono"} y vuelve a solicitar el codigo.
             </div>
           )}
 
@@ -308,7 +316,7 @@ export default function VerifyCodeModal({
             <input
               type="text"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
             />
           </div>
         </form>
