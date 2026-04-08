@@ -23,6 +23,22 @@ const SHIPPING_METHODS = [
   { id: "express", label: "Express (2-3 dias)", cost: 59999 },
   { id: "next_day", label: "Entrega al dia siguiente", cost: 99999 },
 ];
+const COUNTRY_OPTIONS = ["Colombia", "Mexico", "Peru", "Chile"];
+const PAYMENT_METHODS = [
+  { id: "paypal", label: "paypal", disabled: false },
+  { id: "tarjeta", label: "tarjeta (proximamente)", disabled: true },
+  { id: "transferencia", label: "transferencia (proximamente)", disabled: true },
+];
+const SHIPPING_FIELDS = [
+  { name: "fullName", label: "Nombre Completo *", type: "text" },
+  { name: "email", label: "Email *", type: "email" },
+  { name: "phone", label: "Telefono *", type: "tel", placeholder: "+57 312 345 6789" },
+  { name: "zipCode", label: "Codigo Postal", type: "text", placeholder: "110111" },
+];
+const LOCATION_FIELDS = [
+  { name: "state", label: "Departamento *", placeholder: "Bogota" },
+  { name: "city", label: "Ciudad *", placeholder: "Bogota" },
+];
 
 const buildInitialFormData = () => {
   const user = cartService.getSession().user ?? {};
@@ -60,25 +76,11 @@ const buildPaymentResult = (status, orderCode, message) => ({
   paymentMethod: "paypal",
   message,
 });
-const hasInsufficientFundsError = (error) => {
-  const rawMessage =
-    error?.response?.data?.message ??
-    error?.response?.data ??
-    error?.message ??
-    "";
-
-  const normalizedMessage = String(rawMessage).toUpperCase();
-  return normalizedMessage.includes("INSTRUMENT_DECLINED");
-};
-const hasAlreadyCapturedError = (error) => {
-  const rawMessage =
-    error?.response?.data?.message ??
-    error?.response?.data ??
-    error?.message ??
-    "";
-
-  return String(rawMessage).toUpperCase().includes("ORDER_ALREADY_CAPTURED");
-};
+const getErrorMessage = (error, fallback = "") =>
+  String(error?.response?.data?.message ?? error?.response?.data ?? error?.message ?? fallback);
+const hasPayPalErrorCode = (error, code) => getErrorMessage(error).toUpperCase().includes(code);
+const hasInsufficientFundsError = (error) => hasPayPalErrorCode(error, "INSTRUMENT_DECLINED");
+const hasAlreadyCapturedError = (error) => hasPayPalErrorCode(error, "ORDER_ALREADY_CAPTURED");
 const getSuccessfulPaypalResult = (paypalOrderId, message = "Tu orden fue creada correctamente.") =>
   buildPaymentResult("success", paypalOrderId, message);
 const getInsufficientFundsPaypalResult = (paypalOrderId) =>
@@ -133,6 +135,34 @@ const finalizePaypalCapture = async (paypalOrderId) => {
   paypalCaptureTasks.set(paypalOrderId, task);
   return task;
 };
+const getSummaryRows = (summary) => [
+  { label: "Subtotal", value: summary.subtotal },
+  { label: "IVA (19%)", value: summary.tax },
+  { label: "Envio", value: summary.shipping },
+];
+const SummaryAmount = ({ amount, convertCopToUsd }) => (
+  <span className="text-right">
+    <span className="block text-base font-semibold text-slate-900 dark:text-white">
+      {formatUsdCurrency(convertCopToUsd(amount))}
+    </span>
+    <span className="block text-xs text-slate-400 dark:text-gray-500">
+      Aprox. {formatCopCurrency(amount)}
+    </span>
+  </span>
+);
+const TextField = ({ label, name, value, onChange, type = "text", placeholder }) => (
+  <div>
+    <label className={checkoutLabelClassName}>{label}</label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={checkoutFieldClassName}
+    />
+  </div>
+);
 
 export default function CheckoutPage() {
   const location = useLocation();
@@ -208,13 +238,7 @@ export default function CheckoutPage() {
         navigate("/checkout", { replace: true });
       } catch (error) {
         if (!isMounted) return;
-
-        const message =
-          error?.response?.data?.message ??
-          error?.response?.data ??
-          "No fue posible confirmar el pago con PayPal. Intenta de nuevo.";
-
-        setNotice(String(message));
+        setNotice(getErrorMessage(error, "No fue posible confirmar el pago con PayPal. Intenta de nuevo."));
         navigate("/checkout", { replace: true });
       } finally {
         if (isMounted) {
@@ -319,13 +343,7 @@ export default function CheckoutPage() {
 
       window.location.href = approveUrl;
     } catch (error) {
-      const message =
-        error?.response?.data?.message ??
-        error?.response?.data ??
-        error?.message ??
-        "No fue posible iniciar el pago con PayPal. Intenta de nuevo.";
-
-      setNotice(String(message));
+      setNotice(getErrorMessage(error, "No fue posible iniciar el pago con PayPal. Intenta de nuevo."));
     } finally {
       setIsSubmitting(false);
     }
@@ -430,85 +448,40 @@ export default function CheckoutPage() {
                   </h2>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className={checkoutLabelClassName}>Nombre Completo *</label>
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={formData.fullName}
+                    {SHIPPING_FIELDS.map((field) => (
+                      <TextField
+                        key={field.name}
+                        label={field.label}
+                        name={field.name}
+                        type={field.type}
+                        value={formData[field.name]}
                         onChange={handleChange}
-                        className={checkoutFieldClassName}
+                        placeholder={field.placeholder}
                       />
-                    </div>
-                    <div>
-                      <label className={checkoutLabelClassName}>Email *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className={checkoutFieldClassName}
-                      />
-                    </div>
-                    <div>
-                      <label className={checkoutLabelClassName}>Telefono *</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="+57 312 345 6789"
-                        className={checkoutFieldClassName}
-                      />
-                    </div>
-                    <div>
-                      <label className={checkoutLabelClassName}>Codigo Postal</label>
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={formData.zipCode}
-                        onChange={handleChange}
-                        placeholder="110111"
-                        className={checkoutFieldClassName}
-                      />
-                    </div>
+                    ))}
                   </div>
 
                   <div className="mt-4">
-                    <label className={checkoutLabelClassName}>Direccion *</label>
-                    <input
-                      type="text"
+                    <TextField
+                      label="Direccion *"
                       name="street"
                       value={formData.street}
                       onChange={handleChange}
                       placeholder="Calle 123 #45-67"
-                      className={checkoutFieldClassName}
                     />
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className={checkoutLabelClassName}>Departamento *</label>
-                      <input
-                        type="text"
-                        name="state"
-                        value={formData.state}
+                    {LOCATION_FIELDS.map((field) => (
+                      <TextField
+                        key={field.name}
+                        label={field.label}
+                        name={field.name}
+                        value={formData[field.name]}
                         onChange={handleChange}
-                        placeholder="Bogota"
-                        className={checkoutFieldClassName}
+                        placeholder={field.placeholder}
                       />
-                    </div>
-                    <div>
-                      <label className={checkoutLabelClassName}>Ciudad *</label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        placeholder="Bogota"
-                        className={checkoutFieldClassName}
-                      />
-                    </div>
+                    ))}
                   </div>
 
                   <div className="mt-4">
@@ -520,10 +493,11 @@ export default function CheckoutPage() {
                       className={checkoutFieldClassName}
                     >
                       <option value="">Choose option...</option>
-                      <option value="Colombia">Colombia</option>
-                      <option value="Mexico">Mexico</option>
-                      <option value="Peru">Peru</option>
-                      <option value="Chile">Chile</option>
+                      {COUNTRY_OPTIONS.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -576,11 +550,11 @@ export default function CheckoutPage() {
                       Metodo de pago
                     </h2>
                     <div className="space-y-2">
-                      {["paypal", "tarjeta", "transferencia"].map((method) => (
+                      {PAYMENT_METHODS.map((method) => (
                         <label
-                          key={method}
+                          key={method.id}
                           className={`flex items-center gap-2 rounded border p-2 ${
-                            method === "paypal"
+                            method.id === "paypal"
                               ? "border-slate-200 dark:border-gray-700 dark:bg-gray-900"
                               : "border-slate-100 bg-slate-50 text-slate-400 dark:border-gray-800 dark:bg-gray-900/70 dark:text-gray-500"
                           }`}
@@ -588,16 +562,13 @@ export default function CheckoutPage() {
                           <input
                             type="radio"
                             name="paymentMethod"
-                            value={method}
-                            checked={formData.paymentMethod === method}
+                            value={method.id}
+                            checked={formData.paymentMethod === method.id}
                             onChange={handleChange}
-                            disabled={method !== "paypal" || isAdminUser}
+                            disabled={method.disabled || isAdminUser}
                             className="h-4 w-4 accent-cyan-600"
                           />
-                          <span className="text-sm capitalize dark:text-gray-200">
-                            {method}
-                            {method !== "paypal" ? " (proximamente)" : ""}
-                          </span>
+                          <span className="text-sm capitalize dark:text-gray-200">{method.label}</span>
                         </label>
                       ))}
                     </div>
@@ -615,39 +586,12 @@ export default function CheckoutPage() {
                   <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Resumen del Pedido</h3>
 
                   <div className="space-y-2 border-b border-slate-200 pb-4 text-sm dark:border-gray-700">
-                    <div className="flex items-start justify-between gap-4 text-slate-600 dark:text-gray-300">
-                      <span>Subtotal</span>
-                      <span className="text-right">
-                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
-                          {formatUsdCurrency(convertCopToUsd(summary.subtotal))}
-                        </span>
-                        <span className="block text-xs text-slate-400 dark:text-gray-500">
-                          Aprox. {formatCopCurrency(summary.subtotal)}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="flex items-start justify-between gap-4 text-slate-600 dark:text-gray-300">
-                      <span>IVA (19%)</span>
-                      <span className="text-right">
-                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
-                          {formatUsdCurrency(convertCopToUsd(summary.tax))}
-                        </span>
-                        <span className="block text-xs text-slate-400 dark:text-gray-500">
-                          Aprox. {formatCopCurrency(summary.tax)}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="flex items-start justify-between gap-4 text-slate-600 dark:text-gray-300">
-                      <span>Envio</span>
-                      <span className="text-right">
-                        <span className="block text-base font-semibold text-slate-900 dark:text-white">
-                          {formatUsdCurrency(convertCopToUsd(summary.shipping))}
-                        </span>
-                        <span className="block text-xs text-slate-400 dark:text-gray-500">
-                          Aprox. {formatCopCurrency(summary.shipping)}
-                        </span>
-                      </span>
-                    </div>
+                    {getSummaryRows(summary).map((row) => (
+                      <div key={row.label} className="flex items-start justify-between gap-4 text-slate-600 dark:text-gray-300">
+                        <span>{row.label}</span>
+                        <SummaryAmount amount={row.value} convertCopToUsd={convertCopToUsd} />
+                      </div>
+                    ))}
                   </div>
 
                   <div className="my-4 flex items-start justify-between gap-4">
