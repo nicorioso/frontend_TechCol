@@ -2,6 +2,9 @@ import PropTypes from "prop-types";
 import { Helmet } from "react-helmet-async";
 import { buildAbsoluteUrl, seoConfig } from "./seoConfig";
 
+const FAVICON_URL =
+  "https://res.cloudinary.com/dmi0txtoy/image/upload/v1762974205/image-removebg-preview_htb5sp.png";
+
 export default function SeoHead({ routeKey, override = {}, schema = null }) {
   const config = { ...(seoConfig[routeKey] || seoConfig.home), ...(override || {}) };
   const canonical = config.canonical || buildAbsoluteUrl(config.path || "/");
@@ -17,6 +20,8 @@ export default function SeoHead({ routeKey, override = {}, schema = null }) {
   return (
     <Helmet prioritizeSeoTags>
       <title>{title}</title>
+      <link rel="icon" type="image/png" href={FAVICON_URL} />
+      <link rel="apple-touch-icon" href={FAVICON_URL} />
       <meta name="description" content={description} />
       <meta name="robots" content={robots} />
       <link rel="canonical" href={canonical} />
