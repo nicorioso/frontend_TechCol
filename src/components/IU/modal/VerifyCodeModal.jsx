@@ -5,25 +5,36 @@ import RecaptchaCheckbox from "../forms/RecaptchaCheckbox";
 
 const getVerifyErrorMessage = (err) => {
   const status = err?.response?.status;
+  const responseData = err?.response?.data;
+  const responseMessage =
+    typeof responseData === "string"
+      ? responseData
+      : responseData?.message ||
+        responseData?.error ||
+        responseData?.errors?.find?.((item) => item?.message)?.message ||
+        "";
+
+  if (status === 429) {
+    return responseMessage || "Demasiados intentos. Espera un minuto para volver a intentarlo.";
+  }
+
+  if (status === 503) {
+    return responseMessage || "No fue posible enviar o validar el codigo por SMS en este momento.";
+  }
 
   if (status === 403) {
-    return "No autorizado para verificar. Reingresa y solicita un nuevo codigo.";
+    return responseMessage || "No autorizado para verificar. Reingresa y solicita un nuevo codigo.";
   }
 
   if (status === 401) {
-    return "Sesion no valida. Inicia sesion de nuevo.";
+    return responseMessage || "Sesion no valida. Inicia sesion de nuevo.";
   }
 
   if (status === 400) {
-    return "Codigo invalido o expirado. Solicita uno nuevo.";
+    return responseMessage || "Codigo invalido o expirado. Solicita uno nuevo.";
   }
 
-  if (status === 429) {
-    return "Demasiados intentos. Espera un minuto para volver a intentarlo.";
-  }
-
-  const dataMessage = typeof err?.response?.data === "string" ? err.response.data : "";
-  return dataMessage || err?.message || "Codigo invalido";
+  return responseMessage || err?.message || "Codigo invalido";
 };
 
 export default function VerifyCodeModal({

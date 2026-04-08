@@ -15,13 +15,20 @@ const normalizeIdentifier = (identifier, channel) => {
 const useLoginForm = () => {
   const getLoginErrorMessage = (err) => {
     const status = err?.response?.status;
+    const responseData = err?.response?.data;
     const responseMessage =
-      typeof err?.response?.data === "string"
-        ? err.response.data
-        : err?.response?.data?.message || err?.response?.data?.error;
+      typeof responseData === "string"
+        ? responseData
+        : responseData?.message ||
+          responseData?.error ||
+          responseData?.errors?.find?.((item) => item?.message)?.message;
 
     if (status === 429) {
       return responseMessage || "Demasiados intentos. Intenta de nuevo en un minuto.";
+    }
+
+    if (status === 503) {
+      return responseMessage || "No fue posible enviar el codigo OTP por SMS en este momento.";
     }
 
     if (status === 403) {
